@@ -109,7 +109,7 @@
       </template>
       <template v-else-if="step === 'withdrawal-finalization-warning'">
         <CommonAlert variant="warning" :icon="ExclamationTriangleIcon" class="mb-block-padding-1/2 sm:mb-block-gap">
-          <p>
+          <p v-if="!isCustomNode">
             After a
             <a class="underline underline-offset-2" :href="ZKSYNC_WITHDRAWAL_DELAY" target="_blank"
               >24-hour withdrawal delay</a
@@ -121,6 +121,10 @@
               class="underline underline-offset-2"
               >third-party bridges</a
             >.
+          </p>
+          <p v-else>
+            After transaction is executed on {{ eraNetwork.l1Network?.name }}, you will need to manually claim your
+            funds which requires paying another transaction fee on {{ eraNetwork.l1Network?.name }}.
           </p>
         </CommonAlert>
         <CommonButton
@@ -140,7 +144,7 @@
       </template>
       <template v-else-if="step === 'confirm'">
         <CommonAlert
-          v-if="type === 'withdrawal'"
+          v-if="type === 'withdrawal' && !isCustomNode"
           variant="warning"
           :icon="ExclamationTriangleIcon"
           class="mb-block-padding-1/2 sm:mb-block-gap"

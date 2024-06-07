@@ -10,7 +10,7 @@ import { join as pathJoin, parse as pathParse } from "path";
 
 import { generateNetworkConfig, logUserInfo, promptNetworkReplacement } from "./utils";
 
-import type { Network } from "./utils";
+import type { Network } from "./common";
 import type { Token } from "../../types";
 
 const rootPath = process.env.ZKSYNC_HOME;

@@ -1,8 +1,7 @@
 import { useMemoize } from "@vueuse/core";
 import { BigNumber, type BigNumberish } from "ethers";
 import { Wallet } from "zksync-ethers";
-import ZkSyncL1BridgeAbi from "zksync-ethers/abi/IL1Bridge.json";
-import ZkSyncContractAbi from "zksync-ethers/abi/IZkSync.json";
+import IL1SharedBridge from "zksync-ethers/abi/IL1SharedBridge.json";
 
 import type { Hash } from "@/types";
 
@@ -16,13 +15,14 @@ export default (transactionInfo: ComputedRef<TransactionInfo>) => {
   const { isCorrectNetworkSet } = storeToRefs(onboardStore);
   const { tokens } = storeToRefs(tokensStore);
 
-  const retrieveBridgeAddress = useMemoize(() =>
+  const retrieveBridgeAddresses = useMemoize(() => providerStore.requestProvider().getDefaultBridgeAddresses());
+
+  const retrieveChainId = useMemoize(() =>
     providerStore
       .requestProvider()
-      .getDefaultBridgeAddresses()
-      .then((e) => e.erc20L1)
+      .getNetwork()
+      .then((network) => network.chainId)
   );
-  const retrieveMainContractAddress = useMemoize(() => providerStore.requestProvider().getMainContractAddress());
 
   const gasLimit = ref<BigNumberish | undefined>();
   const gasPrice = ref<BigNumberish | undefined>();
@@ -44,7 +44,6 @@ export default (transactionInfo: ComputedRef<TransactionInfo>) => {
   const feeToken = computed(() => {
     return tokens.value?.[ETH_TOKEN.address];
   });
-  const usingMainContract = computed(() => transactionInfo.value.token.address === ETH_TOKEN.address);
 
   const getFinalizationParams = async () => {
     const provider = providerStore.requestProvider();
@@ -58,6 +57,7 @@ export default (transactionInfo: ComputedRef<TransactionInfo>) => {
       transactionInfo.value.transactionHash
     );
     return {
+      chainId: await retrieveChainId(),
       l1BatchNumber,
       l2MessageIndex,
       l2TxNumberInBlock,
@@ -68,23 +68,13 @@ export default (transactionInfo: ComputedRef<TransactionInfo>) => {
 
   const getTransactionParams = async () => {
     finalizeWithdrawalParams.value = await getFinalizationParams();
-    if (usingMainContract.value) {
-      return {
-        address: (await retrieveMainContractAddress()) as Hash,
-        abi: ZkSyncContractAbi,
-        account: onboardStore.account.address!,
-        functionName: "finalizeEthWithdrawal",
-        args: Object.values(finalizeWithdrawalParams.value!),
-      };
-    } else {
-      return {
-        address: (await retrieveBridgeAddress()) as Hash,
-        abi: ZkSyncL1BridgeAbi,
-        account: onboardStore.account.address!,
-        functionName: "finalizeWithdrawal",
-        args: Object.values(finalizeWithdrawalParams.value!),
-      };
-    }
+    return {
+      address: (await retrieveBridgeAddresses()).sharedL1 as Hash,
+      abi: IL1SharedBridge,
+      account: onboardStore.account.address!,
+      functionName: "finalizeWithdrawal",
+      args: Object.values(finalizeWithdrawalParams.value!),
+    };
   };
 
   const {

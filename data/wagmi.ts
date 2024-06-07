@@ -41,6 +41,7 @@ const formatZkSyncChain = (network: ZkSyncNetwork) => {
       : undefined,
   };
 };
+
 const getAllChains = () => {
   const chains: Chain[] = [];
   const addUniqueChain = (chain: Chain) => {

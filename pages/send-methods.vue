@@ -20,9 +20,8 @@
           :to="{ name: 'bridge-withdraw', query: $route.query }"
         />
       </CommonCardWithLineButtons>
-      <CommonCardWithLineButtons>
+      <CommonCardWithLineButtons v-if="eraNetwork.displaySettings?.showPartnerLinks">
         <DestinationItem
-          v-if="eraNetwork.displaySettings?.showPartnerLinks"
           :label="`Bridge to other networks`"
           :description="`Explore ecosystem of third party bridges`"
           :icon="ArrowTopRightOnSquareIcon"

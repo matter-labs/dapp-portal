@@ -13,7 +13,6 @@
     "generate:node:hyperchain": "ts-node --transpile-only scripts/hyperchains/empty-check.ts && cross-env NODE_TYPE=hyperchain npm run generate",
     "generate-meta": "ts-node --transpile-only scripts/updateBridgeMetaTags.ts",
     "hyperchain:create": "ts-node --transpile-only scripts/hyperchains/create.ts",
-    "hyperchain:configure": "ts-node --transpile-only scripts/hyperchains/configure.ts",
     "preview": "nuxt preview",
     "postinstall": "nuxt prepare",
     "prepare": "husky install",
@@ -87,7 +86,7 @@
     "vite": "^3.0.0",
     "vue-tippy": "^6.0.0",
     "web3-avatar-vue": "^1.0.0",
-    "zksync-ethers": "^5.5.0"
+    "zksync-ethers": "^5.8.0-beta.5"
   },
   "overrides": {
     "vue": "latest"

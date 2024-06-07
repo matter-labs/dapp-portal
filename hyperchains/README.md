@@ -8,23 +8,6 @@ Portal supports custom ZK Stack Hyperchain nodes.
 
 There are a few different ways to configure the application:
 
-### 📁 Configure using ZK Stack configuration files
-<details>
-<summary>If you're using ZK Stack, just link your zksync-era repo directory to configure Portal.</summary>
-
-1. If you haven't already setup your hyperchain yet, follow the [instructions](https://zkstack.io/quickstart)
-2. Make sure to install the dependencies:
-    ```bash
-    npm install
-    ```
-3. 🔄 Pull your hyperchain config files by running:
-    ```bash
-    npm run hyperchain:configure
-    ```
-    This will regenerate `/hyperchains/config.json` file. You can edit this file manually if needed.
-4. 🚀 Now you can start or build the application. See [Development](#development-server) or [Production](#production) section below for more details.
-</details>
-
 ### 🖊️ Configure automatically with form
 <details>
 <summary>Fill out a simple form to configure the application.</summary>
@@ -61,7 +44,9 @@ Array<{
     rpcUrl: string; // L2 RPC URL
     name: string;
     blockExplorerUrl?: string; // L2 Block Explorer URL
+    blockExplorerApi?: string; // L2 Block Explorer API
     hidden?: boolean; // Hidden in the network selector
+    publicL1NetworkId?: number; // If you wish to use Ethereum Mainnet or Ethereum Sepolia Testnet with default configuration. Can be provided instead of `l1Network`
     l1Network?: { // @wagmi `Chain` structure https://wagmi.sh/core/chains#build-your-own
       // minimal required fields shown
       id: number;

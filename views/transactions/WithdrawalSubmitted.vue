@@ -9,6 +9,12 @@
           Your funds will be available on <span class="font-medium">{{ transaction.to.destination.label }}</span> after
           you claim the withdrawal.
         </template>
+        <template v-else-if="isCustomNode">
+          Your funds will be available for claiming after the transaction is processed on
+          <span class="font-medium">{{ eraNetwork.name }}</span> and executed on the
+          <span class="font-medium">{{ eraNetwork.l1Network?.name }}</span
+          >.
+        </template>
         <template v-else>
           Your funds will be available on <span class="font-medium">{{ transaction.to.destination.label }}</span> after
           the <a class="underline underline-offset-2" :href="ZKSYNC_WITHDRAWAL_DELAY" target="_blank">24-hour delay</a>.
@@ -150,6 +156,7 @@
 import { ExclamationTriangleIcon } from "@heroicons/vue/24/outline";
 
 import useWithdrawalFinalization from "@/composables/zksync/useWithdrawalFinalization";
+import { isCustomNode } from "@/data/networks";
 
 const props = defineProps({
   transaction: {

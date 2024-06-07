@@ -3,13 +3,8 @@ import { prompt } from "enquirer";
 import { readFileSync, writeFileSync } from "fs";
 import { join as pathJoin } from "path";
 
-import { ETH_TOKEN } from "../../utils/constants";
-
-import type { ZkSyncNetwork } from "../../data/networks";
+import type { Network, Config } from "./common";
 import type { Token } from "../../types";
-
-export type Network = Omit<ZkSyncNetwork, "getTokens">;
-export type Config = { network: Network; tokens: Token[] }[];
 
 export const configPath = pathJoin(__dirname, "../../hyperchains/config.json");
 const getConfig = (): Config => {
@@ -50,10 +45,10 @@ export const promptNetworkReplacement = async (network: Network) => {
 export const generateNetworkConfig = (network: Network, tokens: Token[]) => {
   const config = getConfig();
 
-  // Add ETH token if it's not in the list
+  /* // Add ETH token if it's not in the list
   if (!tokens.some((token: Token) => token.address === ETH_TOKEN.address)) {
     tokens.unshift(ETH_TOKEN);
-  }
+  } */
 
   config.unshift({ network, tokens });
   saveConfig(config);

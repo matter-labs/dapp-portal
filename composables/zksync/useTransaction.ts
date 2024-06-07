@@ -40,7 +40,7 @@ export default (getSigner: () => Promise<Signer | undefined>, getProvider: () =>
       const getRequiredBridgeAddress = async () => {
         if (transaction.tokenAddress === ETH_TOKEN.address) return undefined;
         const bridgeAddresses = await retrieveBridgeAddresses();
-        return bridgeAddresses.erc20L2;
+        return bridgeAddresses.sharedL2;
       };
       const bridgeAddress = transaction.type === "withdrawal" ? await getRequiredBridgeAddress() : undefined;
 

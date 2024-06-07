@@ -479,7 +479,7 @@ const {
 } = useAllowance(
   computed(() => account.value.address),
   computed(() => selectedToken.value?.address),
-  async () => (await providerStore.requestProvider().getDefaultBridgeAddresses()).erc20L1
+  async () => (await providerStore.requestProvider().getDefaultBridgeAddresses()).sharedL1
 );
 const enoughAllowance = computed(() => {
   if (!allowance.value || !selectedToken.value) {

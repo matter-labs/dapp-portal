@@ -1,6 +1,7 @@
 import { mainnet, sepolia } from "@wagmi/core/chains";
 
 import Hyperchains from "@/hyperchains/config.json";
+import { PUBLIC_L1_CHAINS, type Config } from "@/scripts/hyperchains/common";
 
 import type { Token } from "@/types";
 import type { Chain } from "@wagmi/core/chains";
@@ -101,6 +102,25 @@ const publicChains: ZkSyncNetwork[] = [
   },
 ];
 
+const getHyperchains = (): ZkSyncNetwork[] => {
+  const hyperchains = Hyperchains as Config;
+  return hyperchains.map((e) => {
+    const network: ZkSyncNetwork = {
+      ...e.network,
+      getTokens: () => e.tokens,
+    };
+    if (e.network.publicL1NetworkId) {
+      network.l1Network = PUBLIC_L1_CHAINS.find((chain) => chain.id === e.network.publicL1NetworkId);
+      if (!network.l1Network) {
+        throw new Error(
+          `L1 network with ID ${e.network.publicL1NetworkId} from ${network.name} config wasn't found in the list of public L1 networks.`
+        );
+      }
+    }
+    return network;
+  });
+};
+
 const nodeType = portalRuntimeConfig.nodeType;
 const determineChainList = (): ZkSyncNetwork[] => {
   switch (nodeType) {
@@ -109,10 +129,7 @@ const determineChainList = (): ZkSyncNetwork[] => {
     case "dockerized":
       return [dockerizedNode];
     case "hyperchain":
-      return (Hyperchains as unknown as Array<{ network: ZkSyncNetwork; tokens: Token[] }>).map((e) => ({
-        ...e.network,
-        getTokens: () => e.tokens,
-      }));
+      return getHyperchains();
     default:
       return [...publicChains];
   }
