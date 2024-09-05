@@ -31,6 +31,7 @@ export type ZkSyncNetwork = {
   l1Network?: L1Network;
   blockExplorerUrl?: string;
   blockExplorerApi?: string;
+  nativeCurrency?: { name: string; symbol: string; decimals: number };
   displaySettings?: {
     showPartnerLinks?: boolean;
   };
