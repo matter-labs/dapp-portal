@@ -1,5 +1,7 @@
+import * as ethers from "ethers";
 import { $fetch } from "ofetch";
 import { utils } from "zksync-ethers";
+import { IERC20 } from "zksync-ethers/build/utils";
 
 import { customBridgeTokens } from "@/data/customBridgeTokens";
 
@@ -37,24 +39,16 @@ export const useZkSyncTokensStore = defineStore("zkSyncTokens", () => {
 
     if (eraNetwork.value.getTokens && (!baseToken || !ethToken)) {
       configTokens = await eraNetwork.value.getTokens();
-      if (!baseToken) {
-        baseToken = configTokens.find((token) => token.address === L2_BASE_TOKEN_ADDRESS);
-      }
-      if (!ethToken) {
-        ethToken = configTokens.find((token) => token.address === ethL2TokenAddress);
+      if (configTokens) {
+        if (!baseToken) {
+          baseToken = configTokens.find((token) => token.address === L2_BASE_TOKEN_ADDRESS);
+        }
+        if (!ethToken) {
+          ethToken = configTokens.find((token) => token.address === ethL2TokenAddress);
+        }
       }
     }
 
-    if (!baseToken) {
-      baseToken = {
-        address: "0x000000000000000000000000000000000000800A",
-        l1Address: await provider.getBaseTokenContractAddress(),
-        symbol: "BASETOKEN",
-        name: "Base Token",
-        decimals: 18,
-        iconUrl: "/img/eth.svg",
-      };
-    }
     if (!ethToken) {
       ethToken = {
         address: ethL2TokenAddress,
@@ -66,10 +60,36 @@ export const useZkSyncTokensStore = defineStore("zkSyncTokens", () => {
       };
     }
 
+    if (!baseToken) {
+      const btL1Address = await provider.getBaseTokenContractAddress();
+      if (btL1Address !== utils.ETH_ADDRESS) {
+        const l1Rpc = useNetworkStore();
+        const l1Provider = new ethers.providers.JsonRpcProvider(l1Rpc.l1Network?.rpcUrls.default.http[0]);
+        const walletEthers = ethers.Wallet.createRandom();
+        const connectedWallet = walletEthers.connect(l1Provider);
+        const ERC20_L1 = new ethers.Contract(btL1Address, IERC20, connectedWallet);
+        const ERC20_SYMBOL: string = (await ERC20_L1.symbol()) || "BT";
+        const ERC20_DECIMALS = (await ERC20_L1.decimals()) || 18;
+        baseToken = {
+          address: L2_BASE_TOKEN_ADDRESS,
+          l1Address: btL1Address,
+          symbol: ERC20_SYMBOL,
+          name: ERC20_SYMBOL,
+          decimals: ERC20_DECIMALS,
+          iconUrl: "/img/era.svg",
+        };
+      } else {
+        baseToken = ethToken;
+      }
+    }
+
     const tokens = explorerTokens.length ? explorerTokens : configTokens;
-    const nonBaseOrEthExplorerTokens = tokens.filter(
-      (token) => token.address !== L2_BASE_TOKEN_ADDRESS && token.address !== ethL2TokenAddress
-    );
+    let nonBaseOrEthExplorerTokens: Token[] = [];
+    if (tokens) {
+      nonBaseOrEthExplorerTokens = tokens.filter(
+        (token) => token.address !== L2_BASE_TOKEN_ADDRESS && token.address !== ethL2TokenAddress
+      );
+    }
     return [
       baseToken,
       ...(baseToken.address !== ethToken.address ? [ethToken] : []),
