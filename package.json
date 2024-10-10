@@ -86,7 +86,7 @@
     "vite": "^3.0.0",
     "vue-tippy": "^6.0.0",
     "web3-avatar-vue": "^1.0.0",
-    "zksync-ethers": "^5.9.1"
+    "zksync-ethers": "../zksync-ethers/build"
   },
   "overrides": {
     "vue": "latest"
