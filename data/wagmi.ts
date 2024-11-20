@@ -26,7 +26,7 @@ const formatZkSyncChain = (network: ZkSyncNetwork) => {
     id: network.id,
     name: network.name,
     network: network.key,
-    nativeCurrency: { name: "Ether", symbol: "ETH", decimals: 18 },
+    nativeCurrency: network.nativeCurrency || { name: "Ether", symbol: "ETH", decimals: 18 },
     rpcUrls: {
       default: { http: [network.rpcUrl] },
       public: { http: [network.rpcUrl] },
