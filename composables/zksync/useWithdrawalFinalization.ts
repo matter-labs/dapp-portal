@@ -122,6 +122,13 @@ export default (transactionInfo: ComputedRef<TransactionInfo>) => {
       }
       const wallet = await onboardStore.getWallet();
       const { transactionParams, gasLimit, gasPrice } = (await estimateFee())!;
+
+      // Check if the batch has been processed before attempting finalization
+      const l1BatchNumber = finalizeWithdrawalParams.value?.l1BatchNumber;
+      if (l1BatchNumber && !(await isBatchProcessed(l1BatchNumber))) {
+        throw new Error("Batch not yet processed. Please wait and try again later.");
+      }
+
       status.value = "waiting-for-signature";
       transactionHash.value = await wallet.writeContract({
         ...transactionParams,
@@ -130,13 +137,16 @@ export default (transactionInfo: ComputedRef<TransactionInfo>) => {
       });
 
       status.value = "sending";
-      const receipt = await retry(() =>
-        onboardStore.getPublicClient().waitForTransactionReceipt({
-          hash: transactionHash.value!,
-          onReplaced: (replacement) => {
-            transactionHash.value = replacement.transaction.hash;
-          },
-        })
+      const receipt = await retry(
+        async () => {
+          return await onboardStore.getPublicClient().waitForTransactionReceipt({
+            hash: transactionHash.value!,
+            onReplaced: (replacement) => {
+              transactionHash.value = replacement.transaction.hash;
+            },
+          });
+        },
+        { retries: 3, delay: 10000 }
       );
 
       trackEvent("withdrawal-finalized", {
@@ -165,4 +175,17 @@ export default (transactionInfo: ComputedRef<TransactionInfo>) => {
     transactionHash,
     commitTransaction,
   };
+};
+
+const isBatchProcessed = async (batchNumber: any) => {
+  const providerStore = useZkSyncProviderStore();
+  try {
+    const totalBatchesExecuted = await providerStore.requestProvider().getTotalBatchesExecuted();
+
+    return batchNumber <= BigNumber.from(totalBatchesExecuted).toNumber();
+  } catch (error) {
+    // eslint-disable-next-line no-console
+    console.error("Error fetching total batches executed:", error);
+    return false;
+  }
 };
