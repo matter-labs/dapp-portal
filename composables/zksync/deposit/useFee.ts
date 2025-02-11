@@ -102,6 +102,14 @@ export default (tokens: Ref<Token[]>, balances: Ref<TokenAmount[] | undefined>) 
         } else if (message?.includes("insufficient funds for gas * price + value")) {
           throw new Error("Insufficient funds to cover deposit fee! Please, top up your account with ETH.");
         }
+        const signer = getL1VoidSigner();
+        sentryCaptureException({
+          error: err as Error,
+          parentFunctionName: "executeEstimateFee",
+          parentFunctionParams: [],
+          accountAddress: signer.address || "",
+          filePath: "composables/zksync/deposit/useFee.ts",
+        });
         throw err;
       }
       /* It can be either maxFeePerGas or gasPrice */

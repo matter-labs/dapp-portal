@@ -152,6 +152,13 @@ export class MainPage extends BasePage {
       await this.world.page?.goto(config.BASE_URL + route + config.DAPP_NETWORK);
       return route;
     } catch (e) {
+      sentryCaptureException({
+        error: e as Error,
+        parentFunctionName: "selectTransaction",
+        parentFunctionParams: [transactionType],
+        accountAddress: "",
+        filePath: "tests/e2e/src/pages/main.page.ts",
+      });
       console.error(e);
     }
   }

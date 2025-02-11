@@ -44,6 +44,13 @@ export default <ResultType, ErrorType = Error>(fn: () => Promise<ResultType>, op
       if (!err) return;
 
       error.value = err as unknown as ErrorType;
+      sentryCaptureException({
+        error: err,
+        parentFunctionName: "execute",
+        parentFunctionParams: [options],
+        accountAddress: "",
+        filePath: "composables/usePromise.ts",
+      });
       throw err;
     } finally {
       inProgress.value = false;

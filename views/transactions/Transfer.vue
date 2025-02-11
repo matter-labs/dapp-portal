@@ -287,6 +287,7 @@ import useFee from "@/composables/zksync/useFee";
 import useTransaction, { isWithdrawalManualFinalizationRequired } from "@/composables/zksync/useTransaction";
 import { customBridgeTokens } from "@/data/customBridgeTokens";
 import { isCustomNode } from "@/data/networks";
+import { sentryCaptureException } from "@/utils/sentry-logger";
 import TransferSubmitted from "@/views/transactions/TransferSubmitted.vue";
 import WithdrawalSubmitted from "@/views/transactions/WithdrawalSubmitted.vue";
 
@@ -447,6 +448,13 @@ const totalComputeAmount = computed(() => {
     }
     return decimalToBigNumber(amount.value, selectedToken.value.decimals);
   } catch (error) {
+    sentryCaptureException({
+      error: error as Error,
+      parentFunctionName: "totalComputeAmount",
+      parentFunctionParams: [],
+      accountAddress: "",
+      filePath: "views/transactions/Transfer.vue",
+    });
     return 0n;
   }
 });

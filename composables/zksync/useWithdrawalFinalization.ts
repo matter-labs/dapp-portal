@@ -112,6 +112,7 @@ export default (transactionInfo: ComputedRef<TransactionInfo>) => {
   );
 
   const commitTransaction = async () => {
+    let accountAddress = "";
     try {
       error.value = undefined;
 
@@ -121,6 +122,7 @@ export default (transactionInfo: ComputedRef<TransactionInfo>) => {
       }
       const wallet = await onboardStore.getWallet();
       const { transactionParams, gasLimit, gasPrice } = (await estimateFee())!;
+      accountAddress = wallet.account.address;
       status.value = "waiting-for-signature";
       transactionHash.value = await wallet.writeContract({
         ...transactionParams,
@@ -149,6 +151,13 @@ export default (transactionInfo: ComputedRef<TransactionInfo>) => {
     } catch (err) {
       error.value = formatError(err as Error);
       status.value = "not-started";
+      sentryCaptureException({
+        error: err as Error,
+        parentFunctionName: "commitTransaction",
+        parentFunctionParams: [],
+        accountAddress: accountAddress || "",
+        filePath: "composables/zksync/useWithdrawalFinalization.ts",
+      });
     }
   };
 

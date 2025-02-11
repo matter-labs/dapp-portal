@@ -101,6 +101,13 @@ export default (
         return receipts;
       } catch (err) {
         setAllowanceStatus.value = "not-started";
+        sentryCaptureException({
+          error: err as Error,
+          parentFunctionName: "executeSetAllowance",
+          parentFunctionParams: [],
+          accountAddress: accountAddress.value || "",
+          filePath: "composables/transaction/useAllowance.ts",
+        });
         throw err;
       }
     },
