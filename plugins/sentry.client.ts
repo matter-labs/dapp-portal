@@ -6,7 +6,12 @@ export default defineNuxtPlugin((nuxtApp) => {
   const config = useRuntimeConfig();
 
   const sentryDSN = (config.public.sentryDSN as string) || "";
-  const sentryENV = (config.public.sentryENV as string) || "";
+
+  if (!sentryDSN) {
+    return;
+  }
+
+  const sentryENV = (config.public.sentryENV as string) || "localhost";
 
   Sentry.init({
     app: [vueApp],

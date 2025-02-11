@@ -15,6 +15,11 @@ const sentryCaptureException = ({
   accountAddress = "",
   filePath = "",
 }: SentryCaptureExceptionParams) => {
+  const config = useRuntimeConfig();
+  if (!config.public.sentryDSN) {
+    return;
+  }
+
   const { $sentryCaptureException, $sentrySetContext } = useNuxtApp();
 
   const newError = typeof error === "string" ? new Error(error) : error;
