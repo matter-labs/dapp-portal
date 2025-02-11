@@ -30,12 +30,16 @@ export default (getSigner: () => Promise<Signer | undefined>, getProvider: () =>
     transaction: TransactionParams,
     fee: { gasPrice: BigNumberish; gasLimit: BigNumberish }
   ) => {
+    let accountAddress = "";
     try {
       error.value = undefined;
 
       status.value = "processing";
       const signer = await getSigner();
       if (!signer) throw new Error("ZKsync Signer is not available");
+
+      accountAddress = await signer.getAddress();
+
       const provider = getProvider();
 
       const getRequiredBridgeAddress = async () => {
@@ -49,8 +53,9 @@ export default (getSigner: () => Promise<Signer | undefined>, getProvider: () =>
       await validateAddress(transaction.to);
 
       status.value = "waiting-for-signature";
+
       const txRequest = await provider[transaction.type === "transfer" ? "getTransferTx" : "getWithdrawTx"]({
-        from: await signer.getAddress(),
+        from: accountAddress,
         to: transaction.to,
         token: transaction.tokenAddress,
         amount: transaction.amount,
@@ -70,6 +75,13 @@ export default (getSigner: () => Promise<Signer | undefined>, getProvider: () =>
     } catch (err) {
       error.value = formatError(err as Error);
       status.value = "not-started";
+      sentryCaptureException({
+        error: err as Error,
+        parentFunctionName: "commitTransaction",
+        parentFunctionParams: [transaction, fee],
+        accountAddress: accountAddress || "",
+        filePath: "composables/zksync/useTransaction.ts",
+      });
     }
   };
 
