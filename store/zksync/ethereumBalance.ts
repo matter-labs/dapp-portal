@@ -41,8 +41,8 @@ export const useZkSyncEthereumBalanceStore = defineStore("zkSyncEthereumBalances
           amount: "0",
         })),
     ].sort((a, b) => {
-      if (a.address === utils.ETH_ADDRESS) return -1; // Always bring ETH to the beginning
-      if (b.address === utils.ETH_ADDRESS) return 1; // Keep ETH at the beginning if comparing with any other token
+      if (a.address.toUpperCase() === utils.ETH_ADDRESS.toUpperCase()) return -1; // Always bring ETH to the beginning
+      if (b.address.toUpperCase() === utils.ETH_ADDRESS.toUpperCase()) return 1; // Keep ETH at the beginning if comparing with any other token
       return 0; // Keep other tokens' order unchanged
     });
   };
@@ -56,7 +56,7 @@ export const useZkSyncEthereumBalanceStore = defineStore("zkSyncEthereumBalances
         const amount = await getBalance(wagmiConfig, {
           address: account.value.address!,
           chainId: l1Network.value!.id,
-          token: token.address === utils.ETH_ADDRESS ? undefined : (token.address! as Hash),
+          token: token.address.toUpperCase() === utils.ETH_ADDRESS.toUpperCase() ? undefined : (token.address! as Hash),
         });
         return {
           ...token,
