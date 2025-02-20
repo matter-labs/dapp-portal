@@ -86,7 +86,7 @@
         </span>
       </div>
       <div v-if="expectedCompleteTimestamp && !completed">
-        <span class="text-neutral-400">Time: </span>
+        <span class="text-neutral-400">Estimated time: </span>
         <CommonTimer format="human-readable" :future-date="expectedCompleteTimestamp">
           <template #default="{ timer, isTimerFinished }">
             <template v-if="isTimerFinished">Funds should arrive soon!</template>

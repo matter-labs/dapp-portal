@@ -129,8 +129,8 @@ export const useZkSyncWalletStore = defineStore("zkSyncWallet", () => {
         return { ...token, amount };
       })
       .sort((a, b) => {
-        if (a.address === L2_BASE_TOKEN_ADDRESS) return -1; // Always bring ETH to the beginning
-        if (b.address === L2_BASE_TOKEN_ADDRESS) return 1; // Keep ETH at the beginning if comparing with any other token
+        if (a.address.toUpperCase() === L2_BASE_TOKEN_ADDRESS.toUpperCase()) return -1; // Always bring ETH to the beginning
+        if (b.address.toUpperCase() === L2_BASE_TOKEN_ADDRESS.toUpperCase()) return 1; // Keep ETH at the beginning if comparing with any other token
         return 0; // Keep other tokens' order unchanged
       });
     const knownTokenAddresses = new Set(knownTokens.map((token) => token.address));

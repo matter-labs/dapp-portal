@@ -112,7 +112,7 @@
           <p v-if="!isCustomNode">
             After a
             <a class="underline underline-offset-2" :href="ZKSYNC_WITHDRAWAL_DELAY" target="_blank"
-              >24-hour withdrawal delay</a
+              >~5+ hour withdrawal delay</a
             >, you will need to manually claim your funds which requires paying another transaction fee on
             {{ eraNetwork.l1Network?.name }}. Alternatively you can use
             <a
@@ -150,11 +150,11 @@
           class="mb-block-padding-1/2 sm:mb-block-gap"
         >
           <p v-if="withdrawalManualFinalizationRequired">
-            You will be able to claim your withdrawal only after a 24-hour withdrawal delay.
+            You will be able to claim your withdrawal only after a 5+ hour withdrawal delay.
             <a class="underline underline-offset-2" :href="ZKSYNC_WITHDRAWAL_DELAY" target="_blank">Learn more</a>
           </p>
           <p v-else>
-            You will receive funds only after a 24-hour withdrawal delay.
+            You will receive funds only after a 5+ hour withdrawal delay.
             <a class="underline underline-offset-2" :href="ZKSYNC_WITHDRAWAL_DELAY" target="_blank">Learn more</a>
           </p>
         </CommonAlert>
@@ -211,7 +211,7 @@
             target="_blank"
             class="ml-auto text-right"
           >
-            Up to 24 hours
+            5+ hours
           </CommonButtonLabel>
           <CommonButtonLabel v-else-if="type === 'transfer'" as="span" class="ml-auto text-right">
             Almost instant
@@ -245,7 +245,7 @@
                   <CommonAlert variant="error" :icon="ExclamationTriangleIcon">
                     <p>
                       {{
-                        selectedToken?.address === L2_BASE_TOKEN_ADDRESS
+                        selectedToken?.address.toUpperCase() === L2_BASE_TOKEN_ADDRESS.toUpperCase()
                           ? "The fee has changed since the last estimation. "
                           : ""
                       }}Insufficient <span class="font-medium">{{ selectedToken?.symbol }}</span> balance to pay for
@@ -351,7 +351,10 @@ const routeTokenAddress = computed(() => {
   return checksumAddress(route.query.token);
 });
 const defaultToken = computed(
-  () => availableTokens.value.find((e) => e.address === L2_BASE_TOKEN_ADDRESS) ?? availableTokens.value[0] ?? undefined
+  () =>
+    availableTokens.value.find((e) => e.address.toUpperCase() === L2_BASE_TOKEN_ADDRESS.toUpperCase()) ??
+    availableTokens.value[0] ??
+    undefined
 );
 const selectedTokenAddress = ref<string | undefined>(routeTokenAddress.value ?? defaultToken.value?.address);
 const selectedToken = computed<Token | undefined>(() => {
