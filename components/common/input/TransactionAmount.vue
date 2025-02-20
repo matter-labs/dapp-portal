@@ -100,6 +100,8 @@
 <script lang="ts" setup>
 import { LockClosedIcon } from "@heroicons/vue/24/outline";
 
+import { sentryCaptureException } from "@/utils/sentry-logger";
+
 import type { Token, TokenAmount } from "@/types";
 
 const props = defineProps({
@@ -173,6 +175,13 @@ const totalComputeAmount = computed(() => {
     }
     return decimalToBigNumber(inputted.value, selectedToken.value.decimals);
   } catch (error) {
+    sentryCaptureException({
+      error: error as Error,
+      parentFunctionName: "totalComputeAmount",
+      parentFunctionParams: [],
+      accountAddress: "",
+      filePath: "components/common/input/TransactionAmount.vue",
+    });
     return 0n;
   }
 });

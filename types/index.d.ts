@@ -142,6 +142,8 @@ declare global {
       nodeType?: string;
       walletConnectProjectId?: string;
       ankrToken?: string;
+      sentryDSN?: string;
+      sentryENV?: string;
       screeningApiUrl?: string;
       analytics?: {
         rudder?: {

@@ -84,6 +84,8 @@ export default defineNuxtConfig({
         "NODE_TYPE",
         "WALLET_CONNECT_PROJECT_ID",
         "ANKR_TOKEN",
+        "SENTRY_DSN",
+        "SENTRY_ENV",
         "SCREENING_API_URL",
         "RUDDER_KEY",
         "DATAPLANE_URL",
@@ -101,4 +103,10 @@ export default defineNuxtConfig({
     },
   },
   devtools: { enabled: true },
+  runtimeConfig: {
+    public: {
+      sentryDSN: process.env.SENTRY_DSN,
+      sentryENV: process.env.SENTRY_ENV,
+    },
+  },
 });

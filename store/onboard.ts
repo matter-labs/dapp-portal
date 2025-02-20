@@ -86,6 +86,13 @@ export const useOnboardStore = defineStore("onboard", () => {
         if (error) {
           connectingWalletError.value = error.message;
         }
+        sentryCaptureException({
+          error: err as Error,
+          parentFunctionName: "onChange",
+          parentFunctionParams: [updatedAccount],
+          accountAddress: updatedAccount.address || "",
+          filePath: "store/onboard.ts",
+        });
       }
     },
   });
@@ -108,6 +115,13 @@ export const useOnboardStore = defineStore("onboard", () => {
     try {
       return await switchChain(wagmiConfig, { chainId });
     } catch (err) {
+      sentryCaptureException({
+        error: err as Error,
+        parentFunctionName: "switchNetworkById",
+        parentFunctionParams: [chainId, networkName],
+        accountAddress: account.value.address || "",
+        filePath: "store/onboard.ts",
+      });
       if (err instanceof Error && err.message.includes("does not support programmatic chain switching")) {
         throw new Error(`Please switch network manually to "${networkName}" in your ${walletName.value} wallet`);
       }
