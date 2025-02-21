@@ -745,6 +745,7 @@ const makeTransaction = async () => {
         }, 2000);
       })
       .catch((err) => {
+        console.log("error", err);
         transactionError.value = err as Error;
         transactionStatus.value = "not-started";
       });
