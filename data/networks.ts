@@ -115,7 +115,7 @@ const publicChains: ZkSyncNetwork[] = [
     blockExplorerUrl: "https://sepolia-beta.staging-scan-v2.zksync.dev",
     blockExplorerApi: "https://block-explorer-api.stage.zksync.dev",
     l1Network: l1Networks.sepolia,
-    // hidden: true,
+    hidden: true,
   },
 ];
 
