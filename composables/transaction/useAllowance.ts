@@ -38,7 +38,12 @@ export default (
   );
 
   const requestAllowance = async () => {
-    if (accountAddress.value && tokenAddress.value && tokenAddress.value !== utils.ETH_ADDRESS && tokenAddress.value !== utils.ETH_ADDRESS_IN_CONTRACTS) {
+    if (
+      accountAddress.value &&
+      tokenAddress.value &&
+      tokenAddress.value !== utils.ETH_ADDRESS &&
+      tokenAddress.value !== utils.ETH_ADDRESS_IN_CONTRACTS
+    ) {
       await getAllowance();
     } else {
       reset();
