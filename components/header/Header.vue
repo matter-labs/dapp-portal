@@ -12,6 +12,14 @@
     <div class="links-container">
       <NuxtLink
         class="link-item"
+        :to="{ name: 'on-ramp' }"
+        :class="{ 'router-link-exact-active': routes.onramp.includes(route.name?.toString() || '') }"
+      >
+        <BanknotesIcon class="link-icon" aria-hidden="true" />
+        On-Ramp
+      </NuxtLink>
+      <NuxtLink
+        class="link-item"
         :to="{ name: 'bridge' }"
         :class="{ 'router-link-exact-active': routes.bridge.includes(route.name?.toString() || '') }"
       >
@@ -73,6 +81,7 @@ import {
   MoonIcon,
   SunIcon,
   WalletIcon,
+  BanknotesIcon,
 } from "@heroicons/vue/24/outline";
 
 const route = useRoute();
@@ -80,6 +89,7 @@ const route = useRoute();
 const routes = {
   bridge: ["bridge", "bridge-withdraw"],
   assets: ["assets", "balances", "receive-methods", "receive", "send-methods", "send"],
+  onramp: ["on-ramp"],
 };
 
 const onboardStore = useOnboardStore();
