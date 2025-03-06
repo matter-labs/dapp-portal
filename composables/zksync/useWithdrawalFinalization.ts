@@ -52,14 +52,14 @@ export default (transactionInfo: ComputedRef<TransactionInfo>) => {
       "0x7726827caac94a7f9e1b160f7ea819f172f7b6f9d2a97f992c38edeab82d4110",
       provider
     );
-    const { l1BatchNumber, l2MessageIndex, l2TxNumberInBlock, message, proof } = await wallet.finalizeWithdrawalParams(
-      transactionInfo.value.transactionHash
-    );
+    const { l1BatchNumber, l2MessageIndex, l2TxNumberInBlock, sender, message, proof } =
+      await wallet.finalizeWithdrawalParams(transactionInfo.value.transactionHash);
     return {
       chainId: await retrieveChainId(),
       l1BatchNumber,
       l2MessageIndex,
       l2TxNumberInBlock,
+      sender,
       message,
       proof,
     };
@@ -71,7 +71,7 @@ export default (transactionInfo: ComputedRef<TransactionInfo>) => {
       address: (await retrieveBridgeAddresses()).sharedL1 as Hash,
       abi: IL1SharedBridge,
       account: onboardStore.account.address!,
-      functionName: "finalizeWithdrawal",
+      functionName: "finalizeDeposit",
       args: Object.values(finalizeWithdrawalParams.value!),
     };
   };
