@@ -126,7 +126,7 @@ export function formatError(error?: Error) {
       // eslint-disable-next-line prettier/prettier
       message.includes("\"finalizeEthWithdrawal\" reverted with the following reason: xx") ||
       // eslint-disable-next-line prettier/prettier
-      message.includes("\"finalizeWithdrawal\" reverted with the following reason: xx")
+      message.includes("\"finalizeDeposit\" reverted with the following reason: xx")
     ) {
       return new Error("Withdrawal is already finalized!");
     }
