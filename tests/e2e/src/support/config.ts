@@ -33,7 +33,7 @@ export const config = {
   IMG_THRESHOLD: { threshold: 0.4 },
   mainWindowSize: { width: 1280, height: 720 },
   popUpWindowSize: { width: 355, height: 500 },
-  DAPP_NETWORK: NetworkSwitcher.zkSyncEraGoerli,
+  DAPP_NETWORK: NetworkSwitcher.zkSyncEraSepolia,
   headless: false,
   slowMo: 10,
   defaultTimeout: { timeout: 6 * 1000 },

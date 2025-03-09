@@ -7,9 +7,14 @@ export enum Extension {
   metamaskNetworkSettings = "#settings/networks",
 }
 
+export enum UrlParamNetworks {
+  networkEraSepolia = "network=sepolia",
+  networkEraMainnet = "network=era-mainnet",
+}
+
 export enum NetworkSwitcher {
-  zkSyncEraGoerli = "/?network=era-goerli",
-  zkSyncEraMainnet = "/?network=era-mainnet",
+  zkSyncEraSepolia = `/?${UrlParamNetworks.networkEraSepolia}`,
+  zkSyncEraMainnet = `/?${UrlParamNetworks.networkEraMainnet}`,
 }
 
 export enum Routes {

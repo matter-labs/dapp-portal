@@ -70,6 +70,18 @@ export class MetamaskPage extends BasePage {
     return "//*[@data-testid='page-container-footer-next'] | //button[contains(text(), 'Confirm')]";
   }
 
+  get signTransaction() {
+    return "//*[@data-testid='page-container-footer-next'] | //button[contains(text(), 'Sign')]";
+  }
+
+  get scrolldownButton() {
+    return "//*[@data-testid='signature-request-scroll-button']";
+  }
+
+  get cancelBtn() {
+    return "//*[@data-testid='page-container-footer-cancel'] | //button[contains(text(), 'Cancel')]";
+  }
+
   get declineBtn() {
     return "//*[@data-testid='page-container-footer-cancel'] | //button[contains(text(), 'Reject')]";
   }
@@ -104,6 +116,10 @@ export class MetamaskPage extends BasePage {
 
   get confirmBtn() {
     return "//div[@class='confirmation-footer']//button[2]";
+  }
+
+  get switchNetworkBtnMM() {
+    return "//div[@class='confirmation-footer']//button[normalize-space()='Switch network']";
   }
 
   get mainBtn() {
@@ -231,18 +247,58 @@ export class MetamaskPage extends BasePage {
   }
 
   async operateTransaction(selector: string, argument: string) {
+    await this.world.page?.locator(selector).waitFor({
+      state: "visible",
+      timeout: config.defaultTimeout.timeout,
+    });
     const popUpContext = await this.catchPopUpByClick(selector);
     await setTimeout(config.minimalTimeout.timeout);
     await popUpContext?.setViewportSize(config.popUpWindowSize);
     if (argument == "confirm" || argument == "continue") {
-      await popUpContext?.click(this.confirmTransaction);
+      const confirmBtn = await popUpContext?.locator(this.confirmTransaction);
+      let isDisabled: boolean | undefined = false;
+      try {
+        isDisabled = !(await confirmBtn?.isVisible()) || (await confirmBtn?.isDisabled());
+      } catch (e) {
+        console.log(e);
+      }
+      if (isDisabled) {
+        const isVisibleScrolldown = await popUpContext?.isVisible(this.scrolldownButton);
+        if (isVisibleScrolldown) {
+          await popUpContext?.click(this.scrolldownButton, { timeout: config.defaultTimeout.timeout });
+          const signBtnElement = await popUpContext?.locator(this.signTransaction);
+          await signBtnElement?.scrollIntoViewIfNeeded();
+          await popUpContext?.click(this.signTransaction, { timeout: config.increasedTimeout.timeout });
+          return;
+        }
+      }
+      // confirmScrolldownButton
+      await popUpContext?.click(this.confirmTransaction, { timeout: config.increasedTimeout.timeout });
     } else if (argument == "next and confirm") {
       await popUpContext?.click(this.nextButton);
       await popUpContext?.click(this.confirmTransaction);
     } else if (argument == "networkSwitch") {
       await popUpContext?.click(this.switchNetworkButton);
     } else if (argument == "reject") {
-      await popUpContext?.click(this.declineBtn, config.increasedTimeout);
+      const cancelBtn = await popUpContext?.locator(this.cancelBtn);
+      let isDisabled: boolean | undefined = false;
+      try {
+        isDisabled = !(await cancelBtn?.isVisible()) || (await cancelBtn?.isDisabled());
+      } catch (e) {
+        console.log(e);
+      }
+      if (isDisabled) {
+        const isVisibleScrolldown = await popUpContext?.isVisible(this.scrolldownButton);
+        if (isVisibleScrolldown) {
+          await popUpContext?.click(this.scrolldownButton, { timeout: config.defaultTimeout.timeout });
+          const cancelBtnElement = await popUpContext?.locator(this.cancelBtn);
+          await cancelBtnElement?.scrollIntoViewIfNeeded();
+          await popUpContext?.click(this.cancelBtn, { timeout: config.increasedTimeout.timeout });
+          return;
+        }
+      }
+
+      await popUpContext?.click(this.cancelBtn, config.increasedTimeout);
     }
   }
 
@@ -250,7 +306,7 @@ export class MetamaskPage extends BasePage {
     testId = new BasePage(this.world).byTestId;
     const helper = await new Helper(this.world);
     const [popUp] = await Promise.all([
-      this.world.context?.waitForEvent("page"),
+      this.world.context?.waitForEvent("page", { timeout: config.increasedTimeout.timeout }),
       await helper.checkElementVisible(element),
       await this.world.page?.locator(element).first().click(),
       await setTimeout(config.minimalTimeout.timeout),
@@ -265,7 +321,10 @@ export class MetamaskPage extends BasePage {
     const feeAlert = await helper.checkElementVisible(this.feeChangerAlert);
     if (feeAlert) {
       await helper.checkElementVisible(mainPage.confirmFeeChangeButton);
+      await helper.checkElementClickable(mainPage.confirmFeeChangeButton);
       await this.click(mainPage.confirmFeeChangeButton);
+      await helper.checkElementVisible(element);
+      await helper.checkElementClickable(element);
       await this.catchPopUpByClick(element);
     }
   }
@@ -275,19 +334,31 @@ export class MetamaskPage extends BasePage {
     return popUp;
   }
 
-  async switchNetwork() {
+  async switchNetwork(network?: string) {
+    //
+    const continueBtnSelector = "//button[contains(text(), ' Continue ')]";
+    const continueBtnElement: any = await this.world.page?.locator(continueBtnSelector);
+    const isContinueBtnElementVisible = await continueBtnElement.isVisible();
+    //
     const switchNetworkBtnSelector = "//div[@class='transaction-footer-row']//button";
     const switchNetworkBtnElement: any = await this.world.page?.locator(switchNetworkBtnSelector);
     // check that switchNetworkBtnSelector is switcher network button
     const buttonText = await switchNetworkBtnElement.innerText();
     const result = buttonText.includes("Change wallet network");
-    if ((await switchNetworkBtnElement.isEnabled()) && result) {
+    const isSwitchNetworkBtnElementEnabled = await switchNetworkBtnElement.isEnabled();
+    if (isSwitchNetworkBtnElementEnabled && result && !isContinueBtnElementVisible) {
       const popUpContext = await this.catchPopUpByClick(switchNetworkBtnSelector);
       await popUpContext?.setViewportSize(config.popUpWindowSize);
       if (!depositTag) {
         await popUpContext?.click(this.confirmBtn);
       }
+      await popUpContext?.locator(this.confirmBtn).isVisible();
       await popUpContext?.click(this.confirmBtn);
+
+      if (!network) {
+        await popUpContext?.locator(this.switchNetworkBtnMM).isVisible();
+        await popUpContext?.click(this.switchNetworkBtnMM);
+      }
     }
   }
 

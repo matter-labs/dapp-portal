@@ -1,5 +1,5 @@
 <template>
-  <CommonButtonLine :as="as" class="line-button-with-img">
+  <CommonButtonLine :as="as" class="line-button-with-img" :data-testid="dataTestid">
     <div class="line-button-with-img-image">
       <slot name="image" />
     </div>
@@ -25,6 +25,10 @@ defineProps({
   iconLoading: {
     type: Boolean,
     default: false,
+  },
+  dataTestid: {
+    type: String,
+    default: "",
   },
 });
 </script>

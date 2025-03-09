@@ -1,5 +1,5 @@
 <template>
-  <CommonButtonLineWithImg :as="as">
+  <CommonButtonLineWithImg :as="as" :data-testid="dataTestid">
     <template #image>
       <TokenImage :symbol="symbol" :address="address" :icon-url="iconUrl" />
     </template>
@@ -46,6 +46,10 @@ defineProps({
   },
   price: {
     type: [String, Number] as PropType<TokenPrice>,
+  },
+  dataTestid: {
+    type: String,
+    default: "",
   },
 });
 </script>

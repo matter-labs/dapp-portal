@@ -1,3 +1,4 @@
+import { setTimeout } from "timers/promises";
 import { expect } from "@playwright/test";
 
 import { Routes } from "../data/data";
@@ -18,7 +19,7 @@ export class MainPage extends BasePage {
   }
 
   get amountInputField() {
-    return "//*[@class='amount-input-field-container']//input";
+    return "//input[contains(@class, 'input-line') and @placeholder='0']";
   }
 
   get accountDropdown() {
@@ -26,7 +27,7 @@ export class MainPage extends BasePage {
   }
 
   get modalCard() {
-    return "//*[@class='modal-card']";
+    return "//*[contains(@class, 'content-block-container')]";
   }
 
   get circleTimerElement() {
@@ -34,7 +35,7 @@ export class MainPage extends BasePage {
   }
 
   get submittedTransactionAnimation() {
-    return '//*[contains(@class, "progress-plane-animation")]';
+    return '//*[contains(@class, "transaction-progress-animation")]';
   }
 
   get greenSuccessMark() {
@@ -58,7 +59,7 @@ export class MainPage extends BasePage {
   }
 
   get externalLinkArrow() {
-    return "//*[@class='line-button-with-img-icon']";
+    return "//*[@class='transaction-hash-button-icon']";
   }
 
   get totalDecBalance() {
@@ -74,7 +75,7 @@ export class MainPage extends BasePage {
   }
 
   get getFirstToken() {
-    return "//button[@l1address]";
+    return "//button[@data-testid='token-select-button']";
   }
 
   get emptyBalancesWarning() {
@@ -98,7 +99,7 @@ export class MainPage extends BasePage {
   }
 
   get amountInputErrorButton() {
-    return '//*[@class="amount-input-error"]//button';
+    return '//*[@class="input-error-message"]//button';
   }
 
   async getButton(buttonName: string) {
@@ -157,17 +158,28 @@ export class MainPage extends BasePage {
   }
 
   async chooseToken(tokenName: string) {
+    const basePage = new BasePage(this.world);
+    await setTimeout(config.minimalTimeout.timeout);
+    const tokenDropDownButton = await basePage.getElementByTestId(this.tokenDropDown);
+    await tokenDropDownButton.isEnabled(config.increasedTimeout);
     await this.click(this.tokenDropDown, true);
+    await setTimeout(config.minimalTimeout.timeout);
+    const inputElement = await basePage.getElementByPlaceholder("Symbol or address");
+    await inputElement.isVisible();
     await this.clickBy("placeholder", "Symbol or address");
-    await this.fill(".small-input-field", `${tokenName}`);
+    await this.fill(".search-input-field", `${tokenName}`);
+    await this.world.page?.waitForTimeout(1000);
+    await this.world.page?.waitForSelector(this.getFirstToken, config.increasedTimeout);
+
     await this.click(this.getFirstToken);
   }
 
   async insertAmount(amount: string) {
-    await this.world.page?.waitForTimeout(3 * 1000);
+    await this.world.page?.waitForTimeout(config.defaultTimeout.timeout);
     await this.fill(this.amountInputField, amount);
   }
 
+  // confirm, "Bridge now"
   async makeTransaction(actionType: string, transactionType: string) {
     metamaskPage = await new MetamaskPage(this.world);
     const selector = await this.getTransactionSelector(transactionType);
@@ -186,7 +198,6 @@ export class MainPage extends BasePage {
     const helper = await new Helper(this.world);
     const balanceETH = await helper.getBalanceETH(walletAddress, layer);
     await helper.notifyQAIfLowBalance(layer, walletAddress, balanceETH);
-    console.log("======== " + layer + " balance: " + balanceETH + " ETH | " + walletAddress);
     await expect(balanceETH).toBeGreaterThan(config.thresholdBalance);
   }
 
@@ -232,11 +243,11 @@ export class MainPage extends BasePage {
       const selector = `//*[contains(@href,'${link}')]` + this.externalLinkArrow;
       await this.verifyElement("xpath", selector, checkType);
     } else if (externalLinkName === "Transfer" || externalLinkName === "Withdraw") {
-      link = "https://goerli.explorer.zksync.io/tx";
+      link = "https://sepolia-era.zksync.network/tx";
       const selector = this.modalCard + `//*[contains(@href,'${link}')]` + this.externalLinkArrow;
       await this.verifyElement("xpath", selector, checkType);
     } else if (externalLinkName === "Deposit") {
-      link = "https://goerli.etherscan.io/tx/";
+      link = "https://sepolia.etherscan.io/tx/";
       const selector = this.modalCard + `//*[contains(@href,'${link}')]` + this.externalLinkArrow;
       await this.verifyElement("xpath", selector, checkType);
     } else {
@@ -246,7 +257,7 @@ export class MainPage extends BasePage {
 
   async clickModalCardElement(selectorValue: string) {
     let selector: string;
-    const regex = /\/\/\*/g;
+    const regex = /^\/\//; // Match XPath starting with //
     const matchXpath = selectorValue.match(regex);
 
     if (!matchXpath) {
@@ -307,8 +318,8 @@ export class MainPage extends BasePage {
 
   async maxAmountIsSet() {
     const basePage = new BasePage(this.world);
-    const elementType = "class";
-    const elementValue = "amount-input-field";
+    const elementType = "partial class";
+    const elementValue = "input-line";
     const contentType = "value";
     basePage.verifyContent(elementType, elementValue, maxBalanceErrorValue, contentType);
   }

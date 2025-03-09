@@ -106,6 +106,7 @@ export class Helper {
     result = true;
     try {
       if (element == "string") {
+        await this.world.page?.waitForSelector(element, { timeout: config.defaultTimeout.timeout });
         await this.world.page?.locator(element).click({ trial: true, timeout: waitTime });
       } else {
         await element.click({ trial: true, timeout: waitTime });
@@ -167,7 +168,7 @@ export class Helper {
     } else {
       console.log(`Wrong layer: ${layer}`);
     }
-    const balanceEth = Number(ethers.utils.formatEther(await provider.getBalance(walletAddress)));
+    const balanceEth = Number(ethers.formatEther(await provider.getBalance(walletAddress)));
     return balanceEth;
   }
 
