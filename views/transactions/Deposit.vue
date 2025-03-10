@@ -383,12 +383,12 @@ import { isAddress } from "ethers";
 
 import EthereumTransactionFooter from "@/components/transaction/EthereumTransactionFooter.vue";
 import useAllowance from "@/composables/transaction/useAllowance";
+import { useSentryLogger } from "@/composables/useSentryLogger";
 import useEcosystemBanner from "@/composables/zksync/deposit/useEcosystemBanner";
 import useFee from "@/composables/zksync/deposit/useFee";
 import useTransaction from "@/composables/zksync/deposit/useTransaction";
 import { customBridgeTokens } from "@/data/customBridgeTokens";
 import { isCustomNode } from "@/data/networks";
-import { sentryCaptureException } from "@/utils/sentry-logger";
 import DepositSubmitted from "@/views/transactions/DepositSubmitted.vue";
 
 import type { Token, TokenAmount } from "@/types";
@@ -408,6 +408,8 @@ const { destinations } = storeToRefs(useDestinationsStore());
 const { l1BlockExplorerUrl } = storeToRefs(useNetworkStore());
 const { l1Tokens, baseToken, tokensRequestInProgress, tokensRequestError } = storeToRefs(tokensStore);
 const { balance, balanceInProgress, balanceError } = storeToRefs(zkSyncEthereumBalance);
+
+const { captureException } = useSentryLogger();
 
 const toNetworkModalOpened = ref(false);
 const toNetworkSelected = (networkKey?: string) => {
@@ -571,11 +573,10 @@ const totalComputeAmount = computed(() => {
     }
     return decimalToBigNumber(amount.value, selectedToken.value.decimals);
   } catch (error) {
-    sentryCaptureException({
+    captureException({
       error: error as Error,
       parentFunctionName: "totalComputeAmount",
       parentFunctionParams: [],
-      accountAddress: "",
       filePath: "views/transactions/Deposit.vue",
     });
     return 0n;

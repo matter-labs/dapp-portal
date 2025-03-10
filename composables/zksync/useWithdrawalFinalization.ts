@@ -2,6 +2,8 @@ import { useMemoize } from "@vueuse/core";
 import { Wallet } from "zksync-ethers";
 import IL1SharedBridge from "zksync-ethers/abi/IL1SharedBridge.json";
 
+import { useSentryLogger } from "../useSentryLogger";
+
 import type { Hash } from "@/types";
 
 export default (transactionInfo: ComputedRef<TransactionInfo>) => {
@@ -13,6 +15,7 @@ export default (transactionInfo: ComputedRef<TransactionInfo>) => {
   const tokensStore = useZkSyncTokensStore();
   const { isCorrectNetworkSet } = storeToRefs(onboardStore);
   const { ethToken } = storeToRefs(tokensStore);
+  const { captureException } = useSentryLogger();
 
   const retrieveBridgeAddresses = useMemoize(() => providerStore.requestProvider().getDefaultBridgeAddresses());
 
@@ -112,7 +115,6 @@ export default (transactionInfo: ComputedRef<TransactionInfo>) => {
   );
 
   const commitTransaction = async () => {
-    let accountAddress = "";
     try {
       error.value = undefined;
 
@@ -122,7 +124,6 @@ export default (transactionInfo: ComputedRef<TransactionInfo>) => {
       }
       const wallet = await onboardStore.getWallet();
       const { transactionParams, gasLimit, gasPrice } = (await estimateFee())!;
-      accountAddress = wallet.account.address;
       status.value = "waiting-for-signature";
       transactionHash.value = await wallet.writeContract({
         ...transactionParams,
@@ -151,11 +152,10 @@ export default (transactionInfo: ComputedRef<TransactionInfo>) => {
     } catch (err) {
       error.value = formatError(err as Error);
       status.value = "not-started";
-      sentryCaptureException({
+      captureException({
         error: err as Error,
         parentFunctionName: "commitTransaction",
         parentFunctionParams: [],
-        accountAddress: accountAddress || "",
         filePath: "composables/zksync/useWithdrawalFinalization.ts",
       });
     }

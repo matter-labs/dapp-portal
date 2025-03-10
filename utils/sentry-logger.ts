@@ -45,3 +45,4 @@ const sentryCaptureException = ({
 };
 
 export { sentryCaptureException };
+export type { SentryCaptureExceptionParams };

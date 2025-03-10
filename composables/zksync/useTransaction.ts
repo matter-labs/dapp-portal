@@ -3,6 +3,8 @@ import { type BigNumberish } from "ethers";
 
 import { isCustomNode } from "@/data/networks";
 
+import { useSentryLogger } from "../useSentryLogger";
+
 import type { TokenAmount } from "@/types";
 import type { Provider, Signer } from "zksync-ethers";
 
@@ -22,6 +24,7 @@ export default (getSigner: () => Promise<Signer | undefined>, getProvider: () =>
   const error = ref<Error | undefined>();
   const transactionHash = ref<string | undefined>();
   const eraWalletStore = useZkSyncWalletStore();
+  const { captureException } = useSentryLogger();
 
   const retrieveBridgeAddresses = useMemoize(() => getProvider().getDefaultBridgeAddresses());
   const { validateAddress } = useScreening();
@@ -75,11 +78,10 @@ export default (getSigner: () => Promise<Signer | undefined>, getProvider: () =>
     } catch (err) {
       error.value = formatError(err as Error);
       status.value = "not-started";
-      sentryCaptureException({
+      captureException({
         error: err as Error,
         parentFunctionName: "commitTransaction",
         parentFunctionParams: [transaction, fee],
-        accountAddress: accountAddress || "",
         filePath: "composables/zksync/useTransaction.ts",
       });
     }

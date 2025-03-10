@@ -1,3 +1,5 @@
+import { useSentryLogger } from "@/composables/useSentryLogger";
+
 import type { DepositFeeValues } from "@/composables/zksync/deposit/useFee";
 import type { BigNumberish } from "ethers";
 import type { L1Signer } from "zksync-ethers";
@@ -7,6 +9,7 @@ export default (getL1Signer: () => Promise<L1Signer | undefined>) => {
   const error = ref<Error | undefined>();
   const ethTransactionHash = ref<string | undefined>();
   const eraWalletStore = useZkSyncWalletStore();
+  const { captureException } = useSentryLogger();
 
   const { validateAddress } = useScreening();
 
@@ -18,14 +21,12 @@ export default (getL1Signer: () => Promise<L1Signer | undefined>) => {
     },
     fee: DepositFeeValues
   ) => {
-    let accountAddress = "";
     try {
       error.value = undefined;
 
       status.value = "processing";
       const wallet = await getL1Signer();
       if (!wallet) throw new Error("Wallet is not available");
-      accountAddress = wallet.address;
 
       await eraWalletStore.walletAddressValidate();
       await validateAddress(transaction.to);
@@ -56,11 +57,10 @@ export default (getL1Signer: () => Promise<L1Signer | undefined>) => {
     } catch (err) {
       error.value = formatError(err as Error);
       status.value = "not-started";
-      sentryCaptureException({
+      captureException({
         error: err as Error,
         parentFunctionName: "commitTransaction",
         parentFunctionParams: [transaction, fee],
-        accountAddress: accountAddress || "",
         filePath: "composables/zksync/deposit/useTransaction.ts",
       });
     }
