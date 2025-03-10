@@ -1,5 +1,5 @@
 <template>
-  <CommonButton class="dropdown-button">
+  <CommonButton :data-testid="dataTestid" class="dropdown-button">
     <div v-if="$slots['left-icon']" class="left-icon-container">
       <slot name="left-icon" />
     </div>
@@ -23,6 +23,10 @@ defineProps({
   noChevron: {
     type: Boolean,
     default: false,
+  },
+  dataTestid: {
+    type: String,
+    default: "",
   },
 });
 </script>

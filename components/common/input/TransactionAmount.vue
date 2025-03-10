@@ -83,6 +83,7 @@
           :toggled="selectTokenModalOpened"
           variant="light"
           :disabled="loading"
+          data-testid="token-dropDown"
           @click="selectTokenModalOpened = true"
         >
           <template #left-icon>
