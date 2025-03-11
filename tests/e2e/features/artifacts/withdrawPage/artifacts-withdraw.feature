@@ -29,9 +29,9 @@ Feature: Withdraw
     Then Element with "text" "ETH" should be "visible"
     Then Element with "text" " Continue " should be "disabled"
     Then Element with "text" " Continue " should be "visible"
-    # Arriving in ~24 hours link
-    Then Element with "text" " Arriving in ~24 hours " should be "visible"
-    Then Element with "text" " Arriving in ~24 hours " should be "clickable"
+    # Arriving in ~5+ hours link
+    Then Element with "text" " Arriving in ~5+ hours " should be "visible"
+    Then Element with "text" " Arriving in ~5+ hours " should be "clickable"
     When I choose "ETH" as token and insert "0.0000000001" as amount
     Then Element with "text" " Continue " should be "clickable"
 
@@ -54,8 +54,8 @@ Feature: Withdraw
     Then Modal card element with the "//*[@src='https://firebasestorage.googleapis.com/v0/b/token-library.appspot.com/o/eth.svg?alt=media&token=1985e3d8-3aa7-4d04-8839-565d4c341615']" xpath should be "visible"
     Then Modal card element with the "//*[contains(@class,'fee-details-container') and //span[contains(text(),'Fee')]]" xpath should be "visible"
     Then Modal card element with the "//*[contains(@class,'fee-details-container') and //span[contains(text(),'Total to pay')]]" xpath should be "visible"
-    Then Modal card element with the "//*[text()=' Arriving in ~24 hours ']" xpath should be "visible"
-    Then Modal card element with the "//*[text()=' Arriving in ~24 hours ']" xpath should be "clickable"
+    Then Modal card element with the "//*[text()=' Arriving in ~5+ hours ']" xpath should be "visible"
+    Then Modal card element with the "//*[text()=' Arriving in ~5+ hours ']" xpath should be "clickable"
     Then Element with "text" "Send to Ethereum Goerli Testnet" should be "visible"
     Then Element with "text" "Send to Ethereum Goerli Testnet" should be "clickable"
 

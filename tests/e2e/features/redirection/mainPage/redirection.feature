@@ -311,9 +311,9 @@ Feature: External Redirection on the Main Page
     Given I go to page "/transaction/zksync/era/withdraw"
     When I click by "text" with "Your account" value
     When I confirm the network switching
-    Then Element with "text" " Arriving in ~24 hours " should be "visible"
-    When I click by "text" with " Arriving in ~24 hours " value
-    Then Element with "text" " Arriving in ~24 hours " should be "clickable"
+    Then Element with "text" " Arriving in ~5+ hours " should be "visible"
+    When I click by "text" with " Arriving in ~5+ hours " value
+    Then Element with "text" " Arriving in ~5+ hours " should be "clickable"
     Then New page has "https://era.zksync.io/docs/reference/troubleshooting/withdrawal-delay.html#withdrawal-delay" address
     
   @id1565
@@ -324,7 +324,7 @@ Feature: External Redirection on the Main Page
     When I choose "ETH" as token and insert "0.0001" as amount
     When I click by text " Continue "
     Then Element with "text" "Confirm transaction" should be "visible"
-    Then Modal card element with the "//*[text()=' Arriving in ~24 hours ']" xpath should be "visible"
-    When I click by the "//*[text()=' Arriving in ~24 hours ']" text element on the Modal card
+    Then Modal card element with the "//*[text()=' Arriving in ~5+ hours ']" xpath should be "visible"
+    When I click by the "//*[text()=' Arriving in ~5+ hours ']" text element on the Modal card
     Then New page has "https://era.zksync.io/docs/reference/troubleshooting/withdrawal-delay.html#withdrawal-delay" address
     

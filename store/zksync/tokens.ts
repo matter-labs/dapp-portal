@@ -31,17 +31,17 @@ export const useZkSyncTokensStore = defineStore("zkSyncTokens", () => {
         $fetch(`${eraNetwork.value.blockExplorerApi}/tokens?minLiquidity=0&limit=100&page=3`),
       ]);
       explorerTokens = responses.map((response) => response.items.map(mapApiToken)).flat();
-      baseToken = explorerTokens.find((token) => token.address === L2_BASE_TOKEN_ADDRESS);
-      ethToken = explorerTokens.find((token) => token.address === ethL2TokenAddress);
+      baseToken = explorerTokens.find((token) => token.address.toUpperCase() === L2_BASE_TOKEN_ADDRESS.toUpperCase());
+      ethToken = explorerTokens.find((token) => token.address.toUpperCase() === ethL2TokenAddress.toUpperCase());
     }
 
     if (eraNetwork.value.getTokens && (!baseToken || !ethToken)) {
       configTokens = await eraNetwork.value.getTokens();
       if (!baseToken) {
-        baseToken = configTokens.find((token) => token.address === L2_BASE_TOKEN_ADDRESS);
+        baseToken = configTokens.find((token) => token.address.toUpperCase() === L2_BASE_TOKEN_ADDRESS.toUpperCase());
       }
       if (!ethToken) {
-        ethToken = configTokens.find((token) => token.address === ethL2TokenAddress);
+        ethToken = configTokens.find((token) => token.address.toUpperCase() === ethL2TokenAddress.toUpperCase());
       }
     }
 
@@ -72,11 +72,11 @@ export const useZkSyncTokensStore = defineStore("zkSyncTokens", () => {
     );
     return [
       baseToken,
-      ...(baseToken.address !== ethToken.address ? [ethToken] : []),
+      ...(baseToken.address.toUpperCase() !== ethToken.address.toUpperCase() ? [ethToken] : []),
       ...nonBaseOrEthExplorerTokens,
     ].map((token) => ({
       ...token,
-      isETH: token.address === ethL2TokenAddress,
+      isETH: token.address.toUpperCase() === ethL2TokenAddress.toUpperCase(),
     }));
   });
 
@@ -101,7 +101,7 @@ export const useZkSyncTokensStore = defineStore("zkSyncTokens", () => {
   });
   const baseToken = computed<Token | undefined>(() => {
     if (!tokensRaw.value) return undefined;
-    return tokensRaw.value.find((token) => token.address === L2_BASE_TOKEN_ADDRESS);
+    return tokensRaw.value.find((token) => token.address.toUpperCase() === L2_BASE_TOKEN_ADDRESS.toUpperCase());
   });
   const ethToken = computed<Token | undefined>(() => {
     if (!tokensRaw.value) return undefined;
