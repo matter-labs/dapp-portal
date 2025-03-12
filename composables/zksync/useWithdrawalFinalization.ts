@@ -1,8 +1,10 @@
 import { useMemoize } from "@vueuse/core";
 import { Wallet } from "zksync-ethers";
-import IL1SharedBridge from "zksync-ethers/abi/IL1SharedBridge.json";
+import IL1Nullifier from "zksync-ethers/abi/IL1Nullifier.json";
+import { IL1AssetRouter__factory as IL1AssetRouterFactory } from "zksync-ethers/build/typechain";
 
 import type { Hash } from "@/types";
+import type { FinalizeL1DepositParamsStruct } from "zksync-ethers/build/types";
 
 export default (transactionInfo: ComputedRef<TransactionInfo>) => {
   const status = ref<"not-started" | "processing" | "waiting-for-signature" | "sending" | "done">("not-started");
@@ -10,31 +12,20 @@ export default (transactionInfo: ComputedRef<TransactionInfo>) => {
   const transactionHash = ref<Hash | undefined>();
   const onboardStore = useOnboardStore();
   const providerStore = useZkSyncProviderStore();
+  const walletStore = useZkSyncWalletStore();
   const tokensStore = useZkSyncTokensStore();
   const { isCorrectNetworkSet } = storeToRefs(onboardStore);
   const { ethToken } = storeToRefs(tokensStore);
 
   const retrieveBridgeAddresses = useMemoize(() => providerStore.requestProvider().getDefaultBridgeAddresses());
-
-  const retrieveChainId = useMemoize(() =>
-    providerStore
-      .requestProvider()
-      .getNetwork()
-      .then((network) => network.chainId)
-  );
+  const retrieveL1NullifierAddress = useMemoize(async () => {
+    const providerL1 = walletStore.getL1VoidSigner();
+    return IL1AssetRouterFactory.connect((await retrieveBridgeAddresses()).sharedL1, providerL1).L1_NULLIFIER();
+  });
 
   const gasLimit = ref<bigint | undefined>();
   const gasPrice = ref<bigint | undefined>();
-  const finalizeWithdrawalParams = ref<
-    | {
-        l1BatchNumber: unknown;
-        l2MessageIndex: unknown;
-        l2TxNumberInBlock: unknown;
-        message: unknown;
-        proof: unknown;
-      }
-    | undefined
-  >();
+  const finalizeWithdrawalParams = ref<FinalizeL1DepositParamsStruct | undefined>();
 
   const totalFee = computed(() => {
     if (!gasLimit.value || !gasPrice.value) return undefined;
@@ -52,27 +43,17 @@ export default (transactionInfo: ComputedRef<TransactionInfo>) => {
       "0x7726827caac94a7f9e1b160f7ea819f172f7b6f9d2a97f992c38edeab82d4110",
       provider
     );
-    const { l1BatchNumber, l2MessageIndex, l2TxNumberInBlock, sender, message, proof } =
-      await wallet.finalizeWithdrawalParams(transactionInfo.value.transactionHash);
-    return {
-      chainId: await retrieveChainId(),
-      l1BatchNumber,
-      l2MessageIndex,
-      l2TxNumberInBlock,
-      sender,
-      message,
-      proof,
-    };
+    return await wallet.getFinalizeDepositParams(transactionInfo.value.transactionHash);
   };
 
   const getTransactionParams = async () => {
     finalizeWithdrawalParams.value = await getFinalizationParams();
     return {
-      address: (await retrieveBridgeAddresses()).sharedL1 as Hash,
-      abi: IL1SharedBridge,
+      address: (await retrieveL1NullifierAddress()) as Hash,
+      abi: IL1Nullifier,
       account: onboardStore.account.address!,
       functionName: "finalizeDeposit",
-      args: Object.values(finalizeWithdrawalParams.value!),
+      args: [Object.values(finalizeWithdrawalParams.value!)],
     };
   };
 
