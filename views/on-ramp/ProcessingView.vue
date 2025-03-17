@@ -28,15 +28,12 @@
     </div>
     <div v-if="orderStatus === 'STOPPED' && !inProgress" class="flex items-center gap-2">
       <CommonButton variant="primary" class="grow" @click="restartRoute"> Try again </CommonButton>
-      <CommonButton variant="error" @click="removeTransaction">
-        <TrashIcon class="h-5 w-5" />
-      </CommonButton>
+      <CommonButton variant="cancel" @click="removeTransaction"> Cancel </CommonButton>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { TrashIcon } from "@heroicons/vue/24/outline";
 import { updateRouteExecution } from "zksync-easy-onramp";
 
 import CommonButton from "@/components/common/button/Button.vue";

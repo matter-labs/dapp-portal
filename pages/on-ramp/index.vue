@@ -97,11 +97,12 @@ watch(isConnected, () => {
   }
 });
 
+const { onRampChainId } = useOnRampStore();
 const fetch = () => {
   fetchQuotes({
     fiatAmount: +fiatAmount.value,
     toToken: token.value!.address as Address,
-    chainId: 324,
+    chainId: onRampChainId,
     toAddress: account.value.address!,
   });
 };

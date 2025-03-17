@@ -1,16 +1,17 @@
 <template>
   <div
     v-if="routes.length > 0"
-    class="flex cursor-pointer gap-2 rounded-xl border border-red-700/30 bg-red-500/10 p-4 dark:bg-red-900/50"
+    class="flex cursor-pointer gap-2 rounded-xl bg-neutral-100 p-4 dark:bg-neutral-900"
     @click="viewTransactions"
   >
+    <InformationCircleIcon class="h-6 w-6 dark:text-white" />
     <span class="grow">You have {{ routes.length }} active transaction{{ routes.length > 1 ? "s" : "" }}.</span>
-    <ChevronRightIcon class="h-6 w-6 text-red-700" />
+    <ChevronRightIcon class="h-6 w-6 dark:text-white" />
   </div>
 </template>
 
 <script lang="ts" setup>
-import { ChevronRightIcon } from "@heroicons/vue/20/solid";
+import { ChevronRightIcon, InformationCircleIcon } from "@heroicons/vue/20/solid";
 const { routes } = useRoutesStore();
 
 const { setStep } = useOnRampStore();

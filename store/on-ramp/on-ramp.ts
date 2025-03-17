@@ -4,6 +4,7 @@ import { defineStore } from "pinia";
 import { ref } from "vue";
 import { createOnRampConfig, EVM, fetchConfig, type FetchQuoteParams } from "zksync-easy-onramp";
 
+import { defaultNetwork } from "@/data/networks";
 import { wagmiConfig } from "@/data/wagmi";
 import { useQuotesStore } from "@/store/on-ramp/quotes";
 
@@ -24,6 +25,7 @@ createOnRampConfig({
 export type Steps = "buy" | "quotes" | "processing" | "transactions" | "transaction" | "complete";
 
 export const useOnRampStore = defineStore("on-ramp", () => {
+  const onRampChainId = defaultNetwork.id;
   const step = ref<Steps>("buy");
   // const step = ref<Steps>("complete");
 
@@ -51,6 +53,7 @@ export const useOnRampStore = defineStore("on-ramp", () => {
   });
 
   return {
+    onRampChainId,
     setStep,
     step,
     fetchQuotes,
