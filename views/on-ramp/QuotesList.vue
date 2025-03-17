@@ -22,7 +22,7 @@ const { quotes } = storeToRefs(useQuotesStore());
 #list {
   &::after {
     content: "";
-    @apply absolute bottom-0 left-0 h-[1.25rem] w-full bg-gradient-to-t from-white to-transparent;
+    @apply absolute bottom-0 left-0 h-[1.25rem] w-full bg-gradient-to-t from-[#f7f9fc] to-transparent;
   }
 }
 

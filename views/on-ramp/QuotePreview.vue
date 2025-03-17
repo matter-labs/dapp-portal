@@ -10,23 +10,23 @@
           <div class="text-sm text-gray-600 dark:text-gray-300">
             Fee: {{ formatFiat(quote.pay.totalFeeUsd, quote.pay.currency) }}
           </div>
+          <button
+            type="button"
+            class="p-0.5 text-sm text-neutral-500 underline hover:text-neutral-600 dark:text-neutral-500 dark:hover:text-neutral-400"
+            @click="toggleDetails"
+          >
+            Details
+          </button>
         </div>
       </div>
       <div class="flex basis-1/3 items-center justify-end">
-        <div class="inline-block p-2">
+        <!-- <div class="inline-block p-2">
           <img :src="quote.provider.iconUrl" class="h-8 w-8" />
-        </div>
+        </div> -->
         <div class="inline-block">
           <div>{{ quote.provider.name }}</div>
           <div class="text-sm text-gray-600 dark:text-gray-300">{{ providerType }}</div>
         </div>
-        <button
-          type="button"
-          class="ml-2 h-6 w-6 rounded-full border border-gray-300 p-0.5 text-sm hover:bg-gray-300/50 dark:border-neutral-700 dark:text-neutral-200 dark:hover:bg-neutral-800/50"
-          @click="toggleDetails"
-        >
-          <ChevronDownIcon class="h-4 w-4 transform transition-all" :class="{ 'rotate-180': toggleOpen }" />
-        </button>
       </div>
     </div>
     <Transition v-bind="TransitionOpacity(250, 150)">
@@ -38,8 +38,6 @@
 </template>
 
 <script setup lang="ts">
-import { ChevronDownIcon } from "@heroicons/vue/24/outline";
-
 import { useOrderProcessingStore } from "@/store/on-ramp/order-processing";
 import StepDetail from "@/views/on-ramp/StepDetail.vue";
 

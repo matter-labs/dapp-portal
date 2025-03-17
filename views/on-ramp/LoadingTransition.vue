@@ -2,7 +2,7 @@
   <div class="px-6 py-4">
     <div class="mb-2">
       <svg
-        class="-ml-1 mr-3 inline-block size-5 animate-spin text-black"
+        class="-ml-1 mr-3 inline-block size-5 animate-spin text-black dark:text-white"
         xmlns="http://www.w3.org/2000/svg"
         fill="none"
         viewBox="0 0 24 24"
@@ -16,31 +16,31 @@
       </svg>
       <span class="font-bold">Finding quotes</span>
     </div>
-    <div className="border border-gray-200 rounded-xl">
+    <div className="border border-neutral-200 dark:border-neutral-800 rounded-xl dark:bg-neutral-900">
       <div className="flex gap-2 p-3 animate-pulse items-center">
         <div className="basis-2/3">
           <div class="flex flex-col gap-2">
             <div>
-              <div class="h-4 w-[40%] rounded bg-gray-200"></div>
+              <div class="h-4 w-[40%] rounded bg-neutral-400 dark:bg-neutral-600"></div>
             </div>
             <div>
-              <div class="h-2 w-[40%] rounded bg-gray-200"></div>
+              <div class="h-2 w-[40%] rounded bg-neutral-400 dark:bg-neutral-600"></div>
             </div>
           </div>
         </div>
         <div className="flex basis-1/3 items-center justify-end">
           <div className="inline-block p-2">
-            <div class="h-8 w-8 rounded-full bg-gray-200"></div>
+            <div class="h-8 w-8 rounded-full bg-neutral-400 dark:bg-neutral-600"></div>
           </div>
           <div className="inline-block">
             <div>
-              <div class="mb-2 h-2 w-[80px] rounded bg-gray-200"></div>
+              <div class="mb-2 h-2 w-[80px] rounded bg-neutral-400 dark:bg-neutral-600"></div>
             </div>
             <div>
-              <div class="h-2 w-[70px] rounded bg-gray-200"></div>
+              <div class="h-2 w-[70px] rounded bg-neutral-400 dark:bg-neutral-600"></div>
             </div>
           </div>
-          <div className="ml-2 h-6 w-6 border rounded-full border-gray-300 p-0.5"></div>
+          <div className="ml-2 h-6 w-6 border rounded-full border-neutral-300 dark:border-neutral-700 p-0.5"></div>
         </div>
       </div>
     </div>

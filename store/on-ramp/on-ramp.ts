@@ -4,12 +4,14 @@ import { defineStore } from "pinia";
 import { ref } from "vue";
 import { createOnRampConfig, EVM, fetchConfig, type FetchQuoteParams } from "zksync-easy-onramp";
 
+import { defaultNetwork } from "@/data/networks";
 import { wagmiConfig } from "@/data/wagmi";
 import { useQuotesStore } from "@/store/on-ramp/quotes";
 
 createOnRampConfig({
   integrator: "ZKsync Portal",
   services: ["kado"],
+  apiUrl: "http://localhost:3020/api",
   provider: EVM({
     // eslint-disable-next-line require-await
     getWalletClient: async () => getWalletClient(wagmiConfig),
@@ -24,6 +26,7 @@ createOnRampConfig({
 export type Steps = "buy" | "quotes" | "processing" | "transactions" | "transaction" | "complete";
 
 export const useOnRampStore = defineStore("on-ramp", () => {
+  const onRampChainId = defaultNetwork.id;
   const step = ref<Steps>("buy");
   // const step = ref<Steps>("complete");
 
@@ -51,6 +54,7 @@ export const useOnRampStore = defineStore("on-ramp", () => {
   });
 
   return {
+    onRampChainId,
     setStep,
     step,
     fetchQuotes,

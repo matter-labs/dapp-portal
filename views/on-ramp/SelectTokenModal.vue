@@ -26,13 +26,15 @@
       </template>
       <template v-else-if="selectedToken">
         <div class="dark:text-gray-100">{{ selectedToken.symbol }}</div>
-        <div class="text-sm">{{ selectedToken.name }} on ZKsync</div>
+        <div class="text-sm">{{ selectedToken.name }} on {{ networkName }}</div>
       </template>
     </div>
   </CommonButtonDropdown>
 </template>
 
 <script lang="ts" setup>
+import { chainList } from "@/data/networks";
+
 import type { ConfigResponse } from "zksync-easy-onramp";
 
 const emit = defineEmits(["selectToken"]);
@@ -46,17 +48,30 @@ const setToken = (address?: string) => {
 };
 
 const { config, configInProgress } = storeToRefs(useOnRampStore());
+const { onRampChainId } = useOnRampStore();
 const tokensList = computed<ConfigResponse["tokens"]>(() =>
-  config.value.tokens.filter((token) => token.chainId === 324)
+  config.value.tokens.filter((token) => token.chainId === onRampChainId)
 );
 const selectTokenModalOpened = ref(false);
+
+const networkName = computed(() => {
+  if (onRampChainId === 1) {
+    return "Ethereum";
+  }
+  return chainList.find((chain) => chain.id === onRampChainId)?.name;
+});
 
 const selectedToken = ref<ConfigResponse["tokens"][0] | null>(null);
 watch(configInProgress, () => {
   if (!configInProgress.value) {
-    selectedToken.value = tokensList.value.find((token) => token.symbol === "ETH") ?? null;
-    emit("selectToken", selectedToken.value);
+    setToken(tokensList.value.find((token) => token.symbol === "ETH")?.address);
   }
 });
 const chainIcon = ref("/img/era.svg");
+
+onMounted(() => {
+  if (!configInProgress.value) {
+    setToken(tokensList.value.find((token) => token.symbol === "ETH")?.address);
+  }
+});
 </script>

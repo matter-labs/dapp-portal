@@ -1,5 +1,5 @@
 <template>
-  <div class="my-4 flex flex-col px-2 text-xs">
+  <div class="mb-4 flex flex-col px-3 text-xs">
     <div v-if="step.type === 'onramp_via_link'" class="flex items-center space-x-2">
       <span class="h-4 w-4 rounded-full border bg-gray-500">&nbsp;</span>
       <span>Purchase via onramp link</span>
