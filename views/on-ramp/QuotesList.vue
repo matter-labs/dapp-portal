@@ -2,7 +2,12 @@
   <div id="list" class="max-h-[280px] overflow-y-auto px-6 py-4">
     <span class="font-bold">Choose on-ramp</span>
     <div class="flex flex-col gap-2">
-      <QuotePreview v-for="(quote, index) in quotes" :key="index" :quote="quote" />
+      <template v-if="quotes && quotes.length > 0">
+        <QuotePreview v-for="(quote, index) in quotes" :key="index" :quote="quote" />
+      </template>
+      <template v-else-if="quotes && quotes.length === 0">
+        <div class="h-10">No quotes available</div>
+      </template>
     </div>
   </div>
 </template>
@@ -17,24 +22,14 @@ const { quotes } = storeToRefs(useQuotesStore());
 #list {
   &::after {
     content: "";
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    height: 1.25rem;
-    background-image: linear-gradient(to top, #f7f9fc, rgba(#f7f9fc, 0));
+    @apply absolute bottom-0 left-0 h-[1.25rem] w-full bg-gradient-to-t from-white to-transparent;
   }
 }
 
 .dark #list {
   &::after {
     content: "";
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    height: 1.25rem;
-    background-image: linear-gradient(to top, #000, rgba(#000, 0));
+    @apply absolute bottom-0 left-0 h-[1.25rem] w-full bg-gradient-to-t from-black to-transparent;
   }
 }
 </style>

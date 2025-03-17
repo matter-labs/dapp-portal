@@ -34,15 +34,19 @@ import QuotesList from "@/views/on-ramp/QuotesList.vue";
 const activeView = defineModel({ required: true, default: "initial" });
 
 const { openModal } = useOnboardStore();
+const { isConnected } = storeToRefs(useOnboardStore());
+watch(isConnected, () => {
+  if (isConnected.value) {
+    activeView.value = "loading";
+  } else {
+    activeView.value = "connect";
+  }
+});
 
 const { step } = storeToRefs(useOnRampStore());
 
-const transitionViews = ["initial", "loading", "quotes", "error", "connect"];
+const transitionViews = ["initial", "loading", "quotes", "error", "connect"] as const;
 
-// const middlePanelStyle = reactive({
-//   height: "0px",
-//   // height: "300px",
-// });
 const { middlePanelHeight } = storeToRefs(useOnRampStore());
 function swapView(el: Element) {
   const height = (el as HTMLElement).offsetHeight;
