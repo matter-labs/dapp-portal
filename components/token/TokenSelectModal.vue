@@ -111,6 +111,9 @@ const search = ref("");
 const hasBalances = computed(() => props.balances.length > 0);
 const filterTokens = (tokens: Token[]) => {
   const lowercaseSearch = search.value.toLowerCase();
+  if (lowercaseSearch === "") {
+    return tokens.slice(0, 100);
+  }
   return tokens.filter(({ address, name, symbol }) =>
     Object.values({ address, name, symbol })
       .filter((e) => typeof e === "string")

@@ -1,7 +1,8 @@
+import { useAsyncState } from "@vueuse/core";
 import { getWalletClient, switchChain } from "@wagmi/core";
 import { defineStore } from "pinia";
 import { ref } from "vue";
-import { createOnRampConfig, EVM, type FetchQuoteParams } from "zksync-easy-onramp";
+import { createOnRampConfig, EVM, fetchConfig, type FetchQuoteParams } from "zksync-easy-onramp";
 
 import { wagmiConfig } from "@/data/wagmi";
 import { useQuotesStore } from "@/store/on-ramp/quotes";
@@ -38,10 +39,25 @@ export const useOnRampStore = defineStore("on-ramp", () => {
     quotesStore.fetchQuotes(params);
   };
 
+  const {
+    state: config,
+    isReady: configIsReady,
+    isLoading: configInProgress,
+    error: configError,
+  } = useAsyncState(fetchConfig(), {
+    chains: [],
+    providers: [],
+    tokens: [],
+  });
+
   return {
     setStep,
     step,
     fetchQuotes,
     middlePanelHeight,
+    config,
+    configIsReady,
+    configInProgress,
+    configError,
   };
 });

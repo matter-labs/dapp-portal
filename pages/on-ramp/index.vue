@@ -20,13 +20,7 @@
             <span class="font-bold">You'll receive</span>
           </div>
           <div class="flex items-center justify-stretch gap-4">
-            <CommonButtonDropdown class="h-max w-full" variant="light">
-              <TokenImage :chain-icon="chainIcon" :symbol="token.symbol" :icon-url="token.iconUrl" class="h-11 w-11" />
-              <div class="text-left text-gray-700 dark:text-gray-300">
-                <div class="dark:text-gray-100">{{ token.symbol }}</div>
-                <div class="text-sm">{{ token.name }} on ZKsync</div>
-              </div>
-            </CommonButtonDropdown>
+            <SelectTokenModal @select-token="selectTokenUpdate" />
           </div>
         </div>
       </CommonContentBlock>
@@ -41,9 +35,11 @@ import ActiveTransactionsAlert from "@/views/on-ramp/ActiveTransactionsAlert.vue
 import CompletedView from "@/views/on-ramp/CompletedView.vue";
 import FormView from "@/views/on-ramp/FormView.vue";
 import MiddlePanel from "@/views/on-ramp/MiddlePanel.vue";
+import SelectTokenModal from "@/views/on-ramp/SelectTokenModal.vue";
 import TransactionsView from "@/views/on-ramp/TransactionsView.vue";
 
 import type { Address } from "viem";
+import type { ConfigResponse } from "zksync-easy-onramp";
 
 const middlePanelView = ref("initial");
 
@@ -63,17 +59,11 @@ watch(step, () => {
 });
 
 const fiatAmount = ref("");
-const token = ref({
-  address: "0x0000000000000000000000000000000000000000",
-  symbol: "ETH",
-  name: "Ether",
-  decimals: 18,
-  iconUrl: "/img/eth.svg",
-  price: 2188.46,
-  isETH: true,
-  amount: "10116705117690946",
-});
-const chainIcon = ref("/img/era.svg");
+const token = ref<ConfigResponse["tokens"][0] | null>(null);
+
+const selectTokenUpdate = (selectedToken: ConfigResponse["tokens"][0]) => {
+  token.value = selectedToken;
+};
 
 const { fetchQuotes } = useOnRampStore();
 watchDebounced(
@@ -84,28 +74,37 @@ watchDebounced(
       return;
     }
 
-    if (value) {
-      fetchQuotes({
-        fiatAmount: +value,
-        toToken: token.value.address as Address,
-        chainId: 1,
-        toAddress: account.value.address!,
-      });
+    if (value && token.value) {
+      fetch();
     }
   },
   { debounce: 750, maxWait: 5000 }
 );
+watchDebounced(token, (value) => {
+  if (!isConnected.value) {
+    middlePanelView.value = "connect";
+    return;
+  }
 
-watch(isConnected, () => {
-  if (isConnected.value && !!fiatAmount.value && +fiatAmount.value > 0) {
-    fetchQuotes({
-      fiatAmount: +fiatAmount.value,
-      toToken: token.value.address as Address,
-      chainId: 1,
-      toAddress: account.value.address!,
-    });
+  if (fiatAmount.value && value) {
+    fetch();
   }
 });
+
+watch(isConnected, () => {
+  if (isConnected.value && !!fiatAmount.value && +fiatAmount.value > 0 && token.value) {
+    fetch();
+  }
+});
+
+const fetch = () => {
+  fetchQuotes({
+    fiatAmount: +fiatAmount.value,
+    toToken: token.value!.address as Address,
+    chainId: 324,
+    toAddress: account.value.address!,
+  });
+};
 
 onMounted(() => {
   step.value = "buy";
