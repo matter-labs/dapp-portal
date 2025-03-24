@@ -10,9 +10,7 @@
       <FormView v-model="fiatAmount" />
       <MiddlePanel v-model="middlePanelView" />
       <div class="w-full">
-        <svg class="m-auto stroke-gray-500" width="2px" height="40px" xmlns="http://www.w3.org/2000/svg">
-          <line x1="0" y1="0" x2="0" y2="40" stroke-width="4" stroke-dasharray="7, 9" stroke-linecap="square" />
-        </svg>
+        <DotLottieVue class="m-auto" style="height: 50px; width: 50px" autoplay loop src="/ramp-line.json" />
       </div>
       <CommonContentBlock>
         <div class="flex flex-col gap-4">
@@ -29,6 +27,7 @@
 </template>
 
 <script lang="ts" setup>
+import { DotLottieVue } from "@lottiefiles/dotlottie-vue";
 import { watchDebounced } from "@vueuse/core";
 
 import ActiveTransactionsAlert from "@/views/on-ramp/ActiveTransactionsAlert.vue";
