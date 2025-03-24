@@ -10,6 +10,7 @@ import { useQuotesStore } from "@/store/on-ramp/quotes";
 
 createOnRampConfig({
   integrator: "ZKsync Portal",
+  apiUrl: "http://localhost:3020/api",
   services: ["kado"],
   provider: EVM({
     // eslint-disable-next-line require-await
@@ -27,7 +28,6 @@ export type Steps = "buy" | "quotes" | "processing" | "transactions" | "transact
 export const useOnRampStore = defineStore("on-ramp", () => {
   const onRampChainId = defaultNetwork.id;
   const step = ref<Steps>("buy");
-  // const step = ref<Steps>("complete");
 
   const quotesStore = useQuotesStore();
   const middlePanelHeight = ref(0);
@@ -52,6 +52,11 @@ export const useOnRampStore = defineStore("on-ramp", () => {
     tokens: [],
   });
 
+  const reset = () => {
+    setStep("buy");
+    middlePanelHeight.value = 0;
+  };
+
   return {
     onRampChainId,
     setStep,
@@ -62,5 +67,6 @@ export const useOnRampStore = defineStore("on-ramp", () => {
     configIsReady,
     configInProgress,
     configError,
+    reset,
   };
 });

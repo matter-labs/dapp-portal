@@ -43,15 +43,17 @@ import type { ConfigResponse } from "zksync-easy-onramp";
 const middlePanelView = ref("initial");
 
 const { step, middlePanelHeight } = storeToRefs(useOnRampStore());
+const { reset } = useOnRampStore();
 const { account, isConnected } = storeToRefs(useOnboardStore());
-const { quotes } = storeToRefs(useQuotesStore());
+const { reset: resetQuotes } = useQuotesStore();
 onMounted(() => {
-  quotes.value = null;
+  reset();
+  resetQuotes();
 });
 watch(step, () => {
   if (step.value === "buy") {
     fiatAmount.value = "";
-    quotes.value = null;
+    resetQuotes();
     middlePanelView.value = "initial";
     middlePanelHeight.value = 0;
   }
@@ -64,7 +66,6 @@ const selectTokenUpdate = (selectedToken: ConfigResponse["tokens"][0]) => {
   token.value = selectedToken;
 };
 
-const { fetchQuotes } = useOnRampStore();
 watchDebounced(
   fiatAmount,
   (value) => {
@@ -96,6 +97,7 @@ watch(isConnected, () => {
   }
 });
 
+const { fetchQuotes } = useOnRampStore();
 const { onRampChainId } = useOnRampStore();
 const fetch = () => {
   fetchQuotes({
@@ -105,9 +107,4 @@ const fetch = () => {
     toAddress: account.value.address!,
   });
 };
-
-onMounted(() => {
-  step.value = "buy";
-  middlePanelHeight.value = 0;
-});
 </script>

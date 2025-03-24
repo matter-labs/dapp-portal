@@ -14,6 +14,9 @@ export const useQuotesStore = defineStore("quotes", () => {
     quotes.value = null;
     try {
       const response = await fetchSDKQuotes(params);
+      if (!response.quotes) {
+        throw new Error("Failed to fetch quotes");
+      }
       quotes.value = response.quotes;
       error.value = null;
     } catch (err: unknown) {
@@ -28,10 +31,15 @@ export const useQuotesStore = defineStore("quotes", () => {
     }
   }
 
+  const reset = () => {
+    quotes.value = null;
+  };
+
   return {
     inProgress,
     fetchQuotes,
     error,
     quotes,
+    reset,
   };
 });

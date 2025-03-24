@@ -11,7 +11,7 @@
         >
           <div v-for="view in transitionViews" v-show="activeView === view" :key="view">
             <LoadingTransition v-if="view === 'loading'" />
-            <div v-if="view === 'error'">Error!</div>
+            <div v-if="view === 'error'" class="m-4 text-center">An error has occurred. Please try again.</div>
             <QuotesList v-if="view === 'quotes'" />
             <div v-if="view === 'connect'" class="flex flex-col items-center p-4">
               <CommonButton variant="primary" @click="openModal">
