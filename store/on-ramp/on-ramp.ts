@@ -10,7 +10,6 @@ import { useQuotesStore } from "@/store/on-ramp/quotes";
 
 createOnRampConfig({
   integrator: "ZKsync Portal",
-  apiUrl: "http://localhost:3020/api",
   services: ["kado"],
   provider: EVM({
     // eslint-disable-next-line require-await
