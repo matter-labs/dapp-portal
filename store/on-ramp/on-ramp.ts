@@ -11,7 +11,6 @@ import { useQuotesStore } from "@/store/on-ramp/quotes";
 createOnRampConfig({
   integrator: "ZKsync Portal",
   services: ["kado"],
-  apiUrl: "http://localhost:3020/api",
   provider: EVM({
     // eslint-disable-next-line require-await
     getWalletClient: async () => getWalletClient(wagmiConfig),
