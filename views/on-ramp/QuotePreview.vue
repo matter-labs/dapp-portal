@@ -8,7 +8,7 @@
         <div>
           <div :title="balance[1]" class="font-bold">{{ balance[0] }} {{ quote.receive.token.symbol }}</div>
           <div class="text-sm text-gray-600 dark:text-gray-300">
-            Fee: {{ formatFiat(quote.pay.totalFeeUsd, quote.pay.currency) }}
+            Fee: {{ formatFiat(quote.pay.totalFeeFiat, quote.pay.currency) }}
           </div>
           <button
             type="button"

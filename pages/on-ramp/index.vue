@@ -6,9 +6,9 @@
   <Transition tag="div" class="relative mt-5 flex flex-wrap items-center justify-center">
     <CompletedView v-if="step === 'complete'" />
     <TransactionsView v-else-if="step === 'transactions'" />
-    <div v-else-if="step === 'buy' || step === 'quotes' || step === 'processing'">
+    <div v-else-if="step === 'buy' || step === 'quotes' || step === 'processing'" class="isolate">
       <FormView v-model="fiatAmount" />
-      <MiddlePanel v-model="middlePanelView" />
+      <MiddlePanel v-model="middlePanelView" class="-z-[1]" />
       <div class="w-full">
         <DotLottieVue class="m-auto" style="height: 50px; width: 50px" autoplay loop src="/ramp-line.json" />
       </div>

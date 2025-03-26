@@ -16,7 +16,7 @@
           </div>
         </template>
         <template v-if="step === 'buy' || step === 'quotes'">
-          <input v-model="fiatAmount" placeholder="20.00" class="grow rounded-3xl p-4 text-3xl dark:bg-neutral-800" />
+          <input v-model="fiatAmount" placeholder="50.00" class="grow rounded-3xl p-4 text-3xl dark:bg-neutral-800" />
           <div class="rounded-3xl bg-gray-300 p-4 py-5 dark:bg-neutral-950">
             <span class="inline-block align-middle text-lg leading-6 text-gray-700 dark:text-white">USD</span>
           </div>
