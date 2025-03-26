@@ -46,9 +46,10 @@ export const useOnRampStore = defineStore("on-ramp", () => {
     isLoading: configInProgress,
     error: configError,
   } = useAsyncState(fetchConfig(), {
+    tokens: [],
+    fiatCurrencies: [],
     chains: [],
     providers: [],
-    tokens: [],
   });
 
   const reset = () => {

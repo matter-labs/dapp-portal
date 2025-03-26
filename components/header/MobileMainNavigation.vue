@@ -19,7 +19,7 @@
         </CommonCardWithLineButtons>
 
         <TypographyCategoryLabel size="sm">Portal</TypographyCategoryLabel>
-        <CommonCardWithLineButtons>
+        <CommonCardWithLineButtons v-if="selectedNetwork.displaySettings?.onramp">
           <DestinationItem label="On Ramp" as="RouterLink" :to="{ name: 'on-ramp' }" size="sm">
             <template #image>
               <DestinationIconContainer>

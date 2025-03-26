@@ -11,6 +11,7 @@
     </div>
     <div class="links-container">
       <NuxtLink
+        v-if="selectedNetwork.displaySettings?.onramp"
         class="link-item"
         :to="{ name: 'on-ramp' }"
         :class="{ 'router-link-exact-active': routes.onramp.includes(route.name?.toString() || '') }"
@@ -93,6 +94,7 @@ const routes = {
 };
 
 const onboardStore = useOnboardStore();
+const { selectedNetwork } = storeToRefs(useNetworkStore());
 const { isConnected } = storeToRefs(onboardStore);
 const { withdrawalsAvailableForClaiming } = storeToRefs(useZkSyncWithdrawalsStore());
 
