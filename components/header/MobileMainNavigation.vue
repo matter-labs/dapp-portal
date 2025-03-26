@@ -19,8 +19,14 @@
         </CommonCardWithLineButtons>
 
         <TypographyCategoryLabel size="sm">Portal</TypographyCategoryLabel>
-        <CommonCardWithLineButtons v-if="selectedNetwork.displaySettings?.onramp">
-          <DestinationItem label="On Ramp" as="RouterLink" :to="{ name: 'on-ramp' }" size="sm">
+        <CommonCardWithLineButtons>
+          <DestinationItem
+            v-if="selectedNetwork.displaySettings?.onramp"
+            label="On Ramp"
+            as="RouterLink"
+            :to="{ name: 'on-ramp' }"
+            size="sm"
+          >
             <template #image>
               <DestinationIconContainer>
                 <BanknotesIcon aria-hidden="true" />

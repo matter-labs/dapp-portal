@@ -1,5 +1,5 @@
 <template>
-  <div class="flex items-center gap-2">
+  <div class="mb-2 flex items-center gap-2">
     <CommonButtonLabel as="button" variant="light" @click="setStep('buy')">
       <div
         class="flex items-center rounded-2xl bg-neutral-200 p-3 hover:bg-neutral-300 dark:bg-neutral-900 dark:text-white dark:hover:bg-neutral-500"
@@ -10,9 +10,9 @@
     <h3 class="grow text-lg">Transactions</h3>
   </div>
   <template v-if="routes">
-    <div v-for="route in routes" :key="route.id" class="my-2">
+    <div v-for="route in routes" :key="route.id" class="my-1.5">
       <div
-        class="flex cursor-pointer items-center gap-2 rounded-2xl bg-neutral-200 p-2 hover:border-gray-500 hover:bg-neutral-300 dark:bg-neutral-900 dark:hover:bg-neutral-700/80"
+        class="flex cursor-pointer items-center gap-4 rounded-2xl bg-neutral-200 px-2 py-4 hover:border-gray-500 hover:bg-neutral-300 dark:bg-neutral-900 dark:hover:bg-neutral-700/80"
         @click="selectRoute(route)"
       >
         <div>
@@ -26,14 +26,14 @@
         <div class="flex grow flex-col">
           <div class="flex items-center gap-2">
             <div class="flex items-center">
-              <span class="text-xl">{{ payAmount(route) }}</span>
+              <span class="text-base">{{ payAmount(route) }}</span>
               <span class="px-1"><ArrowRightIcon class="h-4 w-4" /></span>
-              <span class="text-xl" :title="receiveAmount(route)[1]"
+              <span class="text-base" :title="receiveAmount(route)[1]"
                 >{{ receiveAmount(route)[0] }} {{ route.receive.token.symbol }}</span
               >
             </div>
           </div>
-          <div class="text-pretty text-neutral-600 dark:text-neutral-400">
+          <div class="text-pretty text-sm text-neutral-600 dark:text-neutral-400">
             {{ lastMessage(route) }}
           </div>
         </div>

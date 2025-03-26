@@ -1,9 +1,9 @@
 <template>
   <PageTitle>Buy crypto</PageTitle>
-  <Transition v-bind="TransitionOpacity()" class="relative" as="div">
-    <ActiveTransactionsAlert v-if="step === 'buy'" class="absolute" />
-  </Transition>
-  <Transition tag="div" class="relative mt-5 flex flex-wrap items-center justify-center">
+  <CommonHeightTransition :opened="step === 'buy' || step === 'quotes'">
+    <ActiveTransactionsAlert class="mb-5" />
+  </CommonHeightTransition>
+  <Transition tag="div" class="relative flex flex-wrap items-center justify-center">
     <CompletedView v-if="step === 'complete'" />
     <TransactionsView v-else-if="step === 'transactions'" />
     <div v-else-if="step === 'buy' || step === 'quotes' || step === 'processing'" class="isolate">
@@ -40,9 +40,9 @@ import TransactionsView from "@/views/on-ramp/TransactionsView.vue";
 import type { Address } from "viem";
 import type { ConfigResponse } from "zksync-easy-onramp";
 
-const middlePanelView = ref("initial");
+const DEFAULT_FIAT_AMOUNT = "100";
 
-const { step, middlePanelHeight } = storeToRefs(useOnRampStore());
+const { step } = storeToRefs(useOnRampStore());
 const { reset } = useOnRampStore();
 const { account, isConnected } = storeToRefs(useOnboardStore());
 const { reset: resetQuotes } = useQuotesStore();
@@ -50,16 +50,24 @@ onMounted(() => {
   reset();
   resetQuotes();
 });
-watch(step, () => {
-  if (step.value === "buy") {
-    fiatAmount.value = "";
-    resetQuotes();
-    middlePanelView.value = "initial";
-    middlePanelHeight.value = 0;
+
+const middlePanelView = ref("initial");
+watch(isConnected, (connected) => {
+  if (!connected) {
+    middlePanelView.value = "connect";
   }
 });
 
-const fiatAmount = ref("");
+watch(step, () => {
+  if (step.value === "buy") {
+    fiatAmount.value = DEFAULT_FIAT_AMOUNT;
+    resetQuotes();
+    middlePanelView.value = "initial";
+    fetch();
+  }
+});
+
+const fiatAmount = ref(DEFAULT_FIAT_AMOUNT);
 const token = ref<ConfigResponse["tokens"][0] | null>(null);
 
 const selectTokenUpdate = (selectedToken: ConfigResponse["tokens"][0]) => {
@@ -67,39 +75,17 @@ const selectTokenUpdate = (selectedToken: ConfigResponse["tokens"][0]) => {
 };
 
 watchDebounced(
-  fiatAmount,
-  (value) => {
-    if (!isConnected.value) {
-      middlePanelView.value = "connect";
-      return;
-    }
-
-    if (value && token.value) {
-      fetch();
-    }
+  [fiatAmount, token, computed(() => account.value.address)],
+  () => {
+    fetch();
   },
-  { debounce: 750, maxWait: 5000 }
+  { debounce: 750, maxWait: 5000, immediate: true }
 );
-watchDebounced(token, (value) => {
-  if (!isConnected.value) {
-    middlePanelView.value = "connect";
-    return;
-  }
-
-  if (fiatAmount.value && value) {
-    fetch();
-  }
-});
-
-watch(isConnected, () => {
-  if (isConnected.value && !!fiatAmount.value && +fiatAmount.value > 0 && token.value) {
-    fetch();
-  }
-});
 
 const { fetchQuotes } = useOnRampStore();
 const { onRampChainId } = useOnRampStore();
 const fetch = () => {
+  if (!isConnected.value || !token.value || !fiatAmount.value || +fiatAmount.value <= 0) return;
   fetchQuotes({
     fiatAmount: +fiatAmount.value,
     toToken: token.value!.address as Address,

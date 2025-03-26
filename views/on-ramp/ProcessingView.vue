@@ -1,27 +1,17 @@
 <template>
   <div class="-mt-5 max-h-[280px] overflow-y-auto rounded-b-2xl bg-white px-6 py-4 pt-8 dark:bg-neutral-950">
     <div>
-      <svg
-        class="-ml-1 mr-3 inline-block size-5 animate-spin text-black dark:text-white"
-        xmlns="http://www.w3.org/2000/svg"
-        fill="none"
-        viewBox="0 0 24 24"
-      >
-        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-        <path
-          class="opacity-75"
-          fill="currentColor"
-          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-        ></path>
-      </svg>
-      <span class="font-bold">Purchasing</span>
+      <div class="flex items-center">
+        <CommonSpinner class="-ml-1 mr-3 size-5" variant="text-color" />
+        <span class="font-bold">Purchasing</span>
+      </div>
       <div v-if="order" class="mt-6">
         <div v-for="step in order.steps" :key="step.id" class="m-auto flex w-[80%] flex-col">
           <div v-for="process in step.execution?.process" :key="process.type" class="mb-4 flex gap-2">
             <div class="w-[24px] shrink-0 text-center">
               <ProcessStatusIcon :status="process.status" />
             </div>
-            <div class="flex items-center text-xs">{{ process.message }}</div>
+            <div class="flex items-center text-sm">{{ process.message }}</div>
           </div>
         </div>
       </div>

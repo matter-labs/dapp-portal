@@ -19,7 +19,7 @@
       :icon-url="selectedToken.iconUrl"
       class="h-11 w-11"
     />
-    <div class="ml-2 flex flex-col gap-2 text-left text-gray-700 dark:text-gray-300">
+    <div class="ml-2 flex flex-col text-left text-gray-700 dark:text-gray-300">
       <template v-if="configInProgress">
         <CommonContentLoader class="h-3" :length="12" />
         <CommonContentLoader class="h-3" :length="4" />
