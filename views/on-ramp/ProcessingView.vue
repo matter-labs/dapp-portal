@@ -1,5 +1,5 @@
 <template>
-  <div class="-mt-5 max-h-[280px] overflow-y-auto rounded-b-2xl bg-neutral-950 px-6 py-4 pt-8">
+  <div class="-mt-5 max-h-[280px] overflow-y-auto rounded-b-2xl bg-white px-6 py-4 pt-8 dark:bg-neutral-950">
     <div>
       <svg
         class="-ml-1 mr-3 inline-block size-5 animate-spin text-black dark:text-white"

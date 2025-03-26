@@ -1,5 +1,5 @@
 <template>
-  <div id="list" class="-mt-5 max-h-[280px] overflow-y-auto rounded-b-2xl bg-neutral-950 px-6 py-4 pt-7">
+  <div id="list" class="-mt-5 max-h-[280px] overflow-y-auto rounded-b-2xl bg-white px-6 py-4 pt-7 dark:bg-neutral-950">
     <div class="mb-2 text-lg font-bold">Choose on-ramp</div>
     <div class="flex flex-col gap-2">
       <template v-if="quotes && quotes.length > 0">
