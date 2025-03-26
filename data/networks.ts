@@ -92,7 +92,7 @@ const publicChains: ZkSyncNetwork[] = [
     blockExplorerUrl: "https://era.zksync.network",
     blockExplorerApi: "https://block-explorer-api.mainnet.zksync.io",
     displaySettings: {
-      onramp: true,
+      onramp: false, // temporary hidden
       showPartnerLinks: true,
     },
     l1Network: l1Networks.mainnet,
