@@ -72,8 +72,8 @@
   "dependencies": {
     "@ankr.com/ankr.js": "^0.5.0",
     "@chenfengyuan/vue-qrcode": "^2.0.0",
-    "@sentry/vue": "^9.0.0",
     "@lottiefiles/dotlottie-vue": "^0.6.0",
+    "@sentry/vue": "^9.0.0",
     "@vitejs/plugin-vue": "^3.2.0",
     "@vueuse/router": "^10.9.0",
     "@wagmi/connectors": "^4.1.14",
@@ -90,7 +90,7 @@
     "vite": "^3.0.0",
     "vue-tippy": "^6.0.0",
     "web3-avatar-vue": "^1.0.0",
-    "zksync-easy-onramp": "^2.2.1",
+    "zksync-easy-onramp": "^2.3.0",
     "zksync-ethers": "^6.16.2"
   },
   "overrides": {
