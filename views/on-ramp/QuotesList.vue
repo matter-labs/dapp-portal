@@ -1,5 +1,5 @@
 <template>
-  <div id="list" class="-mt-5 max-h-[280px] overflow-y-auto rounded-b-2xl bg-white px-6 py-4 pt-7 dark:bg-neutral-950">
+  <div id="list" class="-mt-5 max-h-[280px] overflow-y-auto rounded-b-2xl bg-white px-6 pb-10 pt-7 dark:bg-neutral-950">
     <div class="mb-2 text-lg font-bold">Choose on-ramp</div>
     <div class="flex flex-col gap-2">
       <template v-if="quotes && quotes.length > 0">
@@ -22,14 +22,7 @@ const { quotes } = storeToRefs(useQuotesStore());
 #list {
   &::after {
     content: "";
-    @apply absolute bottom-0 left-0 h-[1.25rem] w-full bg-gradient-to-t from-[#f7f9fc] to-transparent;
-  }
-}
-
-.dark #list {
-  &::after {
-    content: "";
-    @apply absolute bottom-0 left-0 h-[1.25rem] w-full bg-gradient-to-t from-black to-transparent;
+    @apply absolute bottom-0 left-0 h-[1.25rem] w-full bg-gradient-to-t from-[#f7f9fc] to-transparent dark:from-black;
   }
 }
 </style>

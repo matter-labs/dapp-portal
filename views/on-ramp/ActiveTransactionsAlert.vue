@@ -11,9 +11,9 @@
 </template>
 
 <script lang="ts" setup>
-import { ChevronRightIcon, InformationCircleIcon } from "@heroicons/vue/20/solid";
-const { routes } = useRoutesStore();
+import { ChevronRightIcon, InformationCircleIcon } from "@heroicons/vue/24/outline";
 
+const { routes } = storeToRefs(useRoutesStore());
 const { setStep } = useOnRampStore();
 const viewTransactions = () => {
   setStep("transactions");

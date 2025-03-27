@@ -13,10 +13,8 @@
             <LoadingTransition v-if="view === 'loading'" />
             <div v-if="view === 'error'" class="m-4 text-center">An error has occurred. Please try again.</div>
             <QuotesList v-if="view === 'quotes'" />
-            <div v-if="view === 'connect'" class="flex flex-col items-center p-4">
-              <CommonButton variant="primary" @click="openModal">
-                Connect your wallet to continue on-ramping.
-              </CommonButton>
+            <div v-if="view === 'connect' && !isConnected" class="flex flex-col items-center p-4">
+              <CommonButton variant="primary" @click="openModal">Connect wallet to continue</CommonButton>
             </div>
           </div>
         </TransitionGroup>
@@ -35,13 +33,15 @@ const activeView = defineModel({ required: true, default: "initial" });
 
 const { openModal } = useOnboardStore();
 const { isConnected } = storeToRefs(useOnboardStore());
-watch(isConnected, () => {
-  if (isConnected.value) {
-    activeView.value = "loading";
-  } else {
-    activeView.value = "connect";
-  }
-});
+watch(
+  isConnected,
+  (connected) => {
+    if (!connected) {
+      activeView.value = "connect";
+    }
+  },
+  { immediate: true }
+);
 
 const { step } = storeToRefs(useOnRampStore());
 
@@ -66,9 +66,3 @@ watchEffect(() => {
   }
 });
 </script>
-
-<style lang="scss" scoped>
-#middle-panel {
-  transition: height 0.25s ease-out;
-}
-</style>
