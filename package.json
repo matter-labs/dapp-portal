@@ -91,7 +91,7 @@
     "vue-tippy": "^6.0.0",
     "web3-avatar-vue": "^1.0.0",
     "zksync-easy-onramp": "^2.3.0",
-    "zksync-ethers": "^6.16.2"
+    "zksync-ethers": "^6.17.0"
   },
   "overrides": {
     "vue": "latest"
