@@ -5,7 +5,10 @@
   >
     <div class="flex gap-2 p-3">
       <div class="basis-2/3">
-        <div class="mb-1 text-sm text-gray-600 dark:text-gray-400">via {{ quote.provider.name }}</div>
+        <div class="mb-1 line-clamp-1 text-sm text-gray-600 dark:text-gray-400">
+          {{ quote.paymentMethods.map(parsePaymentMethod).join(", ") }}
+          <span class="sm:hidden">via {{ quote.provider.name }}</span>
+        </div>
         <div>
           <div>
             <span class="font-bold" :title="balance[1]">{{ balance[0] }} {{ quote.receive.token.symbol }}</span>
@@ -46,7 +49,7 @@
 import { useOrderProcessingStore } from "@/store/on-ramp/order-processing";
 import StepDetail from "@/views/on-ramp/StepDetail.vue";
 
-import type { ProviderQuoteOption } from "zksync-easy-onramp";
+import type { ProviderQuoteOption, PaymentMethod } from "zksync-easy-onramp";
 
 const props = defineProps<{
   quote: ProviderQuoteOption;
@@ -55,6 +58,35 @@ const props = defineProps<{
 const balance = computed(() => {
   return formatTokenBalance(props.quote.receive.amountUnits, props.quote.receive.token.decimals);
 });
+
+function parsePaymentMethod(paymentMethodId: PaymentMethod) {
+  switch (paymentMethodId) {
+    case "credit_card":
+      return "Credit card";
+    case "apple_pay_credit":
+      return "Apple Pay";
+    case "google_pay_credit":
+      return "Google Pay";
+    case "google_pay_debit":
+      return "Google Pay (Debit)";
+    case "apple_pay_debit":
+      return "Apple Pay (Debit)";
+    case "debit_card":
+      return "Debit card";
+    case "wire":
+      return "Wire transfer";
+    case "sepa":
+      return "SEPA transfer";
+    case "pix":
+      return "PIX";
+    case "ach":
+      return "ACH";
+    case "koywe":
+      return "Koywe";
+    default:
+      return paymentMethodId;
+  }
+}
 
 /* const providerType = computed(() => {
   switch (props.quote.provider.type) {
