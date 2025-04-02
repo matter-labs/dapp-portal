@@ -10,7 +10,8 @@ import { useQuotesStore } from "@/store/on-ramp/quotes";
 
 createOnRampConfig({
   integrator: "ZKsync Portal",
-  services: ["kado"],
+  apiUrl: "https://easy-onramp-api.zksync.dev/api",
+  services: ["kado", "transak"],
   provider: EVM({
     // eslint-disable-next-line require-await
     getWalletClient: async () => getWalletClient(wagmiConfig),
