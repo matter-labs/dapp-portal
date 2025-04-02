@@ -10,7 +10,7 @@ import { useQuotesStore } from "@/store/on-ramp/quotes";
 
 createOnRampConfig({
   integrator: "ZKsync Portal",
-  // apiUrl: "https://easy-onramp-api-staging.zksync.dev/api",
+  apiUrl: "https://easy-onramp-api-staging.zksync.dev/api",
   services: ["kado", "transak"],
   // dev: true,
   provider: EVM({
