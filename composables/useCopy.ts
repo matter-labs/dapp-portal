@@ -16,9 +16,9 @@ export default (text: Ref<string>, copiedDuring = 1000) => {
 
   const copied = computed(() => isCopied.value || tooltipShownViaLegacyCopy.value);
 
-  async function copy() {
+  async function copy(altText?: string) {
     try {
-      await clipboardCopy();
+      await clipboardCopy(altText as string);
     } catch (error) {
       legacyCopy();
       showLegacyCopyTooltip();
