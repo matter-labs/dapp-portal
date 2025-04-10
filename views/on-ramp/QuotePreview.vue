@@ -5,10 +5,6 @@
   >
     <div class="flex gap-2 p-3">
       <div class="basis-2/3">
-        <div class="mb-1 line-clamp-1 text-sm text-gray-600 dark:text-gray-400">
-          {{ quote.paymentMethods.map(parsePaymentMethod).join(", ") }}
-          <span class="sm:hidden">via {{ quote.provider.name }}</span>
-        </div>
         <div>
           <div>
             <span class="font-bold" :title="balance[1]">{{ balance[0] }} {{ quote.receive.token.symbol }}</span>
@@ -30,7 +26,8 @@
           <img :src="quote.provider.iconUrl" class="h-8 w-8" />
         </div> -->
         <div class="inline-block">
-          <div>via {{ quote.provider.name }}</div>
+          <div class="mb-1 text-xs text-gray-600 dark:text-gray-400">{{ parsePaymentMethod(quote.method) }}</div>
+          <div class="text-sm">via {{ provider.name }}</div>
           <!-- <div class="text-sm text-gray-600 dark:text-gray-300">{{ providerType }}</div> -->
         </div>
       </div>
@@ -46,13 +43,14 @@
 </template>
 
 <script setup lang="ts">
+import { quoteToRoute, type PaymentMethod, type ProviderQuoteOption } from "zksync-easy-onramp";
+
 import { useOrderProcessingStore } from "@/store/on-ramp/order-processing";
 import StepDetail from "@/views/on-ramp/StepDetail.vue";
 
-import type { ProviderQuoteOption, PaymentMethod } from "zksync-easy-onramp";
-
 const props = defineProps<{
-  quote: ProviderQuoteOption;
+  quote: ProviderQuoteOption["paymentMethods"][0];
+  provider: ProviderQuoteOption["provider"];
 }>();
 
 const balance = computed(() => {
@@ -122,7 +120,8 @@ watch(toggleOpen, () => {
 const { setStep } = useOnRampStore();
 const { selectQuote } = useOrderProcessingStore();
 function runQuote() {
-  selectQuote(props.quote);
+  const routeToExecute = quoteToRoute("buy", props.quote, props.provider,);
+  selectQuote(routeToExecute);
   setStep("processing");
 }
 </script>

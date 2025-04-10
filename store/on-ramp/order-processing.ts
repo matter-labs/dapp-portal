@@ -5,7 +5,7 @@ import { executeRoute, resumeRouteExecution, stopRouteExecution } from "zksync-e
 
 import { useRoutesStore } from "@/store/on-ramp/routes";
 
-import type { ProviderQuoteOption, Route } from "zksync-easy-onramp";
+import type { Route, UnexecutedRoute } from "zksync-easy-onramp";
 
 export const useOrderProcessingStore = defineStore("order-processing", () => {
   const { updateRoute, removeRoute } = useRoutesStore();
@@ -64,7 +64,7 @@ export const useOrderProcessingStore = defineStore("order-processing", () => {
     }
   );
 
-  function selectQuote(route: ProviderQuoteOption | Route) {
+  function selectQuote(route: UnexecutedRoute | Route) {
     order.value = route as Route;
   }
 
