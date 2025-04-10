@@ -10,6 +10,10 @@ import { useQuotesStore } from "@/store/on-ramp/quotes";
 
 createOnRampConfig({
   integrator: "ZKsync Portal",
+  apiUrl:
+    process.env.ONRAMP_STAGING === "true"
+      ? "https://easy-onramp-api-staging.zksync.dev//api"
+      : "https://easy-onramp-api.zksync.dev/api",
   provider: EVM({
     // eslint-disable-next-line require-await
     getWalletClient: async () => getWalletClient(wagmiConfig),
@@ -18,7 +22,7 @@ createOnRampConfig({
       return await getWalletClient(wagmiConfig, { chainId: chain.id });
     },
   }),
-  dev: process.env.NODE_ENV === "development",
+  dev: process.env.NODE_ENV === "development" || process.env.ONRAMP_STAGING === "true",
 });
 
 export type Steps = "buy" | "quotes" | "processing" | "transactions" | "transaction" | "complete";

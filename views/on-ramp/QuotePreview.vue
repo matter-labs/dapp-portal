@@ -120,7 +120,7 @@ watch(toggleOpen, () => {
 const { setStep } = useOnRampStore();
 const { selectQuote } = useOrderProcessingStore();
 function runQuote() {
-  const routeToExecute = quoteToRoute("buy", props.quote, props.provider,);
+  const routeToExecute = quoteToRoute("buy", props.quote, props.provider);
   selectQuote(routeToExecute);
   setStep("processing");
 }
