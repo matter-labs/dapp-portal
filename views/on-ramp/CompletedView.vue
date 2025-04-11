@@ -11,7 +11,7 @@
       >
     </div> -->
   </CommonContentBlock>
-  <CommonButton :to="{ name: 'on-ramp' }" class="mt-4" variant="light" @click="reload">On-ramp again</CommonButton>
+  <CommonButton :to="{ name: 'on-ramp' }" class="mt-4" variant="light" @click="reload">Add more funds</CommonButton>
 </template>
 
 <script lang="ts" setup>

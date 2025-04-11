@@ -4,7 +4,7 @@
     @click="runQuote"
   >
     <div class="flex gap-2 p-3">
-      <div class="basis-2/3">
+      <div class="grow">
         <div>
           <div>
             <span class="font-bold" :title="balance[1]">{{ balance[0] }} {{ quote.receive.token.symbol }}</span>
@@ -21,11 +21,11 @@
           </button>
         </div>
       </div>
-      <div class="hidden basis-1/3 items-center justify-end sm:flex">
+      <div class="hidden items-center justify-start sm:flex">
         <!-- <div class="inline-block p-2">
           <img :src="quote.provider.iconUrl" class="h-8 w-8" />
         </div> -->
-        <div class="inline-block">
+        <div class="inline-block text-right">
           <div class="mb-1 text-xs text-gray-600 dark:text-gray-400">{{ parsePaymentMethod(quote.method) }}</div>
           <div class="text-sm">via {{ provider.name }}</div>
           <!-- <div class="text-sm text-gray-600 dark:text-gray-300">{{ providerType }}</div> -->

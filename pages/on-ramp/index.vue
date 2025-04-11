@@ -7,9 +7,12 @@
     <CompletedView v-if="step === 'complete'" />
     <TransactionsView v-else-if="step === 'transactions'" />
     <div v-else-if="step === 'buy' || step === 'quotes' || step === 'processing'" class="isolate">
-      <FormView v-model="fiatAmount" />
-      <MiddlePanel v-model="middlePanelView" class="-z-[1]" />
+      <FormView v-model="fiatAmount" @select-token="selectTokenUpdate" />
       <div class="w-full">
+        <DotLottieVue class="m-auto" style="height: 50px; width: 50px" autoplay loop src="/ramp-line.json" />
+      </div>
+      <MiddlePanel v-model="middlePanelView" class="-z-[1]" />
+      <!-- <div class="w-full">
         <DotLottieVue class="m-auto" style="height: 50px; width: 50px" autoplay loop src="/ramp-line.json" />
       </div>
       <CommonContentBlock>
@@ -21,7 +24,7 @@
             <SelectTokenModal @select-token="selectTokenUpdate" />
           </div>
         </div>
-      </CommonContentBlock>
+      </CommonContentBlock> -->
     </div>
   </Transition>
 </template>
@@ -34,7 +37,7 @@ import ActiveTransactionsAlert from "@/views/on-ramp/ActiveTransactionsAlert.vue
 import CompletedView from "@/views/on-ramp/CompletedView.vue";
 import FormView from "@/views/on-ramp/FormView.vue";
 import MiddlePanel from "@/views/on-ramp/MiddlePanel.vue";
-import SelectTokenModal from "@/views/on-ramp/SelectTokenModal.vue";
+// import SelectTokenModal from "@/views/on-ramp/SelectTokenModal.vue";
 import TransactionsView from "@/views/on-ramp/TransactionsView.vue";
 
 import type { Address } from "viem";

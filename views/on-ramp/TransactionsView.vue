@@ -55,11 +55,11 @@ const chainIcon = "/img/era.svg";
 const { routes } = useRoutesStore();
 
 const lastMessage = (route: Route) => {
-  const executedSteps = route.steps.filter((step) => step.execution);
+  const executedSteps = route.steps.filter((step) => step.execution && step.execution.status !== "DONE");
   const lastExecutedStep = executedSteps[executedSteps.length - 1];
   const lastProcess = lastExecutedStep.execution?.process.filter((process) => process.status !== "DONE");
-  if (!lastProcess) {
-    return "Transaction is not completed.";
+  if (!lastProcess[lastProcess.length - 1]) {
+    return "Transaction process is not completed.";
   }
   return lastProcess[lastProcess.length - 1].message;
 };

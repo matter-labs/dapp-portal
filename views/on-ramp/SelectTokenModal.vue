@@ -25,8 +25,8 @@
         <CommonContentLoader class="h-3" :length="4" />
       </template>
       <template v-else-if="selectedToken">
-        <div class="dark:text-gray-100">{{ selectedToken.symbol }}</div>
-        <div class="text-sm">{{ selectedToken.name }} on {{ networkName }}</div>
+        <div class="dark:text-gray-100">{{ selectedToken.symbol }} on {{ networkName }}</div>
+        <div class="text-sm">{{ selectedToken.name }}</div>
       </template>
     </div>
   </CommonButtonDropdown>
