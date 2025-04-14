@@ -1,9 +1,12 @@
 <template>
   <div id="list" class="-mt-5 max-h-[320px] overflow-y-auto rounded-b-2xl bg-white px-6 pb-10 pt-7 dark:bg-neutral-950">
-    <div class="mb-2 text-lg font-bold">Choose on-ramp</div>
+    <div class="mb-2 flex flex-col">
+      <div class="mb-2 text-lg font-bold">Choose on-ramp</div>
+      <QuoteFilter />
+    </div>
     <div class="flex flex-col gap-2">
       <template v-if="quotes && quotes.length > 0">
-        <template v-for="(providerQuotes, index) in sortedQuotes" :key="index">
+        <template v-for="(providerQuotes, index) in filteredQuotes" :key="index">
           <QuotePreview
             v-for="(quote, quoteIndex) in providerQuotes.paymentMethods"
             :key="quoteIndex"
@@ -20,18 +23,20 @@
 </template>
 
 <script setup lang="ts">
-import { sortByFees } from "zksync-easy-onramp";
+import { filterByPaymentMethod, sortByFees, type ProviderQuoteOption } from "zksync-easy-onramp";
 
+import QuoteFilter from "@/views/on-ramp/QuoteFilter.vue";
 import QuotePreview from "@/views/on-ramp/QuotePreview.vue";
 
-const { quotes } = storeToRefs(useQuotesStore());
-
-const sortedQuotes = computed(() => {
+const { quotes, quoteFilter } = storeToRefs(useQuotesStore());
+watchEffect(() => {
   if (quotes.value) {
-    return sortByFees(quotes.value, false);
+    const sorted = sortByFees(quotes.value, false);
+    filteredQuotes.value = filterByPaymentMethod(sorted, quoteFilter.value ?? []);
   }
-  return [];
 });
+
+const filteredQuotes = ref<ProviderQuoteOption[]>([]);
 </script>
 
 <style lang="scss" scoped>

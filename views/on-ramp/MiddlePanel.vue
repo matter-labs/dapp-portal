@@ -66,3 +66,9 @@ watchEffect(() => {
   }
 });
 </script>
+
+<style lang="scss" scoped>
+.dark #list {
+  scrollbar-color: #6c7380 black;
+}
+</style>

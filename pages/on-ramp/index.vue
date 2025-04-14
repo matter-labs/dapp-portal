@@ -8,29 +8,12 @@
     <TransactionsView v-else-if="step === 'transactions'" />
     <div v-else-if="step === 'buy' || step === 'quotes' || step === 'processing'" class="isolate">
       <FormView v-model="fiatAmount" @select-token="selectTokenUpdate" />
-      <div class="w-full">
-        <DotLottieVue class="m-auto" style="height: 50px; width: 50px" autoplay loop src="/ramp-line.json" />
-      </div>
-      <MiddlePanel v-model="middlePanelView" class="-z-[1]" />
-      <!-- <div class="w-full">
-        <DotLottieVue class="m-auto" style="height: 50px; width: 50px" autoplay loop src="/ramp-line.json" />
-      </div>
-      <CommonContentBlock>
-        <div class="flex flex-col gap-4">
-          <div>
-            <span class="font-bold">You'll receive</span>
-          </div>
-          <div class="flex items-center justify-stretch gap-4">
-            <SelectTokenModal @select-token="selectTokenUpdate" />
-          </div>
-        </div>
-      </CommonContentBlock> -->
+      <MiddlePanel v-model="middlePanelView" class="-z-[1] mt-6" />
     </div>
   </Transition>
 </template>
 
 <script lang="ts" setup>
-import { DotLottieVue } from "@lottiefiles/dotlottie-vue";
 import { watchDebounced } from "@vueuse/core";
 
 import ActiveTransactionsAlert from "@/views/on-ramp/ActiveTransactionsAlert.vue";
@@ -88,7 +71,8 @@ watchDebounced(
 const { fetchQuotes } = useOnRampStore();
 const { onRampChainId } = useOnRampStore();
 const fetch = () => {
-  if (!isConnected.value || !token.value || !fiatAmount.value || +fiatAmount.value <= 0) return;
+  if (!isConnected.value || !token.value || !fiatAmount.value || +fiatAmount.value <= 0 || isNaN(+fiatAmount.value))
+    return;
   fetchQuotes({
     fiatAmount: +fiatAmount.value,
     toToken: token.value!.address as Address,

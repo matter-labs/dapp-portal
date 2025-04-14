@@ -1,13 +1,16 @@
+import { useStorage } from "@vueuse/core";
 import { defineStore } from "pinia";
 import { ref } from "vue";
 import { fetchQuotes as fetchSDKQuotes } from "zksync-easy-onramp";
 
-import type { FetchQuoteParams, ProviderQuoteOption } from "zksync-easy-onramp";
+import type { FetchQuoteParams, PaymentMethod, ProviderQuoteOption } from "zksync-easy-onramp";
 
 export const useQuotesStore = defineStore("quotes", () => {
   const inProgress = ref(false);
   const error = ref<Error | null>(null);
   const quotes = ref<ProviderQuoteOption[] | null>(null);
+  // const quoteFilter = ref<PaymentMethod[]>([]);
+  const quoteFilter = useStorage<PaymentMethod[]>("quoteFilter", []);
 
   async function fetchQuotes(params: FetchQuoteParams) {
     inProgress.value = true;
@@ -41,5 +44,6 @@ export const useQuotesStore = defineStore("quotes", () => {
     error,
     quotes,
     reset,
+    quoteFilter,
   };
 });

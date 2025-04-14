@@ -2,29 +2,30 @@
   <CommonContentBlock>
     <div class="-mt-3 flex w-full flex-col gap-6 sm:flex-row">
       <div class="flex w-full flex-col sm:w-1/2">
-        <span class="mb-2 font-bold">You pay</span>
+        <span class="mb-2 font-bold">You pay (USD)</span>
         <template v-if="step === 'processing'">
           <div v-if="order" class="flex items-center justify-stretch gap-4">
             <span class="py-4 text-3xl">{{ formatFiat(order.pay.fiatAmount, order.pay.currency) }}</span>
-            <div class="py-4">
+            <!-- <div class="py-4">
               <span class="inline-block align-middle text-lg leading-6 text-gray-700 dark:text-white">{{
                 order.pay.currency
               }}</span>
-            </div>
+            </div> -->
           </div>
         </template>
         <template v-else>
           <div class="flex gap-2">
             <input
               v-model="fiatAmount"
-              type="number"
+              type="string"
               placeholder="100"
               class="w-full grow rounded-3xl p-5 text-4xl dark:bg-neutral-800"
             />
-            <div class="flex items-center rounded-3xl bg-gray-300 p-5 py-4 dark:bg-neutral-950">
+            <!-- <div class="flex items-center rounded-3xl bg-gray-300 p-5 py-4 dark:bg-neutral-950">
               <span class="inline-block align-middle text-lg leading-6 text-gray-700 dark:text-white">USD</span>
-            </div>
+            </div> -->
           </div>
+          <div v-if="isNaN(+fiatAmount)">Input is not a valid number.</div>
           <div v-if="+fiatAmount <= 30" class="pl-2 text-xs text-neutral-300">
             Add $30+ to unlock more provider options.
           </div>

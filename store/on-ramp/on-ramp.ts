@@ -12,7 +12,7 @@ createOnRampConfig({
   integrator: "ZKsync Portal",
   apiUrl:
     process.env.ONRAMP_STAGING === "true"
-      ? "https://easy-onramp-api-staging.zksync.dev//api"
+      ? "https://easy-onramp-api-staging.zksync.dev/api"
       : "https://easy-onramp-api.zksync.dev/api",
   provider: EVM({
     // eslint-disable-next-line require-await
