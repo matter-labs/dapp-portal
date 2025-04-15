@@ -19,8 +19,8 @@
 import type { PaymentMethod } from "zksync-easy-onramp";
 
 const buttons = {
-  credit: "Credit",
-  debit: "Debit",
+  credit: "Credit Card",
+  debit: "Debit Card",
   transfer: "Bank Transfer",
 };
 const groupedFilters = ref<{ [k in string]: PaymentMethod[] }>({

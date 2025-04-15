@@ -25,6 +25,8 @@
 </template>
 
 <script setup lang="ts">
+import { useEventListener } from "@vueuse/core";
+
 import LoadingTransition from "@/views/on-ramp/LoadingTransition.vue";
 import ProcessingView from "@/views/on-ramp/ProcessingView.vue";
 import QuotesList from "@/views/on-ramp/QuotesList.vue";
@@ -52,6 +54,12 @@ function swapView(el: Element) {
   const height = (el as HTMLElement).offsetHeight;
   middlePanelHeight.value = height;
 }
+useEventListener("resize", () => {
+  const activeElement = document.querySelector("#middle-panel > div > div");
+  if (activeElement) {
+    swapView(activeElement);
+  }
+});
 
 const { quotes, inProgress, error } = storeToRefs(useQuotesStore());
 watchEffect(() => {
