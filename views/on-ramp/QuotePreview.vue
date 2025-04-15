@@ -3,8 +3,8 @@
     class="cursor-pointer rounded-xl border border-gray-200 bg-gray-100 hover:bg-gray-200/50 dark:border-neutral-800/70 dark:bg-neutral-900 dark:hover:bg-neutral-800/80"
     @click="runQuote"
   >
-    <div class="flex gap-2 p-3">
-      <div class="grow">
+    <div class="quote-grid grid gap-2 p-3">
+      <div class="amount-section">
         <div>
           <div>
             <span class="font-bold" :title="balance[1]">{{ balance[0] }} {{ quote.receive.token.symbol }}</span>
@@ -12,22 +12,24 @@
               &nbsp;~{{ formatFiat(quote.receive.amountFiat, quote.pay.currency) }}
             </span>
           </div>
-          <button
-            type="button"
-            class="p-0 text-sm text-neutral-500 underline hover:text-neutral-600 dark:text-neutral-500 dark:hover:text-neutral-400"
-            @click="toggleDetails"
-          >
-            {{ toggleOpen ? "Hide details" : "View details" }}
-          </button>
         </div>
       </div>
-      <div class="hidden items-center justify-start sm:flex">
+      <div class="details-section">
+        <button
+          type="button"
+          class="p-0 text-sm text-neutral-500 underline hover:text-neutral-600 dark:text-neutral-500 dark:hover:text-neutral-400"
+          @click="toggleDetails"
+        >
+          {{ toggleOpen ? "Hide details" : "View details" }}
+        </button>
+      </div>
+      <div class="provider-section flex">
         <!-- <div class="inline-block p-2">
           <img :src="quote.provider.iconUrl" class="h-8 w-8" />
         </div> -->
-        <div class="inline-block text-right">
+        <div class="payment-method inline-block text-right">
           <div class="mb-1 text-xs text-gray-600 dark:text-gray-400">{{ parsePaymentMethod(quote.method) }}</div>
-          <div class="text-sm">via {{ provider.name }}</div>
+          <div class="text-xs">via {{ provider.name }}</div>
           <!-- <div class="text-sm text-gray-600 dark:text-gray-300">{{ providerType }}</div> -->
         </div>
       </div>
@@ -125,3 +127,50 @@ function runQuote() {
   setStep("processing");
 }
 </script>
+
+<style lang="scss" scoped>
+.details-section {
+  grid-area: details;
+}
+
+.amount-section {
+  grid-area: amount;
+}
+
+.provider-section {
+  grid-area: provider;
+  justify-self: end;
+  align-self: center;
+}
+
+.quote-grid {
+  grid-template-areas:
+    "amount provider"
+    "details provider";
+}
+
+@media (max-width: 450px) {
+  .quote-grid {
+    grid-template-areas:
+      "amount"
+      "provider"
+      "details";
+  }
+
+  .provider-section {
+    justify-self: start;
+  }
+
+  .payment-method {
+    text-align: left;
+
+    & > div {
+      display: inline;
+
+      &:last-child {
+        @apply pl-0.5;
+      }
+    }
+  }
+}
+</style>

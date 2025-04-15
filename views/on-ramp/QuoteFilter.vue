@@ -36,7 +36,6 @@ const groupedFilters = ref<{ [k in string]: PaymentMethod[] }>({
 });
 const { quoteFilter: selectedFilters } = storeToRefs(useQuotesStore());
 const applyFilter = (filterKey: string) => {
-  console.log("applyFilter", filterKey);
   if (filterKey === "all") {
     selectedFilters.value = [];
     return;

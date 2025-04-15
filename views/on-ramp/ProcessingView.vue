@@ -1,5 +1,5 @@
 <template>
-  <div class="-mt-5 max-h-[320px] overflow-y-auto rounded-b-2xl bg-neutral-50 px-6 py-4 pt-8 dark:bg-neutral-950">
+  <div class="-mt-5 max-h-[380px] overflow-y-auto rounded-b-2xl bg-neutral-50 px-6 py-4 pt-8 dark:bg-neutral-950">
     <div>
       <div class="flex items-center">
         <CommonSpinner class="-ml-1 mr-3 size-5" variant="text-color" />

@@ -19,7 +19,7 @@
               v-model="fiatAmount"
               type="string"
               placeholder="100"
-              class="w-full grow rounded-3xl p-5 text-4xl dark:bg-neutral-800"
+              class="w-full grow rounded-3xl p-2 text-4xl dark:bg-neutral-800 sm:p-5"
             />
             <!-- <div class="flex items-center rounded-3xl bg-gray-300 p-5 py-4 dark:bg-neutral-950">
               <span class="inline-block align-middle text-lg leading-6 text-gray-700 dark:text-white">USD</span>
