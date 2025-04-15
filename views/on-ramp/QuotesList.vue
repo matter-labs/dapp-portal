@@ -1,7 +1,7 @@
 <template>
   <div
     id="list"
-    class="-mt-5 max-h-[380px] overflow-y-auto rounded-b-2xl bg-neutral-50 px-6 pb-10 pt-7 dark:bg-neutral-950"
+    class="-mt-5 max-h-[380px] overflow-y-auto rounded-b-2xl bg-neutral-50 px-6 pb-10 pt-7 dark:bg-transparent"
   >
     <div class="mb-2 flex flex-col">
       <div class="mb-2 text-lg font-bold">Choose on-ramp</div>

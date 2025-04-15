@@ -28,8 +28,10 @@
           <img :src="quote.provider.iconUrl" class="h-8 w-8" />
         </div> -->
         <div class="payment-method inline-block text-right">
-          <div class="mb-1 text-xs text-gray-600 dark:text-gray-400">{{ parsePaymentMethod(quote.method) }}</div>
-          <div class="text-xs">via {{ provider.name }}</div>
+          <div class="mb-1 text-xs leading-5 text-gray-600 dark:text-gray-400">
+            {{ parsePaymentMethod(quote.method) }}
+          </div>
+          <div class="text-xs text-gray-700 dark:text-gray-300">via {{ provider.name }}</div>
           <!-- <div class="text-sm text-gray-600 dark:text-gray-300">{{ providerType }}</div> -->
         </div>
       </div>
@@ -140,7 +142,6 @@ function runQuote() {
 .provider-section {
   grid-area: provider;
   justify-self: end;
-  align-self: center;
 }
 
 .quote-grid {

@@ -6,7 +6,7 @@
       :key="button"
       class="button"
       :class="{
-        selected: selectedFilters.some((filter) => groupedFilters[key].includes(filter)),
+        selected: selectedFilters.some((filter: any) => groupedFilters[key].includes(filter)),
       }"
       @click="applyFilter(key)"
     >
@@ -21,18 +21,12 @@ import type { PaymentMethod } from "zksync-easy-onramp";
 const buttons = {
   credit: "Credit",
   debit: "Debit",
-  transfer: "Transfer",
-  koywe: "Koywe",
-  sepa: "Sepa",
-  pix: "PIX",
+  transfer: "Bank Transfer",
 };
 const groupedFilters = ref<{ [k in string]: PaymentMethod[] }>({
   credit: ["apple_pay_credit", "google_pay_credit", "credit_card"],
   debit: ["apple_pay_debit", "google_pay_debit", "debit_card"],
-  transfer: ["wire", "ach"],
-  koywe: ["koywe"],
-  sepa: ["sepa"],
-  pix: ["pix"],
+  transfer: ["wire", "ach", "koywe", "sepa", "pix"],
 });
 const { quoteFilter: selectedFilters } = storeToRefs(useQuotesStore());
 const applyFilter = (filterKey: string) => {
