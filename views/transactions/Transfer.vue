@@ -191,7 +191,14 @@
       </template>
 
       <template v-if="!tokenCustomBridge && (step === 'form' || step === 'confirm')">
-        <CommonErrorBlock v-if="feeError" class="mt-2" @try-again="estimate">
+        <CommonErrorBlock
+          v-if="feeError"
+          class="mt-2"
+          :show-copy-button="true"
+          :copied="copied"
+          @try-again="estimate"
+          @copy-message="copyMessage(`Fee estimation error: ${feeError.message}`)"
+        >
           Fee estimation error: {{ feeError.message }}
         </CommonErrorBlock>
         <div class="mt-4 flex items-center gap-4">
@@ -304,6 +311,7 @@ const props = defineProps({
 
 const route = useRoute();
 const router = useRouter();
+const { copy, copied } = useCopy();
 
 const onboardStore = useOnboardStore();
 const walletStore = useZkSyncWalletStore();
@@ -314,6 +322,10 @@ const { eraNetwork } = storeToRefs(providerStore);
 const { destinations } = storeToRefs(useDestinationsStore());
 const { tokens, tokensRequestInProgress, tokensRequestError } = storeToRefs(tokensStore);
 const { balance, balanceInProgress, balanceError } = storeToRefs(walletStore);
+
+const copyMessage = async (text: string) => {
+  await copy(text);
+};
 
 const { captureException } = useSentryLogger();
 
