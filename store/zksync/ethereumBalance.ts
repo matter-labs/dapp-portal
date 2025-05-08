@@ -24,26 +24,43 @@ export const useZkSyncEthereumBalanceStore = defineStore("zkSyncEthereumBalances
 
     // Get balances from Ankr API and merge them with tokens data from explorer
     return [
-      ...ethereumBalance.value.map((e) => {
-        const tokenFromExplorer = l1Tokens.value?.[e.address];
-        return {
+      ...ethereumBalance.value.flatMap((e) => {
+        const matchingTokens = Object.values(l1Tokens.value ?? {}).filter((token) => token.l1Address === e.address);
+
+        if (matchingTokens.length === 0) {
+          // If no match, return the original balance object
+          return [
+            {
+              ...e,
+              amount: e.amount,
+            },
+          ];
+        }
+
+        // If there are multiple matching tokens, return all of them with updated info
+        return matchingTokens.map((token) => ({
           ...e,
-          symbol: tokenFromExplorer?.symbol ?? e.symbol,
-          name: tokenFromExplorer?.name ?? e.name,
-          iconUrl: tokenFromExplorer?.iconUrl ?? e.iconUrl,
-          price: tokenFromExplorer?.price ?? e.price,
-        };
+          address: token.l1Address, // Use the L1 address to keep the same format
+          l2Address: token.address, // Keep the L2 address
+          symbol: token.symbol ?? e.symbol,
+          name: token.name ?? e.name,
+          iconUrl: token.iconUrl ?? e.iconUrl,
+          price: token.price ?? e.price,
+          ...(token.l1BridgeAddress ? { l1BridgeAddress: token.l1BridgeAddress } : {}),
+          ...(token.l2BridgeAddress ? { l2BridgeAddress: token.l2BridgeAddress } : {}),
+        }));
       }),
-      ...Object.values(l1Tokens.value ?? []) // Add tokens that are not in Ankr API
-        .filter((token) => !ethereumBalance.value?.find((e) => e.address === token.address))
+
+      ...Object.values(l1Tokens.value ?? [])
+        .filter((token) => !ethereumBalance.value?.some((e) => e.address === token.l1Address))
         .map((e) => ({
           ...e,
           amount: "0",
         })),
     ].sort((a, b) => {
-      if (a.address.toUpperCase() === utils.ETH_ADDRESS.toUpperCase()) return -1; // Always bring ETH to the beginning
-      if (b.address.toUpperCase() === utils.ETH_ADDRESS.toUpperCase()) return 1; // Keep ETH at the beginning if comparing with any other token
-      return 0; // Keep other tokens' order unchanged
+      if (a.address.toUpperCase() === utils.ETH_ADDRESS.toUpperCase()) return -1;
+      if (b.address.toUpperCase() === utils.ETH_ADDRESS.toUpperCase()) return 1;
+      return 0;
     });
   };
   const getBalancesFromRPC = async (): Promise<TokenAmount[]> => {
@@ -54,13 +71,15 @@ export const useZkSyncEthereumBalanceStore = defineStore("zkSyncEthereumBalances
     return await Promise.all(
       Object.values(l1Tokens.value ?? []).map(async (token) => {
         const amount = await getBalance(wagmiConfig, {
-          address: account.value.address!,
+          address: account.value.l1Address!,
           chainId: l1Network.value!.id,
           token: token.address.toUpperCase() === utils.ETH_ADDRESS.toUpperCase() ? undefined : (token.address! as Hash),
         });
         return {
           ...token,
           amount: amount.value.toString(),
+          address: token.l1Address, // Use the L1 address to keep the same format
+          l2Address: token.address, // Keep the L2 address
         };
       })
     );

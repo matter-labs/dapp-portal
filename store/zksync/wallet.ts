@@ -2,6 +2,8 @@ import { ethers } from "ethers";
 import { $fetch } from "ofetch";
 import { L1Signer, L1VoidSigner, BrowserProvider, Signer } from "zksync-ethers";
 
+import { customBridgeTokens } from "@/data/customBridgeTokens";
+
 import type { Api, TokenAmount } from "@/types";
 import type { BigNumberish } from "ethers";
 
@@ -62,7 +64,21 @@ export const useZkSyncWalletStore = defineStore("zkSyncWallet", () => {
     if (!eraNetwork.value.blockExplorerApi)
       throw new Error(`Block Explorer API is not available on ${eraNetwork.value.name}`);
 
-    return await $fetch(`${eraNetwork.value.blockExplorerApi}/address/${account.value.address}`);
+    const accountResponse = await $fetch(`${eraNetwork.value.blockExplorerApi}/address/${account.value.address}`);
+
+    Object.entries(accountResponse.balances).forEach(([tokenAddress]) => {
+      const customToken = customBridgeTokens.find(
+        (customToken) => customToken.l2Address.toUpperCase() === tokenAddress.toUpperCase()
+      );
+
+      if (customToken) {
+        accountResponse.balances[tokenAddress].token = {
+          ...(accountResponse.balances[tokenAddress].token ? accountResponse.balances[tokenAddress].token : {}),
+          ...customToken,
+        };
+      }
+    });
+    return accountResponse;
   });
 
   const getBalancesFromBlockExplorerApi = async (): Promise<TokenAmount[]> => {
@@ -82,6 +98,8 @@ export const useZkSyncWalletStore = defineStore("zkSyncWallet", () => {
           iconUrl: tokenInfo!.iconUrl || undefined,
           price: tokenInfo?.price || undefined,
           amount: balance,
+          ...(token.l1BridgeAddress ? { l1BridgeAddress: token.l1BridgeAddress } : {}),
+          ...(token.l2BridgeAddress ? { l2BridgeAddress: token.l2BridgeAddress } : {}),
         };
       });
   };
@@ -101,7 +119,18 @@ export const useZkSyncWalletStore = defineStore("zkSyncWallet", () => {
       })
     );
 
-    return balances;
+    return balances.map((balance) => {
+      const customToken = customBridgeTokens.find(
+        (token) => token.l2Address.toUpperCase() === balance.address.toUpperCase()
+      );
+      if (customToken) {
+        return {
+          ...balance,
+          ...customToken,
+        };
+      }
+      return balance;
+    });
   };
   const {
     result: balancesResult,
@@ -140,7 +169,19 @@ export const useZkSyncWalletStore = defineStore("zkSyncWallet", () => {
       .filter((token) => !knownTokenAddresses.has(token.address))
       .sort((a, b) => a.symbol.localeCompare(b.symbol));
 
-    return [...knownTokens, ...otherTokens];
+    return [...knownTokens, ...otherTokens].sort((a, b) => {
+      if (a.address.toUpperCase() === L2_BASE_TOKEN_ADDRESS.toUpperCase()) return -1; // Always bring ETH to the beginning
+      if (b.address.toUpperCase() === L2_BASE_TOKEN_ADDRESS.toUpperCase()) return 1; // Keep ETH at the beginning if comparing with any other token
+
+      const aPrice = a.price ? Number(a.price) : 0;
+      const aAmount = a.amount ? Number(a.amount) : 0;
+      const bPrice = b.price ? Number(b.price) : 0;
+      const bAmount = b.amount ? Number(b.amount) : 0;
+      const aValue = aPrice * aAmount;
+      const bValue = bPrice * bAmount;
+
+      return bValue - aValue;
+    });
   });
 
   const deductBalance = (tokenAddress: string, amount: BigNumberish) => {

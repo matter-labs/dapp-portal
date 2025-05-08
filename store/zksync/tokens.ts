@@ -82,20 +82,60 @@ export const useZkSyncTokensStore = defineStore("zkSyncTokens", () => {
 
   const tokens = computed<{ [tokenAddress: string]: Token } | undefined>(() => {
     if (!tokensRaw.value) return undefined;
-    return Object.fromEntries(tokensRaw.value.map((token) => [token.address, token]));
+    return Object.fromEntries(
+      tokensRaw.value.map((token) => {
+        const customToken = customBridgeTokens.find(
+          (customToken) => customToken.l2Address.toUpperCase() === token.address.toUpperCase()
+        );
+        if (customToken) {
+          return [token.address, { ...token, ...customToken }];
+        }
+        return [token.address, token];
+      })
+    );
   });
   const l1Tokens = computed<{ [tokenAddress: string]: Token } | undefined>(() => {
     if (!tokensRaw.value) return undefined;
+
     return Object.fromEntries(
       tokensRaw.value
-        .filter((e) => e.l1Address)
-        .map((token) => {
-          const customBridgeToken = customBridgeTokens.find(
+        .filter((token) => token.l1Address && token.address) // Ensure both are present
+        .flatMap((token) => {
+          const matchingBridgeTokens = customBridgeTokens.filter(
             (e) => eraNetwork.value.l1Network?.id === e.chainId && token.l1Address === e.l1Address
           );
-          const name = customBridgeToken?.name || token.name;
-          const symbol = customBridgeToken?.symbol || token.symbol;
-          return [token.l1Address!, { ...token, name, symbol, l1Address: undefined, address: token.l1Address! }];
+
+          // If customBridgeToken(s) exist, create token entries using custom name/symbol
+          if (matchingBridgeTokens.length > 0) {
+            return matchingBridgeTokens.map((customToken) => {
+              const name = customToken.name || token.name;
+              const symbol = customToken.symbol || token.symbol;
+              return [
+                customToken.l2Address,
+                {
+                  ...token,
+                  name,
+                  symbol,
+                  address: customToken.l2Address,
+                  l1Address: token.l1Address,
+                  ...(customToken.l1BridgeAddress ? { l1BridgeAddress: customToken.l1BridgeAddress } : {}),
+                  ...(customToken.l2BridgeAddress ? { l2BridgeAddress: customToken.l2BridgeAddress } : {}),
+                },
+              ];
+            });
+          }
+
+          // No custom token match — fall back to l2Address in original token
+          return [
+            [
+              token.address,
+              {
+                ...token,
+                address: token.address,
+                l1Address: token.l1Address,
+              },
+            ],
+          ];
         })
     );
   });
