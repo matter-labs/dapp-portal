@@ -160,7 +160,14 @@
       <template
         v-if="(!tokenCustomBridge || !tokenCustomBridge?.bridgingDisabled) && (step === 'form' || step === 'confirm')"
       >
-        <CommonErrorBlock v-if="feeError" class="mt-2" @try-again="estimate">
+        <CommonErrorBlock
+          v-if="feeError"
+          class="mt-2"
+          :show-copy-button="true"
+          :copied="copied"
+          @try-again="estimate"
+          @copy-message="copyMessage(`Fee estimation error: ${feeError.message}`)"
+        >
           Fee estimation error: {{ feeError.message }}
         </CommonErrorBlock>
         <div class="mt-4 flex items-center gap-4">
@@ -208,6 +215,19 @@
               <span class="font-medium">{{ destinations.ethereum.label }}</span> to cover the fee
             </p>
             <NuxtLink :to="{ name: 'receive-methods' }" class="alert-link">Receive funds</NuxtLink>
+          </CommonAlert>
+        </transition>
+        <transition v-bind="TransitionAlertScaleInOutTransition" mode="out-in">
+          <CommonAlert
+            v-if="selectedToken?.address?.toUpperCase() === WETH_L1_ADDRESS.toUpperCase()"
+            class="mt-4"
+            variant="error"
+            :icon="ExclamationTriangleIcon"
+          >
+            <p>
+              Currently, the <span class="font-medium">{{ selectedToken?.symbol }}</span> token is
+              <span class="font-medium">disabled</span> for deposit.
+            </p>
           </CommonAlert>
         </transition>
         <CommonErrorBlock v-if="allowanceRequestError" class="mt-2" @try-again="requestAllowance">
@@ -389,6 +409,7 @@ import useFee from "@/composables/zksync/deposit/useFee";
 import useTransaction from "@/composables/zksync/deposit/useTransaction";
 import { customBridgeTokens } from "@/data/customBridgeTokens";
 import { isCustomNode } from "@/data/networks";
+import { WETH_L1_ADDRESS } from "@/utils/constants";
 import DepositSubmitted from "@/views/transactions/DepositSubmitted.vue";
 
 import type { Token, TokenAmount } from "@/types";
@@ -396,6 +417,7 @@ import type { BigNumberish } from "ethers";
 
 const route = useRoute();
 const router = useRouter();
+const { copy, copied } = useCopy();
 
 const onboardStore = useOnboardStore();
 const tokensStore = useZkSyncTokensStore();
@@ -410,6 +432,10 @@ const { l1Tokens, baseToken, tokensRequestInProgress, tokensRequestError } = sto
 const { balance, balanceInProgress, balanceError } = storeToRefs(zkSyncEthereumBalance);
 
 const { captureException } = useSentryLogger();
+
+const copyMessage = async (text: string) => {
+  await copy(text);
+};
 
 const toNetworkModalOpened = ref(false);
 const toNetworkSelected = (networkKey?: string) => {
@@ -646,6 +672,9 @@ watch(
 );
 
 const continueButtonDisabled = computed(() => {
+  if (selectedToken.value?.address?.toUpperCase() === WETH_L1_ADDRESS.toUpperCase()) {
+    return true;
+  }
   if (
     !transaction.value ||
     !enoughBalanceToCoverFee.value ||
