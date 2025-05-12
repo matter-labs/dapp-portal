@@ -37,16 +37,6 @@ import { chainList } from "@/data/networks";
 
 import type { ConfigResponse } from "zksync-easy-onramp";
 
-const emit = defineEmits(["selectToken"]);
-const selectedTokenAddress = computed({
-  get: () => selectedToken.value?.address,
-  set: (value?: string) => setToken(value),
-});
-const setToken = (address?: string) => {
-  selectedToken.value = tokensList.value.find((token) => token.address === address) ?? null;
-  emit("selectToken", selectedToken.value);
-};
-
 const { config, configInProgress } = storeToRefs(useOnRampStore());
 const { onRampChainId } = useOnRampStore();
 const tokensList = computed<ConfigResponse["tokens"]>(() =>
@@ -61,17 +51,27 @@ const networkName = computed(() => {
   return chainList.find((chain) => chain.id === onRampChainId)?.name;
 });
 
-const selectedToken = ref<ConfigResponse["tokens"][0] | null>(null);
+const { selectedToken } = storeToRefs(useOnRampStore());
+const { order } = storeToRefs(useOrderProcessingStore());
+const route = useRoute();
 watch(configInProgress, () => {
   if (!configInProgress.value) {
-    setToken(tokensList.value.find((token) => token.symbol === "ETH")?.address);
+    if (order.value) {
+      selectedToken.value = order.value.receive.token;
+    } else {
+      selectedToken.value =
+        tokensList.value.find((token) => token.address === route.query.token) ||
+        tokensList.value.find((token) => token.symbol === "ETH") ||
+        null;
+    }
   }
+});
+
+const selectedTokenAddress = computed({
+  get: () => selectedToken.value?.address,
+  set: (address?: string) => {
+    selectedToken.value = tokensList.value.find((token) => token.address === address) ?? null;
+  },
 });
 const chainIcon = ref("/img/era.svg");
-
-onMounted(() => {
-  if (!configInProgress.value) {
-    setToken(tokensList.value.find((token) => token.symbol === "ETH")?.address);
-  }
-});
 </script>

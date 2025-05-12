@@ -8,6 +8,8 @@ import { defaultNetwork } from "@/data/networks";
 import { wagmiConfig } from "@/data/wagmi";
 import { useQuotesStore } from "@/store/on-ramp/quotes";
 
+import type { Token } from "~/types";
+
 const devEnv = process.env.NODE_ENV === "development" || process.env.ONRAMP_STAGING === "true";
 
 createOnRampConfig({
@@ -32,6 +34,8 @@ export const useOnRampStore = defineStore("on-ramp", () => {
 
   const quotesStore = useQuotesStore();
   const middlePanelHeight = ref(0);
+
+  const selectedToken = ref<Token | null>(null);
 
   const setStep = function (newStep: Steps) {
     step.value = newStep;
@@ -64,6 +68,7 @@ export const useOnRampStore = defineStore("on-ramp", () => {
     setStep,
     step,
     fetchQuotes,
+    selectedToken,
     middlePanelHeight,
     config,
     configIsReady,
