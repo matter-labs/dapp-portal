@@ -24,6 +24,8 @@ createOnRampConfig({
   dev: devEnv,
 });
 
+// Temporary deploy for demoing UI
+
 export type Steps = "buy" | "quotes" | "processing" | "transactions" | "transaction" | "complete";
 
 export const useOnRampStore = defineStore("on-ramp", () => {
