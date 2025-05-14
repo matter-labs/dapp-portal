@@ -70,6 +70,15 @@ Before deploying your own version of the Portal, ensure you create your own Wall
 WALLET_CONNECT_PROJECT_ID=your_project_id_here
 ```
 
+#### Error logging with [Sentry](https://sentry.io/)
+
+In the .env file, add the Sentry variables:
+```bash
+SENTRY_DSN=your_sentry_dsn_url_here
+SENTRY_ENV=localhost # 'localhost' | 'production'
+```
+SENTRY_ENV variable is used in order to filter the issues by environment. 
+
 ### 🔧 Setup
 
 Ensure you've installed the necessary dependencies:

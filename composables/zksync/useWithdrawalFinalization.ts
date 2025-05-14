@@ -2,6 +2,8 @@ import { useMemoize } from "@vueuse/core";
 import { Wallet } from "zksync-ethers";
 import IL1SharedBridge from "zksync-ethers/abi/IL1SharedBridge.json";
 
+import { useSentryLogger } from "../useSentryLogger";
+
 import type { Hash } from "@/types";
 
 export default (transactionInfo: ComputedRef<TransactionInfo>) => {
@@ -13,6 +15,7 @@ export default (transactionInfo: ComputedRef<TransactionInfo>) => {
   const tokensStore = useZkSyncTokensStore();
   const { isCorrectNetworkSet } = storeToRefs(onboardStore);
   const { ethToken } = storeToRefs(tokensStore);
+  const { captureException } = useSentryLogger();
 
   const retrieveBridgeAddresses = useMemoize(() => providerStore.requestProvider().getDefaultBridgeAddresses());
 
@@ -149,6 +152,12 @@ export default (transactionInfo: ComputedRef<TransactionInfo>) => {
     } catch (err) {
       error.value = formatError(err as Error);
       status.value = "not-started";
+      captureException({
+        error: err as Error,
+        parentFunctionName: "commitTransaction",
+        parentFunctionParams: [],
+        filePath: "composables/zksync/useWithdrawalFinalization.ts",
+      });
     }
   };
 

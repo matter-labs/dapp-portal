@@ -1,3 +1,5 @@
+import { useSentryLogger } from "./useSentryLogger";
+
 const defaultOptions: {
   cache?: number | boolean;
 } = {
@@ -24,6 +26,7 @@ export default <ResultType, ErrorType = Error>(fn: () => Promise<ResultType>, op
     clearTimeout(removeCacheTimeout);
     removeCacheTimeout = undefined;
   };
+  const { captureException } = useSentryLogger();
 
   const execute = async (options?: UsePromiseExecuteOptions): Promise<ResultType | undefined> => {
     const { force } = Object.assign({}, defaultExecuteOptions, options);
@@ -44,6 +47,12 @@ export default <ResultType, ErrorType = Error>(fn: () => Promise<ResultType>, op
       if (!err) return;
 
       error.value = err as unknown as ErrorType;
+      captureException({
+        error: err,
+        parentFunctionName: "execute",
+        parentFunctionParams: [options],
+        filePath: "composables/usePromise.ts",
+      });
       throw err;
     } finally {
       inProgress.value = false;

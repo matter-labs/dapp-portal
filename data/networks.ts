@@ -49,6 +49,7 @@ export type ZkSyncNetwork = {
   blockExplorerUrl?: string;
   blockExplorerApi?: string;
   displaySettings?: {
+    onramp?: boolean;
     showPartnerLinks?: boolean;
   };
   getTokens?: () => Token[] | Promise<Token[]>; // If blockExplorerApi is specified, tokens will be fetched from there. Otherwise, this function will be used.
@@ -91,6 +92,7 @@ const publicChains: ZkSyncNetwork[] = [
     blockExplorerUrl: "https://era.zksync.network",
     blockExplorerApi: "https://block-explorer-api.mainnet.zksync.io",
     displaySettings: {
+      onramp: false, // temporary hidden
       showPartnerLinks: true,
     },
     l1Network: l1Networks.mainnet,

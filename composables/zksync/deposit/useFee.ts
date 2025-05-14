@@ -1,6 +1,8 @@
 import { parseEther } from "ethers";
 import { utils } from "zksync-ethers";
 
+import { useSentryLogger } from "@/composables/useSentryLogger";
+
 import type { Token, TokenAmount } from "@/types";
 import type { BigNumberish } from "ethers";
 
@@ -17,6 +19,7 @@ export default (tokens: Ref<Token[]>, balances: Ref<TokenAmount[] | undefined>) 
   const { getPublicClient } = useOnboardStore();
   const { getL1VoidSigner } = useZkSyncWalletStore();
   const { requestProvider } = useZkSyncProviderStore();
+  const { captureException } = useSentryLogger();
 
   let params = {
     to: undefined as string | undefined,
@@ -102,6 +105,12 @@ export default (tokens: Ref<Token[]>, balances: Ref<TokenAmount[] | undefined>) 
         } else if (message?.includes("insufficient funds for gas * price + value")) {
           throw new Error("Insufficient funds to cover deposit fee! Please, top up your account with ETH.");
         }
+        captureException({
+          error: err as Error,
+          parentFunctionName: "executeEstimateFee",
+          parentFunctionParams: [],
+          filePath: "composables/zksync/deposit/useFee.ts",
+        });
         throw err;
       }
       /* It can be either maxFeePerGas or gasPrice */

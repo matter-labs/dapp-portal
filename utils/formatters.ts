@@ -5,6 +5,41 @@ export function shortenAddress(address: string, chars = 3): string {
   return `${address.slice(0, chars + 2)}...${address.slice(-3)}`;
 }
 
+/**
+ * Formats a value with a currency code to a currency string.
+ * @param value Value to format.
+ * @param currency Currency code.
+ * @returns Formatted value.
+ *
+ * Example:
+ * formatFiat(1000, "USD") => "$1,000.00"
+ */
+export const formatFiat = function (value: number, currency: string): string {
+  return new Intl.NumberFormat("en-US", { style: "currency", currency }).format(value);
+};
+
+/**
+ * Formats a value in wei to a string with a fixed number of decimals.
+ * @param value Value in wei.
+ * @param decimals Number of decimals of the token.
+ * @param decimalsToShow Number of decimals to show in the formatted value. Default is 6.
+ * @returns An array with the formatted value and the raw value as strings.
+ *
+ * Example:
+ * formatTokenBalance(1000000000000000000, 18, 6)
+ * => ["1.000000", "1000000000000000000"]
+ */
+export const formatTokenBalance = function (
+  value: BigNumberish,
+  decimals: number,
+  decimalsToShow = 6
+): [string, string] {
+  const bigValue = BigInt(value);
+  const floatBalance = parseFloat(formatUnits(bigValue, decimals));
+
+  return [floatBalance.toFixed(decimalsToShow), floatBalance.toString()];
+};
+
 export function parseTokenAmount(amount: BigNumberish, decimals: number): string {
   const result = formatUnits(amount.toString(), decimals).toString();
   if (result.endsWith(".0")) {
@@ -123,10 +158,10 @@ export function formatError(error?: Error) {
     } else if (message.includes("missing response")) {
       return new Error("Server error. Please try again later.");
     } else if (
-      // eslint-disable-next-line prettier/prettier
-      message.includes("\"finalizeEthWithdrawal\" reverted with the following reason: xx") ||
-      // eslint-disable-next-line prettier/prettier
-      message.includes("\"finalizeWithdrawal\" reverted with the following reason: xx")
+      // eslint-disable-next-line quotes
+      message.includes('"finalizeEthWithdrawal" reverted with the following reason: xx') ||
+      // eslint-disable-next-line quotes
+      message.includes('"finalizeWithdrawal" reverted with the following reason: xx')
     ) {
       return new Error("Withdrawal is already finalized!");
     }

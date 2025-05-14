@@ -3,6 +3,8 @@ import { type BigNumberish } from "ethers";
 
 import { isCustomNode } from "@/data/networks";
 
+import { useSentryLogger } from "../useSentryLogger";
+
 import type { TokenAmount } from "@/types";
 import type { Provider, Signer } from "zksync-ethers";
 
@@ -22,6 +24,7 @@ export default (getSigner: () => Promise<Signer | undefined>, getProvider: () =>
   const error = ref<Error | undefined>();
   const transactionHash = ref<string | undefined>();
   const eraWalletStore = useZkSyncWalletStore();
+  const { captureException } = useSentryLogger();
 
   const retrieveBridgeAddresses = useMemoize(() => getProvider().getDefaultBridgeAddresses());
   const { validateAddress } = useScreening();
@@ -30,12 +33,16 @@ export default (getSigner: () => Promise<Signer | undefined>, getProvider: () =>
     transaction: TransactionParams,
     fee: { gasPrice: BigNumberish; gasLimit: BigNumberish }
   ) => {
+    let accountAddress = "";
     try {
       error.value = undefined;
 
       status.value = "processing";
       const signer = await getSigner();
       if (!signer) throw new Error("ZKsync Signer is not available");
+
+      accountAddress = await signer.getAddress();
+
       const provider = getProvider();
 
       const getRequiredBridgeAddress = async () => {
@@ -49,8 +56,9 @@ export default (getSigner: () => Promise<Signer | undefined>, getProvider: () =>
       await validateAddress(transaction.to);
 
       status.value = "waiting-for-signature";
+
       const txRequest = await provider[transaction.type === "transfer" ? "getTransferTx" : "getWithdrawTx"]({
-        from: await signer.getAddress(),
+        from: accountAddress,
         to: transaction.to,
         token: transaction.tokenAddress,
         amount: transaction.amount,
@@ -70,6 +78,12 @@ export default (getSigner: () => Promise<Signer | undefined>, getProvider: () =>
     } catch (err) {
       error.value = formatError(err as Error);
       status.value = "not-started";
+      captureException({
+        error: err as Error,
+        parentFunctionName: "commitTransaction",
+        parentFunctionParams: [transaction, fee],
+        filePath: "composables/zksync/useTransaction.ts",
+      });
     }
   };
 

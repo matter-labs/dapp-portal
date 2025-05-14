@@ -17,7 +17,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '18'
+          node-version: '20'
           cache: 'npm'
 
       - name: Install dependencies
@@ -35,6 +35,7 @@ jobs:
           echo "SCREENING_API_URL=${{ secrets.SCREENING_API_URL }}" >> .env
           echo "DATAPLANE_URL=${{ secrets.DATAPLANE_URL }}" >> .env
           echo "RUDDER_KEY=${{ secrets.RUDDER_KEY }}" >> .env
+          echo "ONRAMP_STAGING=true" >> .env
 
       - name: Build
         run: |

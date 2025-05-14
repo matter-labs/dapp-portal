@@ -283,6 +283,7 @@ import { ArrowTopRightOnSquareIcon, ExclamationTriangleIcon, InformationCircleIc
 import { useRouteQuery } from "@vueuse/router";
 import { isAddress } from "ethers";
 
+import { useSentryLogger } from "@/composables/useSentryLogger";
 import useFee from "@/composables/zksync/useFee";
 import useTransaction, { isWithdrawalManualFinalizationRequired } from "@/composables/zksync/useTransaction";
 import { customBridgeTokens } from "@/data/customBridgeTokens";
@@ -313,6 +314,8 @@ const { eraNetwork } = storeToRefs(providerStore);
 const { destinations } = storeToRefs(useDestinationsStore());
 const { tokens, tokensRequestInProgress, tokensRequestError } = storeToRefs(tokensStore);
 const { balance, balanceInProgress, balanceError } = storeToRefs(walletStore);
+
+const { captureException } = useSentryLogger();
 
 const toNetworkModalOpened = ref(false);
 const toNetworkSelected = (networkKey?: string) => {
@@ -450,6 +453,12 @@ const totalComputeAmount = computed(() => {
     }
     return decimalToBigNumber(amount.value, selectedToken.value.decimals);
   } catch (error) {
+    captureException({
+      error: error as Error,
+      parentFunctionName: "totalComputeAmount",
+      parentFunctionParams: [],
+      filePath: "views/transactions/Transfer.vue",
+    });
     return 0n;
   }
 });

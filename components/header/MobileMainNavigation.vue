@@ -20,6 +20,19 @@
 
         <TypographyCategoryLabel size="sm">Portal</TypographyCategoryLabel>
         <CommonCardWithLineButtons>
+          <DestinationItem
+            v-if="selectedNetwork.displaySettings?.onramp"
+            label="On Ramp"
+            as="RouterLink"
+            :to="{ name: 'on-ramp' }"
+            size="sm"
+          >
+            <template #image>
+              <DestinationIconContainer>
+                <BanknotesIcon aria-hidden="true" />
+              </DestinationIconContainer>
+            </template>
+          </DestinationItem>
           <DestinationItem label="Bridge" as="RouterLink" :to="{ name: 'bridge' }" size="sm">
             <template #image>
               <DestinationIconContainer>
@@ -102,6 +115,7 @@ import {
   MoonIcon,
   SunIcon,
   WalletIcon,
+  BanknotesIcon,
 } from "@heroicons/vue/24/outline";
 
 import { chainList } from "@/data/networks";

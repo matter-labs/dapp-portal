@@ -383,6 +383,7 @@ import { isAddress } from "ethers";
 
 import EthereumTransactionFooter from "@/components/transaction/EthereumTransactionFooter.vue";
 import useAllowance from "@/composables/transaction/useAllowance";
+import { useSentryLogger } from "@/composables/useSentryLogger";
 import useEcosystemBanner from "@/composables/zksync/deposit/useEcosystemBanner";
 import useFee from "@/composables/zksync/deposit/useFee";
 import useTransaction from "@/composables/zksync/deposit/useTransaction";
@@ -407,6 +408,8 @@ const { destinations } = storeToRefs(useDestinationsStore());
 const { l1BlockExplorerUrl } = storeToRefs(useNetworkStore());
 const { l1Tokens, baseToken, tokensRequestInProgress, tokensRequestError } = storeToRefs(tokensStore);
 const { balance, balanceInProgress, balanceError } = storeToRefs(zkSyncEthereumBalance);
+
+const { captureException } = useSentryLogger();
 
 const toNetworkModalOpened = ref(false);
 const toNetworkSelected = (networkKey?: string) => {
@@ -570,6 +573,12 @@ const totalComputeAmount = computed(() => {
     }
     return decimalToBigNumber(amount.value, selectedToken.value.decimals);
   } catch (error) {
+    captureException({
+      error: error as Error,
+      parentFunctionName: "totalComputeAmount",
+      parentFunctionParams: [],
+      filePath: "views/transactions/Deposit.vue",
+    });
     return 0n;
   }
 });

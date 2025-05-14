@@ -10,6 +10,7 @@ import {
 } from "@wagmi/core";
 import { createWeb3Modal } from "@web3modal/wagmi";
 
+import { useSentryLogger } from "@/composables/useSentryLogger";
 import { wagmiConfig } from "@/data/wagmi";
 import { confirmedSupportedWallets, disabledWallets } from "@/data/wallets";
 
@@ -17,6 +18,7 @@ export const useOnboardStore = defineStore("onboard", () => {
   const portalRuntimeConfig = usePortalRuntimeConfig();
   const { selectedColorMode } = useColorMode();
   const { selectedNetwork, l1Network } = storeToRefs(useNetworkStore());
+  const { captureException } = useSentryLogger();
 
   reconnect(wagmiConfig);
 
@@ -86,6 +88,12 @@ export const useOnboardStore = defineStore("onboard", () => {
         if (error) {
           connectingWalletError.value = error.message;
         }
+        captureException({
+          error: err as Error,
+          parentFunctionName: "onChange",
+          parentFunctionParams: [updatedAccount],
+          filePath: "store/onboard.ts",
+        });
       }
     },
   });
@@ -108,6 +116,12 @@ export const useOnboardStore = defineStore("onboard", () => {
     try {
       return await switchChain(wagmiConfig, { chainId });
     } catch (err) {
+      captureException({
+        error: err as Error,
+        parentFunctionName: "switchNetworkById",
+        parentFunctionParams: [chainId, networkName],
+        filePath: "store/onboard.ts",
+      });
       if (err instanceof Error && err.message.includes("does not support programmatic chain switching")) {
         throw new Error(`Please switch network manually to "${networkName}" in your ${walletName.value} wallet`);
       }
