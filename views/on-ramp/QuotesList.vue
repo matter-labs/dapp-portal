@@ -1,8 +1,5 @@
 <template>
-  <div
-    id="list"
-    class="-mt-5 max-h-[380px] overflow-y-auto rounded-b-2xl bg-neutral-50 px-6 pb-10 pt-2 dark:bg-transparent"
-  >
+  <div id="list" class="-mt-5 max-h-[380px] overflow-y-auto rounded-b-2xl bg-transparent px-6 pb-10 pt-2">
     <div class="mb-2 flex flex-col">
       <div class="mb-2 text-lg font-bold">Payment methods</div>
       <QuoteFilter />
@@ -46,7 +43,7 @@ const filteredQuotes = ref<ProviderQuoteOption[]>([]);
 #list {
   &::after {
     content: "";
-    @apply absolute bottom-0 left-0 h-[1.25rem] w-full bg-gradient-to-t from-[#f7f9fc] to-transparent dark:from-black;
+    @apply absolute bottom-0 left-4 right-6 h-[1.25rem] w-auto bg-gradient-to-t from-[#e8ecf280] to-transparent dark:from-[#262b33e6];
   }
 }
 </style>

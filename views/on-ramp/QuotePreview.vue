@@ -1,6 +1,6 @@
 <template>
   <div
-    class="cursor-pointer rounded-xl border border-gray-200 bg-gray-100 hover:bg-gray-200/50 dark:border-neutral-800/70 dark:bg-neutral-900 dark:hover:bg-neutral-800/80"
+    class="cursor-pointer rounded-xl border border-gray-200 bg-gray-50 hover:bg-white dark:border-neutral-800/70 dark:bg-neutral-900 dark:hover:bg-neutral-800/80"
     @click="runQuote"
   >
     <div class="quote-grid grid gap-2 p-3">
@@ -10,18 +10,25 @@
             <span class="font-bold" :title="balance[1]">{{ balance[0] }} {{ quote.receive.token.symbol }}</span>
             <span class="text-xs text-gray-600 dark:text-gray-400">
               &nbsp;~{{ formatFiat(quote.receive.amountFiat, quote.pay.currency) }}
+              <span class="text-gray-400 dark:text-gray-500"
+                >&nbsp;(Fee: {{ formatFiat(quote.pay.totalFeeFiat, quote.pay.currency) }})</span
+              >
             </span>
           </div>
         </div>
       </div>
       <div class="details-section">
-        <button
+        <span v-if="quote.steps.length > 1" class="text-xs dark:text-gray-400">
+          Purchase ETH with {{ provider.name }}, then swap to {{ quote.receive.token.symbol }} via
+          {{ (quote.steps[1] as any).swapQuote.toolDetails.name }}
+        </span>
+        <!-- <button
           type="button"
           class="p-0 text-sm text-neutral-500 underline hover:text-neutral-600 dark:text-neutral-500 dark:hover:text-neutral-400"
           @click="toggleDetails"
         >
           {{ toggleOpen ? "Hide details" : "View details" }}
-        </button>
+        </button> -->
       </div>
       <div class="provider-section flex">
         <!-- <div class="inline-block p-2">
@@ -36,13 +43,13 @@
         </div>
       </div>
     </div>
-    <div v-if="toggleOpen" ref="quotePreview" class="flex flex-col gap-1 px-3 pb-3">
+    <!-- <div v-if="toggleOpen" ref="quotePreview" class="flex flex-col gap-1 px-3 pb-3">
       <div class="text-sm">Fee: {{ formatFiat(quote.pay.totalFeeFiat, quote.pay.currency) }}</div>
       <div class="text-sm">Steps:</div>
       <div class="mt-0.5 flex flex-col gap-3">
         <StepDetail v-for="(step, index) in quote.steps" :key="index" :step="step" />
       </div>
-    </div>
+    </div> -->
   </div>
 </template>
 
@@ -50,7 +57,7 @@
 import { quoteToRoute, type PaymentMethod, type ProviderQuoteOption } from "zksync-easy-onramp";
 
 import { useOrderProcessingStore } from "@/store/on-ramp/order-processing";
-import StepDetail from "@/views/on-ramp/StepDetail.vue";
+// import StepDetail from "@/views/on-ramp/StepDetail.vue";
 
 const props = defineProps<{
   quote: ProviderQuoteOption["paymentMethods"][0];
@@ -102,10 +109,10 @@ function parsePaymentMethod(paymentMethodId: PaymentMethod) {
 }); */
 
 const toggleOpen = ref(false);
-function toggleDetails(e: Event) {
-  e.stopPropagation();
-  toggleOpen.value = !toggleOpen.value;
-}
+// function toggleDetails(e: Event) {
+//   e.stopPropagation();
+//   toggleOpen.value = !toggleOpen.value;
+// }
 
 const quotePreview = ref<HTMLElement>();
 const { middlePanelHeight } = storeToRefs(useOnRampStore());

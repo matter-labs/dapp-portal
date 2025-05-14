@@ -1,5 +1,5 @@
 <template>
-  <CommonContentBlock>
+  <CommonContentBlock class="border dark:border-neutral-900">
     <div class="-mt-3 flex w-full flex-col gap-6 sm:flex-row">
       <div class="flex w-full flex-col sm:w-1/2">
         <span class="mb-2 font-bold">You pay (USD)</span>
