@@ -15,8 +15,8 @@
         </div>
       </div>
       <div class="mt-6">
-        <div v-for="step in order.steps" :key="step.id" class="m-auto flex w-[80%] flex-col">
-          <div v-for="process in step.execution?.process" :key="process.type" class="mb-4 flex gap-2">
+        <div class="m-auto flex w-[80%] flex-col">
+          <div v-for="process in order.steps[0].execution?.process" :key="process.type" class="mb-4 flex gap-2">
             <div class="w-[24px] shrink-0 text-center">
               <ProcessStatusIcon :status="process.status" />
             </div>
