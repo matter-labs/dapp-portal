@@ -58,17 +58,19 @@ function swapView(el: Element) {
   middlePanelHeight.value = height;
 }
 useEventListener("resize", () => {
-  const activeElement = document.querySelector("#middle-panel > div > div");
+  const activeElement = document.querySelector("#middle-panel-container > div:not([style*='display: none'])");
   if (activeElement) {
     swapView(activeElement);
   }
 });
 const { quoteFilter } = storeToRefs(useQuotesStore());
 watch(quoteFilter, () => {
-  const activeElement = document.querySelector("#middle-panel > div > div");
-  if (activeElement) {
-    swapView(activeElement);
-  }
+  setTimeout(() => {
+    const activeElement = document.querySelector("#list");
+    if (activeElement) {
+      swapView(activeElement);
+    }
+  }, 0);
 });
 
 const { quotes, inProgress, error } = storeToRefs(useQuotesStore());
