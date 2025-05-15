@@ -22,34 +22,16 @@
           Purchase ETH with {{ provider.name }}, then swap to {{ quote.receive.token.symbol }} via
           {{ (quote.steps[1] as any).swapQuote.toolDetails.name }}
         </span>
-        <!-- <button
-          type="button"
-          class="p-0 text-sm text-neutral-500 underline hover:text-neutral-600 dark:text-neutral-500 dark:hover:text-neutral-400"
-          @click="toggleDetails"
-        >
-          {{ toggleOpen ? "Hide details" : "View details" }}
-        </button> -->
       </div>
       <div class="provider-section flex">
-        <!-- <div class="inline-block p-2">
-          <img :src="quote.provider.iconUrl" class="h-8 w-8" />
-        </div> -->
         <div class="payment-method inline-block text-right">
           <div class="mb-1 text-xs leading-5 text-gray-600 dark:text-gray-400">
             {{ parsePaymentMethod(quote.method) }}
           </div>
           <div class="text-xs text-gray-700 dark:text-gray-300">via {{ provider.name }}</div>
-          <!-- <div class="text-sm text-gray-600 dark:text-gray-300">{{ providerType }}</div> -->
         </div>
       </div>
     </div>
-    <!-- <div v-if="toggleOpen" ref="quotePreview" class="flex flex-col gap-1 px-3 pb-3">
-      <div class="text-sm">Fee: {{ formatFiat(quote.pay.totalFeeFiat, quote.pay.currency) }}</div>
-      <div class="text-sm">Steps:</div>
-      <div class="mt-0.5 flex flex-col gap-3">
-        <StepDetail v-for="(step, index) in quote.steps" :key="index" :step="step" />
-      </div>
-    </div> -->
   </div>
 </template>
 
@@ -57,7 +39,6 @@
 import { quoteToRoute, type PaymentMethod, type ProviderQuoteOption } from "zksync-easy-onramp";
 
 import { useOrderProcessingStore } from "@/store/on-ramp/order-processing";
-// import StepDetail from "@/views/on-ramp/StepDetail.vue";
 
 const props = defineProps<{
   quote: ProviderQuoteOption["paymentMethods"][0];
@@ -96,37 +77,6 @@ function parsePaymentMethod(paymentMethodId: PaymentMethod) {
       return paymentMethodId;
   }
 }
-
-/* const providerType = computed(() => {
-  switch (props.quote.provider.type) {
-    case "onramp":
-      return "Fiat on-ramp";
-    case "cex":
-      return "Buy or deposit";
-    default:
-      return "Provider";
-  }
-}); */
-
-const toggleOpen = ref(false);
-// function toggleDetails(e: Event) {
-//   e.stopPropagation();
-//   toggleOpen.value = !toggleOpen.value;
-// }
-
-const quotePreview = ref<HTMLElement>();
-const { middlePanelHeight } = storeToRefs(useOnRampStore());
-const toggleHeight = ref(0);
-watch(toggleOpen, () => {
-  setTimeout(() => {
-    if (toggleOpen.value) {
-      toggleHeight.value = quotePreview.value?.offsetHeight || 0;
-      middlePanelHeight.value += toggleHeight.value + 30;
-    } else {
-      middlePanelHeight.value -= toggleHeight.value + 30;
-    }
-  }, 0);
-});
 
 const { setStep } = useOnRampStore();
 const { selectQuote } = useOrderProcessingStore();

@@ -14,8 +14,6 @@ const devEnv = process.env.NODE_ENV === "development" || process.env.ONRAMP_STAG
 
 createOnRampConfig({
   integrator: "ZKsync Portal",
-  // apiUrl: "http://localhost:3020/api",
-  // apiUrl: "https://easy-onramp-api.zksync.dev/api",
   apiUrl: devEnv ? "https://easy-onramp-api-staging.zksync.dev/api" : "https://easy-onramp-api.zksync.dev/api",
   provider: EVM({
     // eslint-disable-next-line require-await
