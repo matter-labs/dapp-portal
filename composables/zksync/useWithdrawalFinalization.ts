@@ -56,7 +56,7 @@ export default (transactionInfo: ComputedRef<TransactionInfo>) => {
       abi: IL1Nullifier,
       account: onboardStore.account.address!,
       functionName: "finalizeWithdrawal",
-      args: Object.values(finalizeWithdrawalParams.value!),
+      args: [Object.values(finalizeWithdrawalParams.value!)],
     };
   };
 
