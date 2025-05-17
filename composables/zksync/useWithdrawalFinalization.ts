@@ -51,23 +51,17 @@ export default (transactionInfo: ComputedRef<TransactionInfo>) => {
 
   const getTransactionParams = async () => {
     finalizeWithdrawalParams.value = await getFinalizationParams();
-    const params = finalizeWithdrawalParams.value!;
+    const p = finalizeWithdrawalParams.value!;
 
-    const args = [
-      params.l1BatchNumber ?? 0,
-      params.l2MessageIndex,
-      params.l2TxNumberInBlock,
-      params.message,
-      params.sender,
-      params.proof,
-    ];
+    const args = [p.l1BatchNumber ?? 0, BigInt(p.l2MessageIndex), Number(p.l2TxNumberInBlock), p.message, p.proof];
+
     return {
       address: (await retrieveL1NullifierAddress()) as Hash,
       abi: IL1Nullifier,
       account: onboardStore.account.address!,
       functionName: "finalizeWithdrawal",
       args,
-    };
+    } as const;
   };
 
   const {
