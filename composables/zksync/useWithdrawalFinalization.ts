@@ -22,7 +22,7 @@ export default (transactionInfo: ComputedRef<TransactionInfo>) => {
 
   const retrieveBridgeAddresses = useMemoize(() => providerStore.requestProvider().getDefaultBridgeAddresses());
   const retrieveL1NullifierAddress = useMemoize(async () => {
-  const providerL1 = walletStore.getL1VoidSigner();
+    const providerL1 = walletStore.getL1VoidSigner();
     return IL1AssetRouterFactory.connect((await retrieveBridgeAddresses()).sharedL1, providerL1).L1_NULLIFIER();
   });
 
@@ -51,13 +51,26 @@ export default (transactionInfo: ComputedRef<TransactionInfo>) => {
 
   const getTransactionParams = async () => {
     finalizeWithdrawalParams.value = await getFinalizationParams();
+    const provider = providerStore.requestProvider();
+    const chainId = BigInt(await provider.getNetwork().then((n) => n.chainId));
+    const p = finalizeWithdrawalParams.value!;
+
+    const args = [
+      chainId,
+      p.l1BatchNumber ?? 0,
+      BigInt(p.l2MessageIndex),
+      Number(p.l2TxNumberInBlock),
+      p.message,
+      p.proof,
+    ];
+
     return {
       address: (await retrieveL1NullifierAddress()) as Hash,
       abi: IL1Nullifier,
       account: onboardStore.account.address!,
       functionName: "finalizeWithdrawal",
-      args: Object.values(finalizeWithdrawalParams.value!),
-    };
+      args,
+    } as const;
   };
 
   const {
