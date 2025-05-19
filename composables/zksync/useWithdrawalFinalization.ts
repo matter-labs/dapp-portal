@@ -23,7 +23,7 @@ export default (transactionInfo: ComputedRef<TransactionInfo>) => {
   const retrieveBridgeAddresses = useMemoize(() => providerStore.requestProvider().getDefaultBridgeAddresses());
   const retrieveL1NullifierAddress = useMemoize(async () => {
     const providerL1 = walletStore.getL1VoidSigner();
-    return IL1AssetRouterFactory.connect((await retrieveBridgeAddresses()).sharedL1, providerL1).L1_NULLIFIER();
+    return await IL1AssetRouterFactory.connect((await retrieveBridgeAddresses()).sharedL1, providerL1).L1_NULLIFIER();
   });
 
   const gasLimit = ref<bigint | undefined>();
@@ -55,21 +55,22 @@ export default (transactionInfo: ComputedRef<TransactionInfo>) => {
     const chainId = BigInt(await provider.getNetwork().then((n) => n.chainId));
     const p = finalizeWithdrawalParams.value!;
 
-    const args = [
-      chainId,
-      p.l1BatchNumber ?? 0,
-      BigInt(p.l2MessageIndex),
-      Number(p.l2TxNumberInBlock),
-      p.message,
-      p.proof,
-    ];
+    const finalizeDepositParams = {
+      chainId: BigInt(chainId),
+      l2BatchNumber: BigInt(p.l1BatchNumber ?? 0n),
+      l2MessageIndex: BigInt(p.l2MessageIndex),
+      l2Sender: p.sender as `0x${string}`,
+      l2TxNumberInBatch: Number(p.l2TxNumberInBlock),
+      message: p.message,
+      merkleProof: p.proof,
+    };
 
     return {
       address: (await retrieveL1NullifierAddress()) as Hash,
       abi: IL1Nullifier,
       account: onboardStore.account.address!,
-      functionName: "finalizeWithdrawal",
-      args,
+      functionName: "finalizeDeposit",
+      args: [finalizeDepositParams],
     } as const;
   };
 
