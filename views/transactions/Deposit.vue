@@ -46,8 +46,22 @@
           v-model:error="amountError"
           v-model:token-address="amountInputTokenAddress"
           label="From"
-          :tokens="availableTokens"
-          :balances="availableBalances"
+          :tokens="
+            availableTokens.map((token) => ({
+              ...token,
+              ...(token?.l2Address
+                ? { address: token?.l2Address, l1Address: token?.address }
+                : { address: token?.l1Address || token?.address }),
+            }))
+          "
+          :balances="
+            availableBalances.map((balance) => ({
+              ...balance,
+              ...(balance?.l2Address
+                ? { address: balance?.l2Address, l1Address: balance?.address }
+                : { address: balance?.l1Address || balance?.address }),
+            }))
+          "
           :max-amount="maxAmount"
           :approve-required="!enoughAllowance && (!tokenCustomBridge || !tokenCustomBridge.bridgingDisabled)"
           :loading="tokensRequestInProgress || balanceInProgress || feeLoading"
@@ -67,7 +81,9 @@
             </CommonButtonDropdown>
           </template>
         </CommonInputTransactionAmount>
-        <CommonHeightTransition :opened="!!tokenCustomBridge && !tokenCustomBridge.bridgingDisabled">
+        <CommonHeightTransition
+          :opened="!!tokenCustomBridge && !tokenCustomBridge.bridgingDisabled && !tokenCustomBridge.hideAlertMessage"
+        >
           <div class="mb-block-padding-1/2 sm:mb-block-gap">
             <CommonAlert variant="warning" size="sm">
               <p>
@@ -449,23 +465,33 @@ const selectedToken = computed<Token | undefined>(() => {
   if (!selectedTokenAddress.value) {
     return defaultToken.value;
   }
-  return (
-    availableTokens.value.find((e) => e.address === selectedTokenAddress.value) ||
-    availableBalances.value.find((e) => e.address === selectedTokenAddress.value) ||
-    defaultToken.value
-  );
+  const selectedToken =
+    availableTokens.value.find(
+      (e) =>
+        e.address === selectedTokenAddress.value ||
+        e.l2Address === selectedTokenAddress.value ||
+        e.l1Address === selectedTokenAddress.value
+    ) ||
+    availableBalances.value.find(
+      (e) =>
+        e.address === selectedTokenAddress.value ||
+        e.l2Address === selectedTokenAddress.value ||
+        e.l1Address === selectedTokenAddress.value
+    ) ||
+    defaultToken.value;
+  return selectedToken;
 });
 const tokenCustomBridge = computed(() => {
   if (!selectedToken.value) {
     return undefined;
   }
   const customBridgeToken = customBridgeTokens.find(
-    (e) => eraNetwork.value.l1Network?.id === e.chainId && e.l1Address === selectedToken.value?.address
+    (e) => eraNetwork.value.l1Network?.id === e.chainId && e.l2Address === selectedToken.value?.l2Address
   );
   return customBridgeToken;
 });
 const amountInputTokenAddress = computed({
-  get: () => selectedToken.value?.address,
+  get: () => selectedToken.value?.l2Address || selectedToken.value?.l1Address || selectedToken.value?.address,
   set: (address) => {
     selectedTokenAddress.value = address;
   },
@@ -490,7 +516,7 @@ const {
   getApprovalAmounts,
 } = useAllowance(
   computed(() => account.value.address),
-  computed(() => selectedToken.value?.address),
+  computed(() => selectedToken.value?.l1Address || selectedToken.value?.address),
   async () => (await providerStore.requestProvider().getDefaultBridgeAddresses()).sharedL1,
   eraWalletStore.getL1Signer
 );
@@ -707,6 +733,7 @@ const makeTransaction = async () => {
       to: transaction.value!.to.address,
       tokenAddress: transaction.value!.token.address,
       amount: transaction.value!.token.amount,
+      ...(transaction.value!.token.l1BridgeAddress ? { bridgeAddress: transaction.value!.token.l1BridgeAddress } : {}),
     },
     feeValues.value!
   );

@@ -610,6 +610,7 @@ const makeTransaction = async () => {
       to: transaction.value!.to.address,
       tokenAddress: transaction.value!.token.address,
       amount: transaction.value!.token.amount,
+      ...(transaction.value.token.l2BridgeAddress ? { bridgeAddress: transaction.value.token.l2BridgeAddress } : {}),
     },
     {
       gasLimit: gasLimit.value!,
