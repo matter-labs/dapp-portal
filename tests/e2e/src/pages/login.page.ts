@@ -18,6 +18,18 @@ export class LoginPage extends BasePage {
     return `${this.byTestId}login-button`;
   }
 
+  get changeNetworkBtn() {
+    return `${this.byTestId}change-l1-network-button`;
+  }
+
+  get termsAndConditionsCheckbox() {
+    return `${this.byTestId}terms-and-conditions-checkbox`;
+  }
+
+  get proceedBtn() {
+    return `${this.byTestId}proceed-button`;
+  }
+
   get mainTitle() {
     return "//h1[text()='ZKsync Portal']";
   }
@@ -29,6 +41,12 @@ export class LoginPage extends BasePage {
 
     if (!loginStatus) {
       const metamaskPage = await new MetamaskPage(this.world);
+
+      await this.world.page?.waitForSelector(this.termsAndConditionsCheckbox);
+      await this.world.page?.locator(this.termsAndConditionsCheckbox).click(config.increasedTimeout); // click a terms and conditions label
+
+      await this.world.page?.waitForSelector(this.proceedBtn);
+      await this.world.page?.locator(this.proceedBtn).click(config.increasedTimeout); // click a proceed button
 
       await this.world.page?.waitForSelector(this.loginBtn);
       await this.world.page?.locator(this.loginBtn).click(config.increasedTimeout); // click a login button
@@ -57,7 +75,7 @@ export class LoginPage extends BasePage {
           return false;
         }
       }
-    } else if (!(await this.actualNetworkIsGoerli())) {
+    } else if (!(await this.actualNetworkIsSepolia())) {
       await this.world.page?.goto(config.BASE_URL + config.DAPP_NETWORK);
       await this.world.page?.waitForLoadState("load");
     }
@@ -71,7 +89,7 @@ export class LoginPage extends BasePage {
   }
 
   async checkLoginStatus() {
-    let result = await this.world.page?.evaluate(() => window.localStorage["wagmi.wallet"]);
+    let result = await this.world.page?.evaluate(() => window.localStorage["wagmi.recentConnectorId"]);
 
     if (result == '"injected"') {
       result = true;
@@ -81,10 +99,10 @@ export class LoginPage extends BasePage {
     return result;
   }
 
-  async actualNetworkIsGoerli() {
+  async actualNetworkIsSepolia() {
     let result = await this.world.page?.evaluate(() => window.localStorage.lastSelectedEthereumNetwork);
 
-    if (result == "goerli") {
+    if (result == "sepolia") {
       result = true;
     } else {
       result = false;

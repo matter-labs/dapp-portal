@@ -5,6 +5,6 @@
   "scripts": {
     "metamask:install": "METAMASK_VERSION=10.14.1 node utils/metamaskDownloader.mjs",
     "postinstall": "npm run metamask:install",
-    "test:e2e": "cucumber-js --tags \"@artifacts and not @emptyWallet\""
+    "test:e2e": "cucumber-js --tags \"@transactions and not @emptyWallet\""
   }
 }
