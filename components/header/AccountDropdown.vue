@@ -23,7 +23,7 @@
             no-chevron
             :active="active"
             as="a"
-            :href="`${selectedNetwork.blockExplorerUrl}/address/${account.address!}`"
+            :href="buildExplorerUrl(selectedNetwork.blockExplorerUrl, account.address)"
             target="_blank"
             class="options-item"
           >

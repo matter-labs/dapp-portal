@@ -168,3 +168,17 @@ export function getTokensWithCustomBridgeTokens(
 
   return sortedTokens;
 }
+
+export function buildExplorerUrl(baseUrl: string, value?: string): string | undefined {
+  if (!value) return;
+
+  const [urlPart, queryPart] = baseUrl.split("?");
+  const base = urlPart.replace(/\/$/, "");
+
+  const type = value.length === 66 ? "tx" : value.length === 42 ? "address" : undefined;
+
+  if (!type) return;
+
+  const url = `${base}/${type}/${value}`;
+  return queryPart ? `${url}?${queryPart}` : url;
+}
