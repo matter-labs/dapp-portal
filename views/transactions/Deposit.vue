@@ -257,9 +257,7 @@
                 >
                   <a
                     v-if="l1BlockExplorerUrl && allowanceTransactionHash"
-                    :href="`${l1BlockExplorerUrl.split('?')[0]}/tx/${allowanceTransactionHash}?${
-                      l1BlockExplorerUrl.split('?')[1]
-                    }`"
+                    :href="buildExplorerUrl(l1BlockExplorerUrl, allowanceTransactionHash)"
                     target="_blank"
                     class="inline-flex items-center gap-1 underline underline-offset-2"
                   >
