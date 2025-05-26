@@ -29,7 +29,7 @@ export const config = {
   browser: process.env.BROWSER || "chromium",
   browserOptions,
   BASE_URL: process.env.TARGET_ENV || "http://localhost:3000",
-  METAMASK_VERSION: process.env.METAMASK_VERSION || "10.14.1",
+  METAMASK_VERSION: process.env.METAMASK_VERSION || "11.14.1",
   IMG_THRESHOLD: { threshold: 0.4 },
   mainWindowSize: { width: 1280, height: 720 },
   popUpWindowSize: { width: 355, height: 500 },

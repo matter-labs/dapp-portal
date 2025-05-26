@@ -7,8 +7,8 @@ Feature: Transfer
   @id1321
   Scenario: Make a transfer in ETH
     Given I am on the Main page
-    When I go to page "/send?network=sepolia&address=0xF649f392289F80752B0aDdD90058a8248b5026fE"
-    When I confirm the network switching "ZKsync Sepolia Testnet"
+    When I go to page "/send?address=0xF649f392289F80752B0aDdD90058a8248b5026fE"
+    When I confirm the network switching
     Then Element with "testId" "token-dropDown" should be "clickable"
     When I choose "ETH" as token and insert "0.0000000001" as amount
     Then I click by "text" with " Continue " value
@@ -25,8 +25,8 @@ Feature: Transfer
   @id1276 @groupthree
   Scenario: Reject a transfer transaction
     Given I am on the Main page
-    When I go to page "/send?network=sepolia&address=0xF649f392289F80752B0aDdD90058a8248b5026fE"
-    When I confirm the network switching "ZKsync Sepolia Testnet"
+    When I go to page "/send?address=0xF649f392289F80752B0aDdD90058a8248b5026fE"
+    When I confirm the network switching
     When I choose "ETH" as token and insert "0.0000000001" as amount
     Then I click by "text" with " Continue " value
     When I "reject" transaction after clicking "Send now" button

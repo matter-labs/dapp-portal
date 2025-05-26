@@ -148,15 +148,6 @@ When("I confirm the network switching", config.stepTimeout, async function (this
   await metamaskPage.switchNetwork();
 });
 
-When(
-  "I confirm the network switching {string}",
-  config.stepTimeout,
-  async function (this: ICustomWorld, network?: string) {
-    metamaskPage = new MetamaskPage(this);
-    await metamaskPage.switchNetwork(network);
-  }
-);
-
 When("A wallet should be {string}", config.stepTimeout, async function (this: ICustomWorld, balanceValue: string) {
   mainPage = new MainPage(this);
   result = await mainPage.getTotalBalance();

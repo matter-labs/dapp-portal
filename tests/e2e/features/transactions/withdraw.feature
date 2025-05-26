@@ -6,8 +6,8 @@ Feature: Withdraw
 
   @id1333
   Scenario: Make a withdraw in ETH
-    Given I go to page "/bridge/withdraw?network=sepolia"
-    When I confirm the network switching "ZKsync Sepolia Testnet"
+    Given I go to page "/bridge/withdraw"
+    When I confirm the network switching
     Then Element with "testId" "token-dropDown" should be "clickable"
     When I choose "ETH" as token and insert "0.0000000001" as amount
     Then I click by "text" with " Continue " value
@@ -16,18 +16,18 @@ Feature: Withdraw
 
   @id1274
   Scenario: Withdraw - Send - [Transaction] 0 funds
-    Given I go to page "/bridge/withdraw?network=sepolia"
+    Given I go to page "/bridge/withdraw"
     Then Element with "text" "ZKsync Sepolia Testnet" should be "clickable"
-    When I confirm the network switching "ZKsync Sepolia Testnet"
+    When I confirm the network switching
     When I insert "0" as amount
     Then Element with "text" " Continue " should be "disabled"
 
 
   @id1290
   Scenario: Withdraw - Send - [Transaction] 0 funds
-    Given I go to page "/bridge/withdraw?network=sepolia"
+    Given I go to page "/bridge/withdraw"
     Then Element with "text" "ZKsync Sepolia Testnet" should be "clickable"
-    When I confirm the network switching "ZKsync Sepolia Testnet"
+    When I confirm the network switching
     Then Element with "xpath" "//button[contains(@title, 'Your max amount is ')]" should be "clickable"
     Then Element with "xpath" "//button[contains(@title, 'Your max amount is ')]" should be "clickable"
     When I click by "xpath" with "//button[contains(@title, 'Your max amount is ')]" value
@@ -35,8 +35,8 @@ Feature: Withdraw
 
   @id1554
   Scenario: Withdraw - Bridge - [Transaction] 
-    Given I go to page "/bridge/withdraw?network=sepolia"
-    When I confirm the network switching "ZKsync Sepolia Testnet"
+    Given I go to page "/bridge/withdraw"
+    When I confirm the network switching
     Then Element with "testId" "token-dropDown" should be "clickable"
     When I choose "ETH" as token and insert "10000" as amount
     When Element with "partial class" "has-error" should be "visible"
@@ -49,8 +49,8 @@ Feature: Withdraw
 
   @id1601 @id1608 @id1694
   Scenario: make a Withdraw (Bridge)
-    Given I go to page "/bridge/withdraw?network=sepolia"
-    When I confirm the network switching "ZKsync Sepolia Testnet"
+    Given I go to page "/bridge/withdraw"
+    When I confirm the network switching
     Then Element with "testId" "token-dropDown" should be "clickable"
     When I choose "ETH" as token and insert "0.0000000001" as amount
     Then I click by "text" with " Continue " value

@@ -66,8 +66,12 @@ export class MetamaskPage extends BasePage {
     return "page-container-footer-next";
   }
 
+  get noThanksBtn() {
+    return "//button[contains(text(), 'No thanks')]";
+  }
+
   get confirmTransaction() {
-    return "//*[@data-testid='page-container-footer-next'] | //button[contains(text(), 'Confirm')]";
+    return "//*[@data-testid='page-container-footer-next'] | //button[contains(text(), 'Confirm')] | //*[@data-testid='confirmation-submit-button']";
   }
 
   get signTransaction() {
@@ -87,31 +91,51 @@ export class MetamaskPage extends BasePage {
   }
 
   get newPasswordField() {
-    return "//*[@autocomplete='new-password' and @id='password']";
+    return "//*[@data-testid='create-password-new' and @type='password']";
   }
 
   get confirmPasswordField() {
-    return "id=confirm-password";
+    return "//*[@data-testid='create-password-confirm' and @type='password']";
   }
 
   get unlockPasswordField() {
-    return "#password";
+    return '[data-testid="unlock-password"]';
   }
 
   get confirmUnlockBtn() {
-    return "//button[1]";
+    return '[data-testid="unlock-submit"]';
+  }
+
+  get metamaskNextBtn() {
+    return '[data-testid="page-container-footer-next"]';
+  }
+
+  get onboardingDoneBtn() {
+    return '[data-testid="onboarding-complete-done"]';
+  }
+
+  get pinExtensionNextBtn() {
+    return '[data-testid="pin-extension-next"]';
+  }
+
+  get pinExtensionDoneBtn() {
+    return '[data-testid="pin-extension-done"]';
+  }
+
+  get popoverCloseBtn() {
+    return '[data-testid="popover-close"]';
   }
 
   get checkboxTermsUsage() {
-    return "//*[@href='https://metamask.io/terms.html']/../../../../input";
+    return '[data-testid="create-password-terms"]';
   }
 
   get importBtn() {
-    return "//button[@type='submit']";
+    return "//button[contains(text(), 'Confirm Secret Recovery Phrase')]";
   }
 
   get succeedBtn() {
-    return "//button[@role='button']";
+    return "//button[@data-testid='create-password-import']";
   }
 
   get confirmBtn() {
@@ -119,7 +143,15 @@ export class MetamaskPage extends BasePage {
   }
 
   get switchNetworkBtnMM() {
-    return "//div[@class='confirmation-footer']//button[normalize-space()='Switch network']";
+    return "//div[@class='confirmation-footer']//button[contains(text(), 'Switch network')]";
+  }
+
+  get onboardingTermsLabel() {
+    return "label[for='onboarding__terms-checkbox']";
+  }
+
+  get importExistingWalletBtn() {
+    return "//button[contains(text(), 'Import an existing wallet')]";
   }
 
   get mainBtn() {
@@ -160,18 +192,18 @@ export class MetamaskPage extends BasePage {
     testId = new BasePage(this.world).byTestId;
     await page.bringToFront();
     await page.reload();
+    await page.locator(this.onboardingTermsLabel).click();
+    await page.click(this.importExistingWalletBtn);
     await page.click(this.mainBtn);
-    await page.click(this.mainBtn);
-    await page.click(testId + this.acceptMetricsBtn);
   }
 
   async importMetamaskAccount(secretPhrase: Array<string>, password: string) {
     await this.fillSecretPhrase(secretPhrase);
+    await page.click(this.importBtn);
     await page.fill(this.newPasswordField, password);
     await page.fill(this.confirmPasswordField, password);
     await page.locator(this.checkboxTermsUsage).click({ force: true });
     await page.bringToFront();
-    await page.click(this.importBtn);
     await page.click(this.succeedBtn);
   }
 
@@ -303,15 +335,14 @@ export class MetamaskPage extends BasePage {
   }
 
   async catchPopUpByClick(element: string) {
-    testId = new BasePage(this.world).byTestId;
     const helper = await new Helper(this.world);
     const [popUp] = await Promise.all([
       this.world.context?.waitForEvent("page", { timeout: config.increasedTimeout.timeout }),
-      await helper.checkElementVisible(element),
-      await this.world.page?.locator(element).first().click(),
-      await setTimeout(config.minimalTimeout.timeout),
-      await this.isFeeAlert(element),
+      this.world.page?.locator(element).first().click({ timeout: config.increasedTimeout.timeout }),
     ]);
+
+    await popUp?.waitForLoadState("domcontentloaded");
+
     return popUp;
   }
 
@@ -334,30 +365,62 @@ export class MetamaskPage extends BasePage {
     return popUp;
   }
 
-  async switchNetwork(network?: string) {
-    //
+  async switchNetwork() {
     const continueBtnSelector = "//button[contains(text(), ' Continue ')]";
     const continueBtnElement: any = await this.world.page?.locator(continueBtnSelector);
     const isContinueBtnElementVisible = await continueBtnElement.isVisible();
-    //
+
     const switchNetworkBtnSelector = "//div[@class='transaction-footer-row']//button";
+
+    // Wait for the state to update
+    await this.world.page?.waitForTimeout(300);
     const switchNetworkBtnElement: any = await this.world.page?.locator(switchNetworkBtnSelector);
-    // check that switchNetworkBtnSelector is switcher network button
     const buttonText = await switchNetworkBtnElement.innerText();
-    const result = buttonText.includes("Change wallet network");
+    const isChangeWalletNetwork = buttonText.includes("Change wallet network");
+    const isConnectWallet = buttonText.includes("Connect wallet");
+    const isButtonEnabled = isChangeWalletNetwork || isConnectWallet;
     const isSwitchNetworkBtnElementEnabled = await switchNetworkBtnElement.isEnabled();
-    if (isSwitchNetworkBtnElementEnabled && result && !isContinueBtnElementVisible) {
+
+    if (isSwitchNetworkBtnElementEnabled && isButtonEnabled && !isContinueBtnElementVisible) {
       const popUpContext = await this.catchPopUpByClick(switchNetworkBtnSelector);
       await popUpContext?.setViewportSize(config.popUpWindowSize);
-      if (!depositTag) {
-        await popUpContext?.click(this.confirmBtn);
-      }
-      await popUpContext?.locator(this.confirmBtn).isVisible();
-      await popUpContext?.click(this.confirmBtn);
+      try {
+        const confirmButton = await popUpContext?.waitForSelector(this.confirmTransaction, {
+          state: "visible",
+          timeout: config.increasedTimeout.timeout,
+        });
 
-      if (!network) {
-        await popUpContext?.locator(this.switchNetworkBtnMM).isVisible();
-        await popUpContext?.click(this.switchNetworkBtnMM);
+        if (confirmButton) {
+          await confirmButton.click();
+        }
+      } catch (error) {
+        console.log("Confirm Transaction button not visible within timeout.");
+      }
+
+      try {
+        const confirmButton = await popUpContext?.waitForSelector(this.confirmTransaction, {
+          state: "visible",
+          timeout: config.increasedTimeout.timeout,
+        });
+
+        if (confirmButton) {
+          await confirmButton.click();
+        }
+      } catch (error) {
+        console.log("Confirm Transaction button not visible within timeout.");
+      }
+
+      try {
+        const switchNetworkButton = await popUpContext?.waitForSelector(this.switchNetworkBtnMM, {
+          state: "visible",
+          timeout: config.increasedTimeout.timeout,
+        });
+
+        if (switchNetworkButton) {
+          await switchNetworkButton.click();
+        }
+      } catch (error) {
+        // Switch Network button not visible, skipping click.
       }
     }
   }

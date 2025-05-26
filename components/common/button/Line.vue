@@ -1,10 +1,5 @@
 <template>
-  <component
-    :is="as"
-    class="line-button-container"
-    :class="[`size-${size}`, `variant-${variant}`]"
-    :data-testid="dataTestid"
-  >
+  <component :is="as" class="line-button-container" :class="[`size-${size}`, `variant-${variant}`]">
     <slot />
   </component>
 </template>
@@ -22,10 +17,6 @@ defineProps({
   size: {
     type: String as PropType<"md" | "sm">,
     default: "md",
-  },
-  dataTestid: {
-    type: String,
-    default: "",
   },
 });
 </script>

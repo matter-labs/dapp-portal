@@ -6,7 +6,7 @@ Feature: Deposit
 
   @id1418 @id1396
   Scenario: Make a deposit in ETH
-    Given I go to page "/bridge?network=sepolia"
+    Given I go to page "/bridge"
     When I confirm the network switching
     Then Element with "id" "transaction-amount-input" should have "" "value"
     Then Element with "testId" "fee-amount" should be "visible"
@@ -26,7 +26,7 @@ Feature: Deposit
     
   @id1280
   Scenario: Deposit - Track status Link redirection
-    Given I go to page "/bridge?network=sepolia"
+    Given I go to page "/bridge"
     When I confirm the network switching
     Then Element with "id" "transaction-amount-input" should have "" "value"
     Then Element with "testId" "fee-amount" should be "visible"
@@ -46,7 +46,7 @@ Feature: Deposit
 
   @id1394
   Scenario: Reject Deposit transaction
-    Given I go to page "/bridge?network=sepolia"
+    Given I go to page "/bridge"
     When I confirm the network switching
     Then Element with "id" "transaction-amount-input" should have "" "value"
     Then Element with "testId" "fee-amount" should be "visible"

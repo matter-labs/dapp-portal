@@ -9,7 +9,6 @@
     :to="sendRouteName ? { name: sendRouteName, query: { token: address } } : undefined"
     class="token-balance"
     :class="{ 'is-zero-amount': isZeroAmount }"
-    :data-testid="dataTestid"
   >
     <template #right>
       <CommonButtonLineBodyInfo class="text-right">
@@ -69,10 +68,6 @@ const props = defineProps({
   },
   sendRouteName: {
     type: String,
-  },
-  dataTestid: {
-    type: String,
-    default: "",
   },
 });
 

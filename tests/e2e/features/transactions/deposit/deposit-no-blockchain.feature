@@ -25,7 +25,7 @@ Feature: Deposit
     
   @id1427 
   Scenario: Where to add funds - Receive - [WF] Check for Mistakes
-    Given I go to page "/bridge?network=sepolia"
+    Given I go to page "/bridge"
     Then Element with "partial text" "To your account " should be "visible"
     Then Element with "testId" "change-account-button" should be "visible"
     Then I click by "testId" with "change-account-button" value
@@ -43,7 +43,7 @@ Feature: Deposit
 
   @id1331 
   Scenario: Deposit - Send - [WF] Check Fee value
-    Given I go to page "/bridge?network=sepolia"
+    Given I go to page "/bridge"
     When I confirm the network switching
     Then Element with "id" "transaction-amount-input" should have "" "value"
     Then Element with "testId" "token-dropDown" should be "clickable"
@@ -64,7 +64,7 @@ Feature: Deposit
     
   @id1325
   Scenario: Deposit - Send 0 funds
-    Given I go to page "/bridge?network=sepolia"
+    Given I go to page "/bridge"
     When I confirm the network switching
     Then Element with "id" "transaction-amount-input" should have "" "value"
     Then Element with "testId" "token-dropDown" should be "clickable"

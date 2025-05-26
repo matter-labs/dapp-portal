@@ -12,7 +12,7 @@ on:
         required: true
       network:
         type: string
-        default: "Goerli"
+        default: "Sepolia"
         required: true
       publish_to_allure: #Here we define the variable that can be overwritten by caller workflow
         type: boolean
