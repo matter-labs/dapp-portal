@@ -108,7 +108,6 @@ export default (
           error: err as Error,
           parentFunctionName: "executeSetAllowance",
           parentFunctionParams: [],
-          accountAddress: accountAddress.value || "",
           filePath: "composables/transaction/useAllowance.ts",
         });
         throw err;

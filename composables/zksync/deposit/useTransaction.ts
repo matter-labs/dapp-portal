@@ -1,12 +1,10 @@
-import { checksumAddress } from "viem";
-import { mainnet, sepolia } from "viem/chains";
-import { BrowserProvider, Contract, L1Signer, Provider, types } from "zksync-ethers";
+import { writeContract } from "@wagmi/core";
+import { Contract, L1Signer } from "zksync-ethers";
 import { getERC20DefaultBridgeData } from "zksync-ethers/build/utils";
 
 import { useSentryLogger } from "@/composables/useSentryLogger";
 import { L1_BRIDGE_ABI } from "@/data/abis/l1BridgeAbi";
-
-import { useViemClient } from "./useViemClient";
+import { wagmiConfig } from "@/data/wagmi";
 
 import type { DepositFeeValues } from "@/composables/zksync/deposit/useFee";
 import type { BigNumberish } from "ethers";
@@ -16,10 +14,7 @@ export default (getL1Signer: () => Promise<L1Signer | undefined>) => {
   const error = ref<Error | undefined>();
   const ethTransactionHash = ref<string | undefined>();
   const eraWalletStore = useZkSyncWalletStore();
-  const { eraNetwork } = useZkSyncProviderStore();
   const { captureException } = useSentryLogger();
-  const chain = eraNetwork.key === "mainnet" ? mainnet : sepolia;
-  const { publicClient, walletClient } = useViemClient({ chain });
 
   const { validateAddress } = useScreening();
 
@@ -35,15 +30,9 @@ export default (getL1Signer: () => Promise<L1Signer | undefined>) => {
     },
     fee: DepositFeeValues
   ) => {
-    // Create signer
-    const { ethereum } = window as any;
-    const browserProvider = new BrowserProvider(ethereum);
-    const isMainnet = eraNetwork.key === "mainnet" || eraNetwork.id === 324;
-    const networkType = isMainnet ? types.Network.Mainnet : types.Network.Sepolia;
-    const zksyncProvider = Provider.getDefaultProvider(networkType);
-    const signer = L1Signer.from(await browserProvider.getSigner(), zksyncProvider);
+    const signer = eraWalletStore.getL1VoidSigner();
 
-    if (!publicClient || !walletClient || !zksyncProvider || !signer) return;
+    if (!signer) return;
 
     const contract = new Contract(transaction.bridgeAddress, L1_BRIDGE_ABI, signer);
 
@@ -91,14 +80,13 @@ export default (getL1Signer: () => Promise<L1Signer | undefined>) => {
       await approveTx.wait();
     }
 
-    const { request } = await publicClient.simulateContract({
-      account: wallet!.address as `0x${string}`,
+    const hash = await writeContract(wagmiConfig, {
       address: transaction.bridgeAddress as `0x${string}`,
       abi: L1_BRIDGE_ABI,
       functionName: "deposit",
       args: [
         transaction.to,
-        checksumAddress(transaction.tokenAddress as `0x${string}`),
+        transaction.tokenAddress,
         transaction.amount,
         transaction.l2GasLimit ?? 400000n,
         transaction.gasPerPubdataByte ?? 800n,
@@ -106,7 +94,7 @@ export default (getL1Signer: () => Promise<L1Signer | undefined>) => {
       ],
       value: baseCost + (overrides?.maxPriorityFeePerGas ? BigInt(overrides.maxPriorityFeePerGas!) : 0n),
     });
-    const hash = await walletClient.writeContract(request);
+
     return {
       from: wallet?.address,
       to: transaction.to,

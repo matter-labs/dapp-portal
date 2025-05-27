@@ -4,7 +4,7 @@ import { utils } from "zksync-ethers";
 import { l1Networks } from "@/data/networks";
 import { wagmiConfig } from "@/data/wagmi";
 
-import type { Hash, TokenAmount } from "@/types";
+import type { Hash, Token, TokenAmount } from "@/types";
 
 export const useZkSyncEthereumBalanceStore = defineStore("zkSyncEthereumBalances", () => {
   const portalRuntimeConfig = usePortalRuntimeConfig();
@@ -58,27 +58,33 @@ export const useZkSyncEthereumBalanceStore = defineStore("zkSyncEthereumBalances
           amount: "0",
         })),
     ].sort((a, b) => {
-      if (a.address.toUpperCase() === utils.ETH_ADDRESS.toUpperCase()) return -1;
-      if (b.address.toUpperCase() === utils.ETH_ADDRESS.toUpperCase()) return 1;
+      if ((a as Token).address.toUpperCase() === utils.ETH_ADDRESS.toUpperCase()) return -1;
+      if ((b as Token).address.toUpperCase() === utils.ETH_ADDRESS.toUpperCase()) return 1;
       return 0;
-    });
+    }) as TokenAmount[];
   };
   const getBalancesFromRPC = async (): Promise<TokenAmount[]> => {
     await tokensStore.requestTokens();
     if (!l1Tokens.value) throw new Error("Tokens are not available");
     if (!account.value.address) throw new Error("Account is not available");
 
+    if (!account.value.address) {
+      return [];
+    }
+
     return await Promise.all(
       Object.values(l1Tokens.value ?? []).map(async (token) => {
         const amount = await getBalance(wagmiConfig, {
-          address: account.value.l1Address!,
+          address: account.value.address!,
           chainId: l1Network.value!.id,
-          token: token.address.toUpperCase() === utils.ETH_ADDRESS.toUpperCase() ? undefined : (token.address! as Hash),
+          token:
+            token.l1Address?.toUpperCase() === utils.ETH_ADDRESS.toUpperCase() ? undefined : (token.l1Address! as Hash),
         });
+
         return {
           ...token,
           amount: amount.value.toString(),
-          address: token.l1Address, // Use the L1 address to keep the same format
+          address: token.l1Address!, // Use the L1 address to keep the same format
           l2Address: token.address, // Keep the L2 address
         };
       })
