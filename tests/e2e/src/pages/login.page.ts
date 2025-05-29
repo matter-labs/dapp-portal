@@ -82,7 +82,7 @@ export class LoginPage extends BasePage {
   async connectMetamask() {
     const helper = await new Helper(this.world);
     const loginStatus = await this.checkLoginStatus();
-    const wallet_password = await helper.decrypt(wallet.password);
+    const wallet_password = helper.getWalletPassword();
 
     if (!loginStatus) {
       const metamaskPage = await new MetamaskPage(this.world);

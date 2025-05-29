@@ -1,8 +1,8 @@
 import { setTimeout } from "timers/promises";
 
 import { Extension } from "../data/data";
-import { depositTag, Helper, resetAllowanceTag } from "../helpers/helper";
-import { config, wallet } from "../support/config";
+import { Helper, resetAllowanceTag } from "../helpers/helper";
+import { config } from "../support/config";
 
 import type { ICustomWorld } from "../support/custom-world";
 import { MainPage } from "./main.page";
@@ -228,7 +228,7 @@ export class MetamaskPage extends BasePage {
 
   async authorizeInMetamaskExtension(secretPhrase: Array<string>, password: string) {
     const helper = await new Helper(this.world);
-    const wallet_password = await helper.decrypt(wallet.password);
+    const wallet_password = helper.getWalletPassword();
     page = this.world.page;
 
     if (metamaskWelcomeUrl === undefined) {

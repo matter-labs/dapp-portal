@@ -14,15 +14,9 @@ const browserOptions: LaunchOptions = {
 };
 
 export const wallet = {
-  _1_public_key: process.env.E2E_WALLET_1_MAIN_PUB_KEY || "undefined",
-  _2_public_key: process.env.E2E_WALLET_2_SECOND_PUB_KEY || "undefined",
-  _0_public_key: process.env.E2E_WALLET_0_EMPTY_PUB_KEY || "undefined",
-  secret: process.env.E2E_WALLET_SECRET_PK || "undefined", // key for wallets to decrypt
-  salt: process.env.E2E_WALLET_SALT_IV || "undefined",
-  _1: process.env.E2E_WALLET_1_MAIN || "undefined",
-  _2: process.env.E2E_WALLET_2_SECOND || "undefined",
-  _0: process.env.E2E_WALLET_0_EMPTY || "undefined",
-  password: process.env.E2E_WALLET_PASSWORD_MM || "undefined", // password MM
+  _1_mnemonic: process.env.E2E_WALLET_1_MAIN_MNEMONIC || "",
+  _2_mnemonic: process.env.E2E_WALLET_2_SECOND_MNEMONIC || "",
+  password: process.env.E2E_WALLET_PASSWORD_MM || "metamasktestwallet",
 };
 
 export const config = {
