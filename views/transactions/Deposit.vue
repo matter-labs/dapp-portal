@@ -409,6 +409,7 @@ import DepositSubmitted from "@/views/transactions/DepositSubmitted.vue";
 
 import type { Token, TokenAmount } from "@/types";
 import type { BigNumberish } from "ethers";
+import type { Address } from "viem";
 
 const route = useRoute();
 const router = useRouter();
@@ -730,10 +731,10 @@ const makeTransaction = async () => {
 
   const tx = await commitTransaction(
     {
-      to: transaction.value!.to.address,
-      tokenAddress: transaction.value!.token.address,
+      to: transaction.value!.to.address as Address,
+      tokenAddress: transaction.value!.token.address as Address,
       amount: transaction.value!.token.amount,
-      ...(transaction.value!.token.l1BridgeAddress ? { bridgeAddress: transaction.value!.token.l1BridgeAddress } : {}),
+      bridgeAddress: transaction.value!.token.l1BridgeAddress as Address | undefined,
     },
     feeValues.value!
   );

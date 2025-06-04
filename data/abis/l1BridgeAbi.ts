@@ -262,4 +262,4 @@ export const L1_BRIDGE_ABI = [
     stateMutability: "view",
     type: "function",
   },
-];
+] as const;
