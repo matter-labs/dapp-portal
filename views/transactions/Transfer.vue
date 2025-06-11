@@ -343,9 +343,9 @@ const availableTokens = computed(() => {
 const availableBalances = computed(() => {
   if (props.type === "withdrawal") {
     if (!tokens.value) return [];
-    return getBalancesWithCustomBridgeTokens(balance.value, AddressChainType.L2).filter((e) => e.l1Address);
+    return balance.value.filter((e) => e.l1Address);
   }
-  return getBalancesWithCustomBridgeTokens(balance.value, AddressChainType.L2);
+  return balance.value;
 });
 const routeTokenAddress = computed(() => {
   if (!route.query.token || Array.isArray(route.query.token) || !isAddress(route.query.token)) {
@@ -389,9 +389,7 @@ const amountInputTokenAddress = computed({
   },
 });
 const tokenBalance = computed<BigNumberish | undefined>(() => {
-  return getBalancesWithCustomBridgeTokens(balance.value, AddressChainType.L2).find(
-    (e) => e.address === selectedToken.value?.address
-  )?.amount;
+  return balance.value.find((e) => e.address === selectedToken.value?.address)?.amount;
 });
 
 const unsubscribe = onboardStore.subscribeOnAccountChange(() => {

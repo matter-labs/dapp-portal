@@ -88,13 +88,8 @@ export default (
       if (!params) throw new Error("Params are not available");
 
       const provider = getProvider();
-      const tokenBalance =
-        getBalancesWithCustomBridgeTokens(balances.value, AddressChainType.L2).find(
-          (e) => e.address === params!.tokenAddress
-        )?.amount || "1";
-      const token = getBalancesWithCustomBridgeTokens(balances.value, AddressChainType.L2).find(
-        (e) => e.address === params!.tokenAddress
-      );
+      const tokenBalance = balances.value.find((e) => e.address === params!.tokenAddress)?.amount || "1";
+      const token = balances.value.find((e) => e.address === params!.tokenAddress);
       const isCustomBridgeToken = !!token?.l2BridgeAddress;
 
       const [price, limit] = await Promise.all([

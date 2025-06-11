@@ -3,6 +3,7 @@ import { $fetch } from "ofetch";
 import { L1Signer, L1VoidSigner, BrowserProvider, Signer } from "zksync-ethers";
 
 import { customBridgeTokens } from "@/data/customBridgeTokens";
+import { getBalancesWithCustomBridgeTokens, AddressChainType } from "@/utils/helpers";
 
 import type { Api, TokenAmount } from "@/types";
 import type { BigNumberish } from "ethers";
@@ -155,7 +156,7 @@ export const useZkSyncWalletStore = defineStore("zkSyncWallet", () => {
       .filter((token) => !knownTokenAddresses.has(token.address))
       .sort((a, b) => a.symbol.localeCompare(b.symbol));
 
-    return [...knownTokens, ...otherTokens].sort((a, b) => {
+    const sortedTokens = [...knownTokens, ...otherTokens].sort((a, b) => {
       if (a.address.toUpperCase() === L2_BASE_TOKEN_ADDRESS.toUpperCase()) return -1; // Always bring ETH to the beginning
       if (b.address.toUpperCase() === L2_BASE_TOKEN_ADDRESS.toUpperCase()) return 1; // Keep ETH at the beginning if comparing with any other token
 
@@ -168,6 +169,8 @@ export const useZkSyncWalletStore = defineStore("zkSyncWallet", () => {
 
       return bValue - aValue;
     });
+
+    return getBalancesWithCustomBridgeTokens(sortedTokens, AddressChainType.L2);
   });
 
   const deductBalance = (tokenAddress: string, amount: BigNumberish) => {

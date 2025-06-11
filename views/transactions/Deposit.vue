@@ -431,11 +431,11 @@ const step = ref<"form" | "wallet-warning" | "confirm" | "submitted">("form");
 const destination = computed(() => destinations.value.era);
 
 const availableTokens = computed<Token[]>(() => {
-  if (balance.value) return getBalancesWithCustomBridgeTokens(balance.value, AddressChainType.L1);
+  if (balance.value) return balance.value;
   return getTokensWithCustomBridgeTokens(Object.values(l1Tokens.value ?? []), AddressChainType.L1);
 });
 const availableBalances = computed<TokenAmount[]>(() => {
-  return getBalancesWithCustomBridgeTokens(balance.value, AddressChainType.L1) ?? [];
+  return balance.value ?? [];
 });
 const routeTokenAddress = computed(() => {
   if (!route.query.token || Array.isArray(route.query.token) || !isAddress(route.query.token)) {
@@ -485,9 +485,7 @@ const amountInputTokenAddress = computed({
   },
 });
 const tokenBalance = computed<BigNumberish | undefined>(() => {
-  return getBalancesWithCustomBridgeTokens(balance.value, AddressChainType.L1).find(
-    (e) => e.address === selectedToken.value?.address
-  )?.amount;
+  return balance.value?.find((e) => e.address === selectedToken.value?.address)?.amount;
 });
 
 const {
