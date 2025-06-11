@@ -147,7 +147,7 @@ const { ecosystemBannerVisible } = useEcosystemBanner();
 const { loading, reset: resetSingleLoading } = useSingleLoading(computed(() => balanceInProgress.value));
 
 const displayedBalances = computed(() => {
-  return balance.value.filter(({ amount, decimals, price }) => {
+  return getBalancesWithCustomBridgeTokens(balance.value, AddressChainType.L2).filter(({ amount, decimals, price }) => {
     const decimalAmount = price ? removeSmallAmount(amount, decimals, price) : parseTokenAmount(amount, decimals);
     if (!isOnlyZeroes(decimalAmount)) {
       return true;

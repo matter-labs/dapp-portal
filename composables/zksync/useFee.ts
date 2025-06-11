@@ -36,7 +36,7 @@ export default (
     }
     const feeTokenBalance = balances.value.find((e) => e.address === feeToken.value!.address);
     if (!feeTokenBalance) return true;
-    if (totalFee.value && BigInt(totalFee.value) > feeTokenBalance.amount) {
+    if (totalFee.value && BigInt(totalFee.value) > BigInt(feeTokenBalance.amount)) {
       return false;
     }
     return true;
@@ -88,8 +88,13 @@ export default (
       if (!params) throw new Error("Params are not available");
 
       const provider = getProvider();
-      const tokenBalance = balances.value.find((e) => e.address === params!.tokenAddress)?.amount || "1";
-      const token = balances.value.find((e) => e.address === params!.tokenAddress);
+      const tokenBalance =
+        getBalancesWithCustomBridgeTokens(balances.value, AddressChainType.L2).find(
+          (e) => e.address === params!.tokenAddress
+        )?.amount || "1";
+      const token = getBalancesWithCustomBridgeTokens(balances.value, AddressChainType.L2).find(
+        (e) => e.address === params!.tokenAddress
+      );
       const isCustomBridgeToken = !!token?.l2BridgeAddress;
 
       const [price, limit] = await Promise.all([
@@ -101,7 +106,7 @@ export default (
               to: params!.to,
               token: params!.tokenAddress,
               amount: tokenBalance,
-              ...(token?.l2BridgeAddress ? { bridgeAddress: token?.l2BridgeAddress } : {}),
+              bridgeAddress: token?.l2BridgeAddress,
             });
           } else {
             return provider[params!.type === "transfer" ? "estimateGasTransfer" : "estimateGasWithdraw"]({

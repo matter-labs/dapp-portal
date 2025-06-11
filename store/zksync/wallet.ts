@@ -64,21 +64,7 @@ export const useZkSyncWalletStore = defineStore("zkSyncWallet", () => {
     if (!eraNetwork.value.blockExplorerApi)
       throw new Error(`Block Explorer API is not available on ${eraNetwork.value.name}`);
 
-    const accountResponse = await $fetch(`${eraNetwork.value.blockExplorerApi}/address/${account.value.address}`);
-
-    Object.entries(accountResponse.balances).forEach(([tokenAddress]) => {
-      const customToken = customBridgeTokens.find(
-        (customToken) => customToken.l2Address.toUpperCase() === tokenAddress.toUpperCase()
-      );
-
-      if (customToken) {
-        accountResponse.balances[tokenAddress].token = {
-          ...(accountResponse.balances[tokenAddress].token ? accountResponse.balances[tokenAddress].token : {}),
-          ...customToken,
-        };
-      }
-    });
-    return accountResponse;
+    return await $fetch(`${eraNetwork.value.blockExplorerApi}/address/${account.value.address}`);
   });
 
   const getBalancesFromBlockExplorerApi = async (): Promise<TokenAmount[]> => {
@@ -98,8 +84,8 @@ export const useZkSyncWalletStore = defineStore("zkSyncWallet", () => {
           iconUrl: tokenInfo!.iconUrl || undefined,
           price: tokenInfo?.price || undefined,
           amount: balance,
-          ...(token.l1BridgeAddress ? { l1BridgeAddress: token.l1BridgeAddress } : {}),
-          ...(token.l2BridgeAddress ? { l2BridgeAddress: token.l2BridgeAddress } : {}),
+          l1BridgeAddress: tokenInfo?.l1BridgeAddress,
+          l2BridgeAddress: tokenInfo?.l2BridgeAddress,
         };
       });
   };
@@ -186,7 +172,9 @@ export const useZkSyncWalletStore = defineStore("zkSyncWallet", () => {
 
   const deductBalance = (tokenAddress: string, amount: BigNumberish) => {
     if (!balance.value) return;
-    const tokenBalance = balance.value.find((balance) => balance.address === tokenAddress);
+    const tokenBalance = getBalancesWithCustomBridgeTokens(balance.value, AddressChainType.L2).find(
+      (balance) => balance.address === tokenAddress
+    );
     if (!tokenBalance) return;
     const newBalance = BigInt(tokenBalance.amount) - BigInt(amount);
     tokenBalance.amount = newBalance < 0n ? "0" : newBalance.toString();

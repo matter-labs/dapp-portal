@@ -70,14 +70,6 @@ export default (getL1Signer: () => Promise<L1Signer | undefined>) => {
       overrides.gasPrice = undefined;
     }
 
-    const allowance = await l1Signer.getAllowanceL1(transaction.tokenAddress, transaction.bridgeAddress);
-    if (allowance < BigInt(transaction.amount)) {
-      const approveTx = await l1Signer.approveERC20(transaction.tokenAddress, transaction.amount, {
-        bridgeAddress: transaction.bridgeAddress,
-      });
-      await approveTx.wait();
-    }
-
     const hash = await writeContract(wagmiConfig, {
       address: transaction.bridgeAddress as Address,
       abi: L1_BRIDGE_ABI,

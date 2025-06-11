@@ -336,16 +336,16 @@ const destination = computed(() => (props.type === "transfer" ? destinations.val
 const availableTokens = computed(() => {
   if (!tokens.value) return [];
   if (props.type === "withdrawal") {
-    return Object.values(tokens.value).filter((e) => e.l1Address);
+    return getTokensWithCustomBridgeTokens(Object.values(tokens.value), AddressChainType.L2).filter((e) => e.l1Address);
   }
-  return Object.values(tokens.value);
+  return getTokensWithCustomBridgeTokens(Object.values(tokens.value), AddressChainType.L2);
 });
 const availableBalances = computed(() => {
   if (props.type === "withdrawal") {
     if (!tokens.value) return [];
-    return balance.value.filter((e) => e.l1Address);
+    return getBalancesWithCustomBridgeTokens(balance.value, AddressChainType.L2).filter((e) => e.l1Address);
   }
-  return balance.value;
+  return getBalancesWithCustomBridgeTokens(balance.value, AddressChainType.L2);
 });
 const routeTokenAddress = computed(() => {
   if (!route.query.token || Array.isArray(route.query.token) || !isAddress(route.query.token)) {
@@ -389,7 +389,9 @@ const amountInputTokenAddress = computed({
   },
 });
 const tokenBalance = computed<BigNumberish | undefined>(() => {
-  return balance.value.find((e) => e.address === selectedToken.value?.address)?.amount;
+  return getBalancesWithCustomBridgeTokens(balance.value, AddressChainType.L2).find(
+    (e) => e.address === selectedToken.value?.address
+  )?.amount;
 });
 
 const unsubscribe = onboardStore.subscribeOnAccountChange(() => {
@@ -610,7 +612,7 @@ const makeTransaction = async () => {
       to: transaction.value!.to.address,
       tokenAddress: transaction.value!.token.address,
       amount: transaction.value!.token.amount,
-      ...(transaction.value.token.l2BridgeAddress ? { bridgeAddress: transaction.value.token.l2BridgeAddress } : {}),
+      bridgeAddress: transaction.value!.token.l2BridgeAddress,
     },
     {
       gasLimit: gasLimit.value!,

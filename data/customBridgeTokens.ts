@@ -4,6 +4,7 @@ export type CustomBridgeToken = {
   l2Address: string;
   symbol: string;
   bridgedSymbol: string;
+  decimals: number;
   name?: string;
   bridgingDisabled?: true;
   hideAlertMessage?: true;
@@ -30,6 +31,7 @@ export const customBridgeTokens: CustomBridgeToken[] = [
     l1BridgeAddress: "0x41527B2d03844dB6b0945f25702cB958b6d55989",
     l2BridgeAddress: "0xE1D6A50E7101c8f8db77352897Ee3f1AC53f782B",
     hideAlertMessage: true,
+    decimals: 18,
   },
   {
     chainId: 1,
@@ -39,6 +41,7 @@ export const customBridgeTokens: CustomBridgeToken[] = [
     symbol: "wstETH",
     bridgedSymbol: "wstETH (ERC20)",
     name: "Wrapped liquid staked Ether 2.0 - Bridged ERC20",
+    decimals: 18,
   },
   {
     chainId: 1,
@@ -49,5 +52,6 @@ export const customBridgeTokens: CustomBridgeToken[] = [
     symbol: "USDC",
     bridgedSymbol: "USDC.e",
     name: "USD Coin",
+    decimals: 6,
   },
 ];

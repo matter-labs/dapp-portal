@@ -36,7 +36,7 @@ const totalTokenBalance = computed(() => {
   if (!balance.value) {
     return 0;
   }
-  return calculateTotalTokensPrice(balance.value);
+  return calculateTotalTokensPrice(getBalancesWithCustomBridgeTokens(balance.value, AddressChainType.L2));
 });
 
 const displayTotalTokens = computed(() => {

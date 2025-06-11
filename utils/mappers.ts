@@ -43,6 +43,8 @@ export const mapApiToken = (token: Api.Response.Token): Token => {
     decimals: token.decimals,
     iconUrl: token.l1Address === utils.ETH_ADDRESS ? "/img/eth.svg" : token.iconURL || undefined,
     price: token.usdPrice || undefined,
+    l1BridgeAddress: token.l1BridgeAddress,
+    l2BridgeAddress: token.l2BridgeAddress,
   };
 };
 

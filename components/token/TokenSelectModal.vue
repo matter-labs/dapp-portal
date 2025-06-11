@@ -137,7 +137,11 @@ const selectedToken = computed({
   },
   set: (value) => {
     if (value) {
-      selectedTokenAddress.value = value.address;
+      // Handle special case for L1 tokens with multiple L2 counterparts (native and bridged) - create unique identifier
+      const hasMultipleTokens =
+        props.tokens.filter((e) => e.address === value.address).length > 1 ||
+        props.balances.filter((e) => e.address === value.address).length > 1;
+      selectedTokenAddress.value = hasMultipleTokens ? `${value.address}-${value.l2Address}` : value.address;
     } else {
       selectedTokenAddress.value = undefined;
     }

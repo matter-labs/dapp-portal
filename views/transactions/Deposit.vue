@@ -46,22 +46,8 @@
           v-model:error="amountError"
           v-model:token-address="amountInputTokenAddress"
           label="From"
-          :tokens="
-            availableTokens.map((token) => ({
-              ...token,
-              ...(token?.l2Address
-                ? { address: token?.l2Address, l1Address: token?.address }
-                : { address: token?.l1Address || token?.address }),
-            }))
-          "
-          :balances="
-            availableBalances.map((balance) => ({
-              ...balance,
-              ...(balance?.l2Address
-                ? { address: balance?.l2Address, l1Address: balance?.address }
-                : { address: balance?.l1Address || balance?.address }),
-            }))
-          "
+          :tokens="availableTokens"
+          :balances="availableBalances"
           :max-amount="maxAmount"
           :approve-required="!enoughAllowance && (!tokenCustomBridge || !tokenCustomBridge.bridgingDisabled)"
           :loading="tokensRequestInProgress || balanceInProgress || feeLoading"
@@ -445,11 +431,11 @@ const step = ref<"form" | "wallet-warning" | "confirm" | "submitted">("form");
 const destination = computed(() => destinations.value.era);
 
 const availableTokens = computed<Token[]>(() => {
-  if (balance.value) return balance.value;
-  return Object.values(l1Tokens.value ?? []);
+  if (balance.value) return getBalancesWithCustomBridgeTokens(balance.value, AddressChainType.L1);
+  return getTokensWithCustomBridgeTokens(Object.values(l1Tokens.value ?? []), AddressChainType.L1);
 });
 const availableBalances = computed<TokenAmount[]>(() => {
-  return balance.value ?? [];
+  return getBalancesWithCustomBridgeTokens(balance.value, AddressChainType.L1) ?? [];
 });
 const routeTokenAddress = computed(() => {
   if (!route.query.token || Array.isArray(route.query.token) || !isAddress(route.query.token)) {
@@ -466,39 +452,42 @@ const selectedToken = computed<Token | undefined>(() => {
   if (!selectedTokenAddress.value) {
     return defaultToken.value;
   }
-  const selectedToken =
-    availableTokens.value.find(
-      (e) =>
-        e.address === selectedTokenAddress.value ||
-        e.l2Address === selectedTokenAddress.value ||
-        e.l1Address === selectedTokenAddress.value
-    ) ||
-    availableBalances.value.find(
-      (e) =>
-        e.address === selectedTokenAddress.value ||
-        e.l2Address === selectedTokenAddress.value ||
-        e.l1Address === selectedTokenAddress.value
-    ) ||
-    defaultToken.value;
-  return selectedToken;
+
+  // Handle special case for L1 tokens with multiple L2 counterparts (native and bridged)
+  // In the case of those tokens, we create the identifier by combining the L1 address and L2 address
+  const getTokenId = (token: Token): string => {
+    const hasMultipleL2Counterparts =
+      selectedTokenAddress.value?.includes(token.address) &&
+      selectedTokenAddress.value?.includes(String(token.l2Address));
+
+    return hasMultipleL2Counterparts ? `${token.address}-${token.l2Address}` : token.address;
+  };
+
+  return (
+    availableTokens.value.find((e) => getTokenId(e) === selectedTokenAddress.value) ||
+    availableBalances.value.find((e) => getTokenId(e) === selectedTokenAddress.value) ||
+    defaultToken.value
+  );
 });
 const tokenCustomBridge = computed(() => {
   if (!selectedToken.value) {
     return undefined;
   }
   const customBridgeToken = customBridgeTokens.find(
-    (e) => eraNetwork.value.l1Network?.id === e.chainId && e.l2Address === selectedToken.value?.l2Address
+    (e) => eraNetwork.value.l1Network?.id === e.chainId && e.l2Address === selectedToken.value?.address
   );
   return customBridgeToken;
 });
 const amountInputTokenAddress = computed({
-  get: () => selectedToken.value?.l2Address || selectedToken.value?.l1Address || selectedToken.value?.address,
+  get: () => selectedToken.value?.address,
   set: (address) => {
     selectedTokenAddress.value = address;
   },
 });
 const tokenBalance = computed<BigNumberish | undefined>(() => {
-  return balance.value?.find((e) => e.address === selectedToken.value?.address)?.amount;
+  return getBalancesWithCustomBridgeTokens(balance.value, AddressChainType.L1).find(
+    (e) => e.address === selectedToken.value?.address
+  )?.amount;
 });
 
 const {
@@ -517,7 +506,7 @@ const {
   getApprovalAmounts,
 } = useAllowance(
   computed(() => account.value.address),
-  computed(() => selectedToken.value?.l1Address || selectedToken.value?.address),
+  computed(() => selectedToken.value?.address),
   async () => (await providerStore.requestProvider().getDefaultBridgeAddresses()).sharedL1,
   eraWalletStore.getL1Signer
 );

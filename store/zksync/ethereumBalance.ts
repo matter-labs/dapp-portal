@@ -4,7 +4,7 @@ import { utils } from "zksync-ethers";
 import { l1Networks } from "@/data/networks";
 import { wagmiConfig } from "@/data/wagmi";
 
-import type { Hash, Token, TokenAmount } from "@/types";
+import type { Hash, TokenAmount } from "@/types";
 
 export const useZkSyncEthereumBalanceStore = defineStore("zkSyncEthereumBalances", () => {
   const portalRuntimeConfig = usePortalRuntimeConfig();
@@ -24,68 +24,43 @@ export const useZkSyncEthereumBalanceStore = defineStore("zkSyncEthereumBalances
 
     // Get balances from Ankr API and merge them with tokens data from explorer
     return [
-      ...ethereumBalance.value.flatMap((e) => {
-        const matchingTokens = Object.values(l1Tokens.value ?? {}).filter((token) => token.l1Address === e.address);
-
-        if (matchingTokens.length === 0) {
-          // If no match, return the original balance object
-          return [
-            {
-              ...e,
-              amount: e.amount,
-            },
-          ];
-        }
-
-        // If there are multiple matching tokens, return all of them with updated info
-        return matchingTokens.map((token) => ({
+      ...ethereumBalance.value.map((e) => {
+        const tokenFromExplorer = l1Tokens.value?.[e.address];
+        return {
           ...e,
-          address: token.l1Address, // Use the L1 address to keep the same format
-          l2Address: token.address, // Keep the L2 address
-          symbol: token.symbol ?? e.symbol,
-          name: token.name ?? e.name,
-          iconUrl: token.iconUrl ?? e.iconUrl,
-          price: token.price ?? e.price,
-          ...(token.l1BridgeAddress ? { l1BridgeAddress: token.l1BridgeAddress } : {}),
-          ...(token.l2BridgeAddress ? { l2BridgeAddress: token.l2BridgeAddress } : {}),
-        }));
+          symbol: tokenFromExplorer?.symbol ?? e.symbol,
+          name: tokenFromExplorer?.name ?? e.name,
+          iconUrl: tokenFromExplorer?.iconUrl ?? e.iconUrl,
+          price: tokenFromExplorer?.price ?? e.price,
+        };
       }),
-
-      ...Object.values(l1Tokens.value ?? [])
-        .filter((token) => !ethereumBalance.value?.some((e) => e.address === token.l1Address))
+      ...Object.values(l1Tokens.value ?? []) // Add tokens that are not in Ankr API
+        .filter((token) => !ethereumBalance.value?.find((e) => e.address === token.address))
         .map((e) => ({
           ...e,
           amount: "0",
         })),
     ].sort((a, b) => {
-      if ((a as Token).address.toUpperCase() === utils.ETH_ADDRESS.toUpperCase()) return -1;
-      if ((b as Token).address.toUpperCase() === utils.ETH_ADDRESS.toUpperCase()) return 1;
-      return 0;
-    }) as TokenAmount[];
+      if (a.address.toUpperCase() === utils.ETH_ADDRESS.toUpperCase()) return -1; // Always bring ETH to the beginning
+      if (b.address.toUpperCase() === utils.ETH_ADDRESS.toUpperCase()) return 1; // Keep ETH at the beginning if comparing with any other token
+      return 0; // Keep other tokens' order unchanged
+    });
   };
   const getBalancesFromRPC = async (): Promise<TokenAmount[]> => {
     await tokensStore.requestTokens();
     if (!l1Tokens.value) throw new Error("Tokens are not available");
     if (!account.value.address) throw new Error("Account is not available");
 
-    if (!account.value.address) {
-      return [];
-    }
-
     return await Promise.all(
       Object.values(l1Tokens.value ?? []).map(async (token) => {
         const amount = await getBalance(wagmiConfig, {
           address: account.value.address!,
           chainId: l1Network.value!.id,
-          token:
-            token.l1Address?.toUpperCase() === utils.ETH_ADDRESS.toUpperCase() ? undefined : (token.l1Address! as Hash),
+          token: token.address.toUpperCase() === utils.ETH_ADDRESS.toUpperCase() ? undefined : (token.address! as Hash),
         });
-
         return {
           ...token,
           amount: amount.value.toString(),
-          address: token.l1Address!, // Use the L1 address to keep the same format
-          l2Address: token.address, // Keep the L2 address
         };
       })
     );
