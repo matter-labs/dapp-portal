@@ -27,7 +27,7 @@
           <CommonLineButtonsGroup class="category" :gap="false" :margin-y="false">
             <TokenLine
               v-for="item in displayedTokens"
-              :key="item.address"
+              :key="item.l2Address ? `${item.address}-${item.l2Address}` : item.address"
               class="token-line"
               v-bind="item"
               @click="selectedToken = item"
@@ -43,7 +43,7 @@
               <TokenBalance
                 v-for="item in group.balances"
                 v-bind="item"
-                :key="item.address"
+                :key="item.l2Address ? `${item.address}-${item.l2Address}` : item.address"
                 variant="light"
                 @click="selectedToken = item"
               />
