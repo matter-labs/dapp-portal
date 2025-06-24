@@ -7,7 +7,7 @@
     <CompletedView v-if="step === 'complete'" />
     <TransactionsView v-else-if="step === 'transactions'" />
     <div v-else-if="step === 'buy' || step === 'quotes' || step === 'processing'" class="isolate">
-      <FormView v-model="fiatAmount" @select-token="selectTokenUpdate" />
+      <FormView v-model="fiatAmount" />
       <MiddlePanel v-model="middlePanelView" class="-z-[1] mt-6" />
     </div>
   </Transition>
@@ -20,13 +20,13 @@ import ActiveTransactionsAlert from "@/views/on-ramp/ActiveTransactionsAlert.vue
 import CompletedView from "@/views/on-ramp/CompletedView.vue";
 import FormView from "@/views/on-ramp/FormView.vue";
 import MiddlePanel from "@/views/on-ramp/MiddlePanel.vue";
-// import SelectTokenModal from "@/views/on-ramp/SelectTokenModal.vue";
 import TransactionsView from "@/views/on-ramp/TransactionsView.vue";
 
 import type { Address } from "viem";
-import type { ConfigResponse } from "zksync-easy-onramp";
 
-const DEFAULT_FIAT_AMOUNT = "100";
+const route = useRoute();
+
+const DEFAULT_FIAT_AMOUNT = (route.query.amount as string) ?? "100";
 
 const { step } = storeToRefs(useOnRampStore());
 const { reset } = useOnRampStore();
@@ -54,16 +54,13 @@ watch(step, () => {
 });
 
 const fiatAmount = ref(DEFAULT_FIAT_AMOUNT);
-const token = ref<ConfigResponse["tokens"][0] | null>(null);
-
-const selectTokenUpdate = (selectedToken: ConfigResponse["tokens"][0]) => {
-  token.value = selectedToken;
-};
-
+const { selectedToken } = storeToRefs(useOnRampStore());
 watchDebounced(
-  [fiatAmount, token, computed(() => account.value.address)],
+  [fiatAmount, selectedToken, computed(() => account.value.address)],
   () => {
-    fetch();
+    if (step.value === "buy" || step.value === "quotes") {
+      fetch();
+    }
   },
   { debounce: 750, maxWait: 5000, immediate: true }
 );
@@ -71,11 +68,17 @@ watchDebounced(
 const { fetchQuotes } = useOnRampStore();
 const { onRampChainId } = useOnRampStore();
 const fetch = () => {
-  if (!isConnected.value || !token.value || !fiatAmount.value || +fiatAmount.value <= 0 || isNaN(+fiatAmount.value))
+  if (
+    !isConnected.value ||
+    !selectedToken.value ||
+    !fiatAmount.value ||
+    +fiatAmount.value <= 0 ||
+    isNaN(+fiatAmount.value)
+  )
     return;
   fetchQuotes({
     fiatAmount: +fiatAmount.value,
-    toToken: token.value!.address as Address,
+    toToken: selectedToken.value!.address as Address,
     chainId: onRampChainId,
     toAddress: account.value.address!,
   });

@@ -8,12 +8,13 @@ import { defaultNetwork } from "@/data/networks";
 import { wagmiConfig } from "@/data/wagmi";
 import { useQuotesStore } from "@/store/on-ramp/quotes";
 
+import type { Token } from "~/types";
+
+const devEnv = process.env.NODE_ENV === "development" || process.env.ONRAMP_STAGING === "true";
+
 createOnRampConfig({
   integrator: "ZKsync Portal",
-  apiUrl:
-    process.env.ONRAMP_STAGING === "true"
-      ? "https://easy-onramp-api-staging.zksync.dev/api"
-      : "https://easy-onramp-api.zksync.dev/api",
+  apiUrl: devEnv ? "https://easy-onramp-api-staging.zksync.dev/api" : "https://easy-onramp-api.zksync.dev/api",
   provider: EVM({
     // eslint-disable-next-line require-await
     getWalletClient: async () => getWalletClient(wagmiConfig),
@@ -22,7 +23,7 @@ createOnRampConfig({
       return await getWalletClient(wagmiConfig, { chainId: chain.id });
     },
   }),
-  dev: process.env.NODE_ENV === "development" || process.env.ONRAMP_STAGING === "true",
+  dev: devEnv,
 });
 
 export type Steps = "buy" | "quotes" | "processing" | "transactions" | "transaction" | "complete";
@@ -33,6 +34,8 @@ export const useOnRampStore = defineStore("on-ramp", () => {
 
   const quotesStore = useQuotesStore();
   const middlePanelHeight = ref(0);
+
+  const selectedToken = ref<Token | null>(null);
 
   const setStep = function (newStep: Steps) {
     step.value = newStep;
@@ -65,6 +68,7 @@ export const useOnRampStore = defineStore("on-ramp", () => {
     setStep,
     step,
     fetchQuotes,
+    selectedToken,
     middlePanelHeight,
     config,
     configIsReady,

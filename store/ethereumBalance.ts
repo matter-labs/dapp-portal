@@ -3,7 +3,7 @@ import { utils } from "zksync-ethers";
 
 import { l1Networks } from "@/data/networks";
 
-import type { TokenAmount } from "@/types";
+import type { Token, TokenAmount } from "@/types";
 import type { Blockchain as AnkrSupportedChains } from "@ankr.com/ankr.js";
 
 export const useEthereumBalanceStore = defineStore("ethereumBalance", () => {
@@ -25,6 +25,15 @@ export const useEthereumBalanceStore = defineStore("ethereumBalance", () => {
       if (!eraNetwork.value.l1Network) throw new Error(`L1 network is not available on ${eraNetwork.value.name}`);
       if (!portalRuntimeConfig.ankrToken) throw new Error("Ankr token is not available");
 
+      let configTokens: Token[] = [];
+      if (eraNetwork.value.getTokens) {
+        configTokens = await eraNetwork.value.getTokens();
+      }
+
+      const configTokensMapped = Object.fromEntries(
+        configTokens.filter((token) => token.l1Address).map((token) => [token.l1Address, token])
+      );
+
       const ankrProvider = new AnkrProvider(`https://rpc.ankr.com/multichain/${portalRuntimeConfig.ankrToken}`);
       const networkIdToAnkr = new Map<number, AnkrSupportedChains | "eth_sepolia">([
         [l1Networks.mainnet.id, "eth"],
@@ -41,12 +50,14 @@ export const useEthereumBalanceStore = defineStore("ethereumBalance", () => {
       return balances.assets
         .filter((e) => e.contractAddress || e.tokenType === "NATIVE")
         .map((e) => {
+          const address = e.tokenType === "NATIVE" ? utils.ETH_ADDRESS : checksumAddress(e.contractAddress!);
+          const mappedConfigToken = configTokensMapped[address];
           return {
-            address: e.tokenType === "NATIVE" ? utils.ETH_ADDRESS : checksumAddress(e.contractAddress!),
-            symbol: e.tokenSymbol,
-            name: e.tokenName,
-            decimals: e.tokenDecimals,
-            iconUrl: e.thumbnail,
+            address,
+            symbol: mappedConfigToken?.symbol ?? e.tokenSymbol,
+            name: mappedConfigToken?.name ?? e.tokenName,
+            decimals: mappedConfigToken?.decimals ?? e.tokenDecimals,
+            iconUrl: mappedConfigToken?.iconUrl ?? e.thumbnail,
             price: e.tokenPrice === "0" ? undefined : parseFloat(e.tokenPrice),
             amount: e.balanceRawInteger,
           } as TokenAmount;

@@ -1,5 +1,5 @@
 <template>
-  <CommonContentBlock>
+  <CommonContentBlock class="border dark:border-neutral-900">
     <div class="-mt-3 flex w-full flex-col gap-6 sm:flex-row">
       <div class="flex w-full flex-col sm:w-1/2">
         <span class="mb-2 font-bold">You pay (USD)</span>
@@ -34,21 +34,21 @@
       <div class="flex w-full flex-col sm:w-1/2">
         <span class="mb-2 font-bold">You'll receive</span>
         <template v-if="step === 'processing'">
-          <div class="flex gap-4 p-3">
+          <div v-if="selectedToken" class="flex gap-4 p-3">
             <TokenImage
               :chain-icon="chainIcon"
-              :symbol="processingToken!.symbol"
-              :icon-url="processingToken!.iconUrl"
+              :symbol="selectedToken!.symbol"
+              :icon-url="selectedToken!.iconUrl"
               class="h-11 w-11"
             />
             <div class="flex flex-col justify-center">
-              <div class="dark:text-gray-100">{{ processingToken!.symbol }} on {{ networkName }}</div>
-              <div class="text-sm">{{ processingToken!.name }}</div>
+              <div class="dark:text-gray-100">{{ selectedToken!.symbol }} on {{ networkName }}</div>
+              <div class="text-sm">{{ selectedToken!.name }}</div>
             </div>
           </div>
         </template>
         <template v-else>
-          <SelectTokenModal @select-token="selectTokenUpdate" />
+          <SelectTokenModal />
         </template>
       </div>
     </div>
@@ -59,7 +59,7 @@
 import { chainList } from "@/data/networks";
 import SelectTokenModal from "@/views/on-ramp/SelectTokenModal.vue";
 
-import type { ConfigResponse } from "zksync-easy-onramp";
+const { selectedToken } = storeToRefs(useOnRampStore());
 
 const chainIcon = ref("/img/era.svg");
 
@@ -67,19 +67,9 @@ const { step } = storeToRefs(useOnRampStore());
 const fiatAmount = defineModel<string>({ required: true });
 
 const { order } = storeToRefs(useOrderProcessingStore());
-const processingToken = computed(() => {
-  if (order.value) {
-    return order.value.receive.token;
-  }
-  return null;
-});
-
-const emit = defineEmits(["selectToken"]);
-const token = ref<ConfigResponse["tokens"][0] | null>(null);
-const selectTokenUpdate = (selectedToken: ConfigResponse["tokens"][0]) => {
-  token.value = selectedToken;
-  emit("selectToken", token.value);
-};
+if (order.value) {
+  selectedToken.value = order.value.receive.token;
+}
 
 const { onRampChainId } = useOnRampStore();
 const networkName = computed(() => {

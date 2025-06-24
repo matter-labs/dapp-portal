@@ -1,10 +1,12 @@
 <template>
-  <div class="-mt-5 max-h-[380px] overflow-y-auto rounded-b-2xl bg-neutral-50 px-6 py-4 pt-8 dark:bg-neutral-950">
-    <div>
+  <div class="-mt-5 max-h-[380px] overflow-y-auto rounded-b-2xl bg-transparent px-6 py-4 pt-8">
+    <div v-if="order">
       <div class="flex items-center justify-between">
         <div class="flex items-center">
-          <CommonSpinner class="-ml-1 mr-3 size-5" variant="text-color" />
-          <span class="font-bold">Purchasing</span>
+          <CommonSpinner v-if="purchaseStepStatusActive" class="-ml-1 mr-3 size-5" variant="text-color" />
+          <CheckIcon v-if="purchaseStepStatusComplete" class="mr-2 h-4 w-4" />
+          <ExclamationCircleIcon v-if="purchaseStepStatusIncomplete" class="mr-2 h-4 w-4" />
+          <span class="font-bold">Purchasing {{ tokenPurchase }}</span>
         </div>
         <div v-if="orderStatus === 'STOPPED' && !inProgress">
           <CommonButton size="xs" variant="cancel" @click="removeTransaction"
@@ -12,9 +14,27 @@
           /></CommonButton>
         </div>
       </div>
-      <div v-if="order" class="mt-6">
-        <div v-for="step in order.steps" :key="step.id" class="m-auto flex w-[80%] flex-col">
-          <div v-for="process in step.execution?.process" :key="process.type" class="mb-4 flex gap-2">
+      <div class="mt-6">
+        <div class="m-auto flex w-[80%] flex-col">
+          <div v-for="process in order.steps[0].execution?.process" :key="process.type" class="mb-4 flex gap-2">
+            <div class="w-[24px] shrink-0 text-center">
+              <ProcessStatusIcon :status="process.status" />
+            </div>
+            <div class="flex items-center text-sm">{{ process.message }}</div>
+          </div>
+        </div>
+      </div>
+      <div v-if="order && !!order.steps[1]" class="mt-2 flex items-center justify-between">
+        <div class="flex items-center">
+          <CommonSpinner v-if="swapStepStatusActive" class="-ml-1 mr-3 size-5" variant="text-color" />
+          <CheckIcon v-if="swapStepStatusComplete" class="mr-2 h-4 w-4" />
+          <ExclamationCircleIcon v-if="swapStepStatusIncomplete" class="mr-2 h-4 w-4" />
+          <span class="font-bold">Swapping ETH to {{ order.receive.token.symbol }}</span>
+        </div>
+      </div>
+      <div v-if="order && !!order.steps[1]" class="mt-6">
+        <div class="m-auto flex w-[80%] flex-col">
+          <div v-for="process in order.steps[1].execution?.process" :key="process.type" class="mb-4 flex gap-2">
             <div class="w-[24px] shrink-0 text-center">
               <ProcessStatusIcon :status="process.status" />
             </div>
@@ -32,6 +52,7 @@
 
 <script setup lang="ts">
 import { TrashIcon } from "@heroicons/vue/20/solid";
+import { CheckIcon, ExclamationCircleIcon } from "@heroicons/vue/24/outline";
 import { updateRouteExecution } from "zksync-easy-onramp";
 
 import CommonButton from "@/components/common/button/Button.vue";
@@ -66,6 +87,42 @@ onMounted(() => {
       }
     }
   }, 1000);
+});
+
+const tokenPurchase = computed(() => {
+  if (order.value && order.value.steps.length > 1) {
+    return "ETH";
+  } else {
+    return order.value?.receive.token.symbol;
+  }
+});
+
+// "ACTION_REQUIRED" | "PENDING" | "FAILED" | "DONE"
+const purchaseStepStatusActive = computed(() => {
+  return order.value?.steps[0].execution?.process.some((process) =>
+    ["PENDING", "ACTION_REQUIRED"].includes(process.status)
+  );
+});
+
+const purchaseStepStatusComplete = computed(() => {
+  return order.value?.steps[0].execution?.process.every((process) => ["DONE"].includes(process.status));
+});
+
+const purchaseStepStatusIncomplete = computed(() => {
+  return order.value?.steps[0].execution?.process.some((process) => ["FAILED", "CANCELLED"].includes(process.status));
+});
+
+const swapStepStatusActive = computed(() => {
+  return order.value?.steps[1].execution?.process.some((process) =>
+    ["PENDING", "ACTION_REQUIRED"].includes(process.status)
+  );
+});
+
+const swapStepStatusComplete = computed(() => {
+  return order.value?.steps[1].execution?.process.every((process) => ["DONE"].includes(process.status));
+});
+const swapStepStatusIncomplete = computed(() => {
+  return order.value?.steps[1].execution?.process.some((process) => ["FAILED", "CANCELLED"].includes(process.status));
 });
 
 onBeforeUnmount(() => {

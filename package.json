@@ -90,7 +90,7 @@
     "vite": "^3.0.0",
     "vue-tippy": "^6.0.0",
     "web3-avatar-vue": "^1.0.0",
-    "zksync-easy-onramp": "^3.0.2",
+    "zksync-easy-onramp": "3.2.1",
     "zksync-ethers": "^6.17.0"
   },
   "overrides": {

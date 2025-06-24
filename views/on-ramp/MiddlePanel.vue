@@ -1,9 +1,12 @@
 <template>
-  <div id="middle-panel" class="relative w-full">
+  <div
+    id="middle-panel"
+    class="relative !-mt-6 w-full rounded-b-3xl border border-neutral-200 bg-neutral-100/50 pb-6 pt-12 dark:border-neutral-800 dark:bg-neutral-900/90"
+  >
     <Transition tag="div" class="relative" v-bind="TransitionOpacity(250, 150)">
       <div v-if="step === 'buy' || step === 'quotes'">
         <TransitionGroup
-          id="middle-panel"
+          id="middle-panel-container"
           tag="div"
           class="relative"
           :style="{ height: middlePanelHeight + 'px' }"
@@ -55,10 +58,19 @@ function swapView(el: Element) {
   middlePanelHeight.value = height;
 }
 useEventListener("resize", () => {
-  const activeElement = document.querySelector("#middle-panel > div > div");
+  const activeElement = document.querySelector("#middle-panel-container > div:not([style*='display: none'])");
   if (activeElement) {
     swapView(activeElement);
   }
+});
+const { quoteFilter } = storeToRefs(useQuotesStore());
+watch(quoteFilter, () => {
+  setTimeout(() => {
+    const activeElement = document.querySelector("#list");
+    if (activeElement) {
+      swapView(activeElement);
+    }
+  }, 0);
 });
 
 const { quotes, inProgress, error } = storeToRefs(useQuotesStore());
@@ -77,6 +89,6 @@ watchEffect(() => {
 
 <style lang="scss" scoped>
 .dark #list {
-  scrollbar-color: #6c7380 black;
+  scrollbar-color: #6c7380 #262b33e6;
 }
 </style>
