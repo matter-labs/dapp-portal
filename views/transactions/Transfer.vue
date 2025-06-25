@@ -336,9 +336,9 @@ const destination = computed(() => (props.type === "transfer" ? destinations.val
 const availableTokens = computed(() => {
   if (!tokens.value) return [];
   if (props.type === "withdrawal") {
-    return Object.values(tokens.value).filter((e) => e.l1Address);
+    return getTokensWithCustomBridgeTokens(Object.values(tokens.value), AddressChainType.L2).filter((e) => e.l1Address);
   }
-  return Object.values(tokens.value);
+  return getTokensWithCustomBridgeTokens(Object.values(tokens.value), AddressChainType.L2);
 });
 const availableBalances = computed(() => {
   if (props.type === "withdrawal") {
@@ -610,6 +610,7 @@ const makeTransaction = async () => {
       to: transaction.value!.to.address,
       tokenAddress: transaction.value!.token.address,
       amount: transaction.value!.token.amount,
+      bridgeAddress: transaction.value!.token.l2BridgeAddress,
     },
     {
       gasLimit: gasLimit.value!,

@@ -8,14 +8,17 @@ export type TokenPrice = number | undefined;
 export type Token = {
   address: string;
   l1Address?: string;
+  l2Address?: string;
   name?: string;
   symbol: string;
   decimals: number;
   iconUrl?: string;
   price?: TokenPrice;
   isETH?: boolean;
+  l1BridgeAddress?: string;
+  l2BridgeAddress?: string;
 };
-export type TokenAmount = Token & { amount: BigNumberish };
+export type TokenAmount = Token & { amount: BigNumberish; l1BridgeAddress?: string; l2BridgeAddress?: string };
 
 export type TokenAllowance = { token: Address; allowance: bigint };
 
@@ -47,6 +50,8 @@ export declare namespace Api {
       usdPrice: number | null;
       liquidity: number | null;
       iconURL: string | null;
+      l1BridgeAddress?: string;
+      l2BridgeAddress?: string;
     };
 
     type Transfer = {
