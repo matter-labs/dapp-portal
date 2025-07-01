@@ -111,6 +111,12 @@
           class="mt-6"
           :custom-bridge-token="tokenCustomBridge"
         />
+        <TransactionNativeBridge
+          v-if="nativeTokenBridgingOnly"
+          :era-network="eraNetwork"
+          type="deposit"
+          class="mt-6"
+        ></TransactionNativeBridge>
       </template>
       <template v-else-if="step === 'wallet-warning'">
         <CommonAlert variant="warning" :icon="ExclamationTriangleIcon" class="mb-block-padding-1/2 sm:mb-block-gap">
@@ -158,7 +164,11 @@
       </template>
 
       <template
-        v-if="(!tokenCustomBridge || !tokenCustomBridge?.bridgingDisabled) && (step === 'form' || step === 'confirm')"
+        v-if="
+          !nativeTokenBridgingOnly &&
+          (!tokenCustomBridge || !tokenCustomBridge?.bridgingDisabled) &&
+          (step === 'form' || step === 'confirm')
+        "
       >
         <CommonErrorBlock v-if="feeError" class="mt-2" @try-again="estimate">
           Fee estimation error: {{ feeError.message }}
@@ -290,7 +300,7 @@
         <EthereumTransactionFooter>
           <template #after-checks>
             <template v-if="step === 'form'">
-              <template v-if="!enoughAllowance && !continueButtonDisabled">
+              <template v-if="!enoughAllowance && !continueButtonDisabled && !nativeTokenBridgingOnly">
                 <CommonButton
                   type="submit"
                   :disabled="continueButtonDisabled || setAllowanceInProgress"
@@ -644,6 +654,18 @@ watch(
   },
   { immediate: true }
 );
+
+const nativeTokenBridgingOnly = computed(() => {
+  if (
+    eraNetwork.value.nativeBridgingOnly &&
+    eraNetwork.value.nativeCurrency &&
+    selectedToken.value &&
+    selectedToken.value.symbol !== eraNetwork.value.nativeCurrency.symbol
+  ) {
+    return true;
+  }
+  return false;
+});
 
 const continueButtonDisabled = computed(() => {
   if (

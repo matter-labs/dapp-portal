@@ -33,7 +33,7 @@ export default (
     }
     const feeTokenBalance = balances.value.find((e) => e.address === feeToken.value!.address);
     if (!feeTokenBalance) return true;
-    if (totalFee.value && BigInt(totalFee.value) > feeTokenBalance.amount) {
+    if (totalFee.value && BigInt(totalFee.value) > BigInt(feeTokenBalance.amount)) {
       return false;
     }
     return true;

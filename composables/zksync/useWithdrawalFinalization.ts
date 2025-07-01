@@ -35,7 +35,7 @@ export default (transactionInfo: ComputedRef<TransactionInfo>) => {
     return calculateFee(gasLimit.value, gasPrice.value).toString();
   });
   const feeToken = computed(() => {
-    return ethToken;
+    return ethToken.value;
   });
 
   const getFinalizationParams = async () => {
