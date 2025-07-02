@@ -52,6 +52,8 @@ export type ZkSyncNetwork = {
     onramp?: boolean;
     showPartnerLinks?: boolean;
   };
+  baseTokenAddress?: string;
+  nativeCurrency?: { name: string; symbol: string; decimals: number };
   getTokens?: () => Token[] | Promise<Token[]>; // If blockExplorerApi is specified, tokens will be fetched from there. Otherwise, this function will be used.
 };
 
@@ -98,6 +100,21 @@ const publicChains: ZkSyncNetwork[] = [
     l1Network: l1Networks.mainnet,
   },
   {
+    id: 9075,
+    key: "gateway",
+    name: "ZKsync Gateway Mainnet",
+    rpcUrl: "https://rpc.era-gateway-mainnet.zksync.dev",
+    blockExplorerUrl: "https://explorer.era-gateway-mainnet.zksync.dev",
+    blockExplorerApi: "https://block-explorer-api.era-gateway-mainnet.zksync.dev",
+    l1Network: l1Networks.mainnet,
+    displaySettings: {
+      onramp: false,
+      showPartnerLinks: false,
+    },
+    baseTokenAddress: "0x66A5cFB2e9c529f14FE6364Ad1075dF3a649C0A5",
+    nativeCurrency: { name: "ZKsync", symbol: "ZK", decimals: 18 },
+  },
+  {
     id: 300,
     key: "sepolia",
     name: "ZKsync Sepolia Testnet",
@@ -105,6 +122,7 @@ const publicChains: ZkSyncNetwork[] = [
     blockExplorerUrl: "https://sepolia-era.zksync.network",
     blockExplorerApi: "https://block-explorer-api.sepolia.zksync.dev",
     displaySettings: {
+      onramp: false,
       showPartnerLinks: true,
     },
     l1Network: l1Networks.sepolia,
@@ -118,6 +136,21 @@ const publicChains: ZkSyncNetwork[] = [
     blockExplorerApi: "https://block-explorer-api.stage.zksync.dev",
     l1Network: l1Networks.sepolia,
     hidden: true,
+  },
+  {
+    id: 32657,
+    key: "gateway-testnet",
+    name: "ZKsync Gateway Testnet",
+    rpcUrl: "https://rpc.era-gateway-testnet.zksync.dev",
+    blockExplorerUrl: "https://explorer.era-gateway-testnet.zksync.dev",
+    blockExplorerApi: "https://block-explorer.era-gateway-testnet.zksync.dev",
+    l1Network: l1Networks.sepolia,
+    displaySettings: {
+      onramp: false,
+      showPartnerLinks: false,
+    },
+    baseTokenAddress: "0x2569600E58850a0AaD61F7Dd2569516C3d909521",
+    nativeCurrency: { name: "ZKsync", symbol: "ZK", decimals: 18 },
   },
 ];
 

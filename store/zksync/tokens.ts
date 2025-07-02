@@ -47,7 +47,7 @@ export const useZkSyncTokensStore = defineStore("zkSyncTokens", () => {
 
     if (!baseToken) {
       baseToken = {
-        address: "0x000000000000000000000000000000000000800A",
+        address: L2_BASE_TOKEN_ADDRESS,
         l1Address: await provider.getBaseTokenContractAddress(),
         symbol: "BASETOKEN",
         name: "Base Token",
@@ -65,7 +65,7 @@ export const useZkSyncTokensStore = defineStore("zkSyncTokens", () => {
         iconUrl: "/img/eth.svg",
       };
     }
-
+    console.log("TOKEN", baseToken);
     const tokens = explorerTokens.length ? explorerTokens : configTokens;
     const nonBaseOrEthExplorerTokens = tokens.filter(
       (token) => token.address !== L2_BASE_TOKEN_ADDRESS && token.address !== ethL2TokenAddress
