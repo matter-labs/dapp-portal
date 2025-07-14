@@ -13,6 +13,7 @@ export type FeeEstimationParams = {
 };
 
 export default (
+  userAddress: ComputedRef<Address | undefined>,
   getProvider: () => Provider,
   tokens: Ref<{ [tokenSymbol: string]: Token } | undefined>,
   balances: Ref<TokenAmount[]>
@@ -78,6 +79,11 @@ export default (
     return gasLimit;
   };
 
+  const resetFee = () => {
+    gasLimit.value = undefined;
+    gasPrice.value = undefined;
+  };
+
   const {
     inProgress,
     error,
@@ -87,14 +93,28 @@ export default (
     async () => {
       if (!params) throw new Error("Params are not available");
 
+      if (!userAddress.value) {
+        resetFee();
+        return;
+      }
+
       const provider = getProvider();
-      const tokenBalance = balances.value.find((e) => e.address === params!.tokenAddress)?.amount || "1";
       const token = balances.value.find((e) => e.address === params!.tokenAddress);
-      const isCustomBridgeToken = !!token?.l2BridgeAddress;
+      if (!token || token.amount === "0") {
+        resetFee();
+        return;
+      }
+
+      const tokenBalance = await provider.getBalance(userAddress.value, "latest", token.address); // Makes sure we have the latest balance amount
+      if (!tokenBalance) {
+        resetFee();
+        return;
+      }
 
       const [price, limit] = await Promise.all([
         retry(() => provider.getGasPrice()),
         retry(() => {
+          const isCustomBridgeToken = !!token?.l2BridgeAddress;
           if (isCustomBridgeToken) {
             return getCustomGasLimit({
               from: params!.from,
@@ -134,10 +154,7 @@ export default (
       params = estimationParams;
       await cacheEstimateFee(params);
     },
-    resetFee: () => {
-      gasLimit.value = undefined;
-      gasPrice.value = undefined;
-    },
+    resetFee,
 
     feeToken,
     enoughBalanceToCoverFee,

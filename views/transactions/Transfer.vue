@@ -406,7 +406,12 @@ const {
   enoughBalanceToCoverFee,
   estimateFee,
   resetFee,
-} = useFee(providerStore.requestProvider, tokens, balance);
+} = useFee(
+  computed(() => account.value.address),
+  providerStore.requestProvider,
+  tokens,
+  balance
+);
 
 const queryAddress = useRouteQuery<string | undefined>("address", undefined, {
   transform: String,
