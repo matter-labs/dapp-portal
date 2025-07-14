@@ -1,10 +1,23 @@
 <template>
   <div class="error-block-container">
     <FaceFrownIcon class="error-block-icon" aria-hidden="true" />
-    <div class="error-block-text-container">
+    <div :class="showCopyButton ? 'hidden' : 'error-block-text-container'">
       <slot>Unexpected error</slot>
     </div>
-    <CommonButton v-if="retryButton" class="ml-3" variant="error" @click="emit('try-again')">Try again</CommonButton>
+    <p :class="showCopyButton ? 'error-block-text-container' : 'hidden'">
+      Transaction failed. Please try again or copy the details of the error text.
+    </p>
+    <span class="flex flex-col items-end justify-center gap-2">
+      <CommonButton v-if="retryButton" class="ml-3" variant="error" @click="emit('try-again')">Try again</CommonButton>
+      <CommonButton
+        v-if="showCopyButton"
+        class="ml-3 text-sm"
+        size="sm"
+        variant="error"
+        @click="emit('copy-message')"
+        >{{ copied ? "Copied!" : "Copy error text" }}</CommonButton
+      >
+    </span>
   </div>
 </template>
 
@@ -16,10 +29,19 @@ defineProps({
     type: Boolean,
     default: true,
   },
+  showCopyButton: {
+    type: Boolean,
+    default: false,
+  },
+  copied: {
+    type: Boolean,
+    default: false,
+  },
 });
 
 const emit = defineEmits<{
   (eventName: "try-again"): void;
+  (eventName: "copy-message"): void;
 }>();
 </script>
 
