@@ -106,6 +106,12 @@
           class="mt-6"
           :custom-bridge-token="tokenCustomBridge"
         />
+        <TransactionNativeBridge
+          v-if="nativeTokenBridgingOnly"
+          :era-network="eraNetwork"
+          type="withdraw"
+          class="mt-6"
+        ></TransactionNativeBridge>
       </template>
       <template v-else-if="step === 'withdrawal-finalization-warning'">
         <CommonAlert variant="warning" :icon="ExclamationTriangleIcon" class="mb-block-padding-1/2 sm:mb-block-gap">
@@ -190,7 +196,7 @@
         />
       </template>
 
-      <template v-if="!tokenCustomBridge && (step === 'form' || step === 'confirm')">
+      <template v-if="!nativeTokenBridgingOnly && !tokenCustomBridge && (step === 'form' || step === 'confirm')">
         <CommonErrorBlock v-if="feeError" class="mt-2" @try-again="estimate">
           Fee estimation error: {{ feeError.message }}
         </CommonErrorBlock>
@@ -557,6 +563,18 @@ watch(
   },
   { immediate: true }
 );
+
+const nativeTokenBridgingOnly = computed(() => {
+  if (
+    eraNetwork.value.nativeBridgingOnly &&
+    eraNetwork.value.nativeCurrency &&
+    selectedToken.value &&
+    selectedToken.value.symbol !== eraNetwork.value.nativeCurrency.symbol
+  ) {
+    return true;
+  }
+  return false;
+});
 
 const continueButtonDisabled = computed(() => {
   if (
