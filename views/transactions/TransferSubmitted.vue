@@ -8,7 +8,7 @@
         Your funds will be available at the
         <a
           v-if="blockExplorerUrl"
-          :href="`${blockExplorerUrl}/address/${transaction!.to.address}`"
+          :href="buildExplorerUrl(blockExplorerUrl, transaction!.to.address)"
           target="_blank"
           class="font-medium underline underline-offset-2"
           >destination address</a
