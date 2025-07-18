@@ -47,12 +47,12 @@ export const useZkSyncTokensStore = defineStore("zkSyncTokens", () => {
 
     if (!baseToken) {
       baseToken = {
-        address: "0x000000000000000000000000000000000000800A",
+        address: L2_BASE_TOKEN_ADDRESS,
         l1Address: await provider.getBaseTokenContractAddress(),
-        symbol: "BASETOKEN",
-        name: "Base Token",
-        decimals: 18,
-        iconUrl: "/img/eth.svg",
+        symbol: eraNetwork.value.nativeCurrency!.symbol ?? "BASETOKEN",
+        name: eraNetwork.value.nativeCurrency!.name ?? "Base Token",
+        decimals: eraNetwork.value.nativeCurrency!.decimals ?? 18,
+        iconUrl: eraNetwork.value.nativeCurrency!.iconUrl ?? "/img/eth.svg",
       };
     }
     if (!ethToken) {
@@ -72,7 +72,7 @@ export const useZkSyncTokensStore = defineStore("zkSyncTokens", () => {
     );
     return [
       baseToken,
-      ...(baseToken.address.toUpperCase() !== ethToken.address.toUpperCase() ? [ethToken] : []),
+      ...(ethToken && baseToken.address.toUpperCase() !== ethToken.address.toUpperCase() ? [ethToken] : []),
       ...nonBaseOrEthExplorerTokens,
     ].map((token) => ({
       ...token,
