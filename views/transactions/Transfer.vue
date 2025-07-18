@@ -53,6 +53,7 @@
           :tokens="availableTokens"
           :balances="availableBalances"
           :max-amount="maxAmount"
+          :approve-required="requireAllowance ?? false"
           :loading="tokensRequestInProgress || balanceInProgress || feeLoading"
         >
           <template v-if="type === 'withdrawal' && account.address" #token-dropdown-bottom>
@@ -226,19 +227,62 @@
             <NuxtLink :to="{ name: 'receive-methods' }" class="alert-link">Receive funds</NuxtLink>
           </CommonAlert>
         </transition>
+        <CommonHeightTransition
+          v-if="step === 'form'"
+          :opened="
+            !!requireAllowance &&
+            (showAllowanceProcess || !amountToTransferIsApproved || setAllowanceTransactionHashes.length > 0)
+          "
+        >
+          <AllowancePanel
+            v-if="selectedToken && approvedAllowance != null"
+            :selected-token="selectedToken"
+            :token-address="selectedTokenAddress!"
+            :asset-id="assetId!"
+            :enough-allowance="amountToTransferIsApproved"
+            :block-explorer-url="eraNetwork.blockExplorerUrl"
+            :allowance="approvedAllowance"
+            :set-allowance-receipts="approveAllowanceReceipt"
+            :set-allowance-transaction-hashes="setAllowanceTransactionHashes"
+            @set-amount="handleSetAmount"
+          />
+        </CommonHeightTransition>
 
         <TransactionFooter>
           <template #after-checks>
-            <CommonButton
-              v-if="step === 'form'"
-              type="submit"
-              :disabled="continueButtonDisabled"
-              variant="primary"
-              class="w-full"
-              @click="buttonContinue()"
-            >
-              Continue
-            </CommonButton>
+            <template v-if="step === 'form'">
+              <template v-if="showAllowanceProcess">
+                <CommonButton
+                  type="submit"
+                  variant="primary"
+                  class="w-full"
+                  :disabled="setAllowanceStatus !== 'not-started' || approveAllowanceInProgress"
+                  @click="setTokenAllowance()"
+                >
+                  <transition v-bind="TransitionPrimaryButtonText" mode="out-in">
+                    <span v-if="setAllowanceStatus === 'processing'">Processing...</span>
+                    <span v-else-if="setAllowanceStatus === 'waiting-for-signature'"
+                      >Waiting for allowance approval confirmation</span
+                    >
+                    <span v-else-if="setAllowanceStatus === 'sending'" class="flex items-center">
+                      <CommonSpinner class="mr-2 h-6 w-6" />
+                      Approving allowance...
+                    </span>
+                    <span v-else>Approve {{ selectedToken?.symbol }} allowance</span>
+                  </transition>
+                </CommonButton>
+              </template>
+              <CommonButton
+                v-else
+                type="submit"
+                :disabled="continueButtonDisabled"
+                variant="primary"
+                class="w-full"
+                @click="buttonContinue()"
+              >
+                Continue
+              </CommonButton>
+            </template>
             <template v-else-if="step === 'confirm'">
               <transition v-bind="TransitionAlertScaleInOutTransition">
                 <div v-if="!enoughBalanceForTransaction" class="mb-4">
@@ -283,6 +327,7 @@ import { ArrowTopRightOnSquareIcon, ExclamationTriangleIcon, InformationCircleIc
 import { useRouteQuery } from "@vueuse/router";
 import { isAddress } from "ethers";
 
+import AllowancePanel from "@/components/transaction/AllowancePanel.vue";
 import { useSentryLogger } from "@/composables/useSentryLogger";
 import useFee from "@/composables/zksync/useFee";
 import useTransaction, { isWithdrawalManualFinalizationRequired } from "@/composables/zksync/useTransaction";
@@ -290,6 +335,7 @@ import { customBridgeTokens } from "@/data/customBridgeTokens";
 import { isCustomNode } from "@/data/networks";
 import TransferSubmitted from "@/views/transactions/TransferSubmitted.vue";
 import WithdrawalSubmitted from "@/views/transactions/WithdrawalSubmitted.vue";
+import { useNativeAllowance } from "~/composables/transaction/useNativeAllowance";
 
 import type { FeeEstimationParams } from "@/composables/zksync/useFee";
 import type { Token, TokenAmount } from "@/types";
@@ -370,6 +416,7 @@ const selectedToken = computed<Token | undefined>(() => {
         defaultToken.value
     : defaultToken.value;
 });
+
 const tokenCustomBridge = computed(() => {
   if (props.type !== "withdrawal" && selectedToken.value) {
     return undefined;
@@ -430,6 +477,12 @@ const isAddressInputValid = computed(() => {
 watch(address, (_address) => {
   queryAddress.value = !_address.length ? undefined : _address;
 });
+
+const handleSetAmount = (allowanceAmount: bigint) => {
+  if (selectedToken.value) {
+    amount.value = parseTokenAmount(allowanceAmount, selectedToken.value.decimals);
+  }
+};
 
 const amount = ref("");
 const amountError = ref<string | undefined>();
@@ -514,8 +567,36 @@ const withdrawalManualFinalizationRequired = computed(() => {
   );
 });
 
+const {
+  isNativeToken,
+  requireAllowance,
+  assetId,
+  allowanceCheckInProgress,
+  amountToTransferIsApproved,
+  approvedAllowance,
+  executeApproveAllowance,
+  setAllowanceTransactionHashes,
+  approveAllowanceReceipt,
+  setAllowanceStatus,
+  showAllowanceProcess,
+  approveAllowanceInProgress,
+} = useNativeAllowance(selectedTokenAddress, totalComputeAmount);
+
+const setTokenAllowance = async () => {
+  await executeApproveAllowance();
+  await new Promise((resolve) => setTimeout(resolve, 2000)); // Wait for balances to be updated on API side
+  await fetchBalances(true);
+};
+
 const feeLoading = computed(() => feeInProgress.value || (!fee.value && balanceInProgress.value));
 const estimate = async () => {
+  if (allowanceCheckInProgress.value) {
+    return;
+  }
+  if (requireAllowance.value && !amountToTransferIsApproved.value) {
+    return;
+  }
+
   // estimation fails when token balance is 0
   if (
     !transaction.value?.from.address ||
@@ -525,15 +606,24 @@ const estimate = async () => {
   ) {
     return;
   }
+
   await estimateFee({
     type: props.type,
     from: transaction.value.from.address,
     to: transaction.value.to.address,
     tokenAddress: selectedToken.value.address,
+    isNativeToken: isNativeToken.value,
+    assetId: assetId.value,
+    amount: totalComputeAmount.value.toString(),
   });
 };
 watch(
-  [() => selectedToken.value?.address, () => tokenBalance.value?.toString()],
+  [
+    () => selectedToken.value?.address,
+    () => tokenBalance.value?.toString(),
+    amountToTransferIsApproved,
+    totalComputeAmount,
+  ],
   () => {
     resetFee();
     estimate();
@@ -570,6 +660,10 @@ const continueButtonDisabled = computed(() => {
     return true;
   }
   if (feeLoading.value || !fee.value) return true;
+  if (allowanceCheckInProgress.value) return true;
+  if (requireAllowance.value && !amountToTransferIsApproved.value) {
+    return true;
+  }
   return false;
 });
 const buttonContinue = () => {
