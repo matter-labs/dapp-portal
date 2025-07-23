@@ -53,7 +53,7 @@
           :tokens="availableTokens"
           :balances="availableBalances"
           :max-amount="maxAmount"
-          :approve-required="requireAllowance ?? false"
+          :approve-required="!!isNativeToken && amountToTransferIsApproved"
           :loading="tokensRequestInProgress || balanceInProgress || feeLoading"
         >
           <template v-if="type === 'withdrawal' && account.address" #token-dropdown-bottom>
@@ -236,7 +236,7 @@
         <CommonHeightTransition
           v-if="step === 'form'"
           :opened="
-            !!requireAllowance &&
+            !!isNativeToken &&
             (showAllowanceProcess || !amountToTransferIsApproved || setAllowanceTransactionHashes.length > 0)
           "
         >
@@ -575,7 +575,6 @@ const withdrawalManualFinalizationRequired = computed(() => {
 
 const {
   isNativeToken,
-  requireAllowance,
   assetId,
   allowanceCheckInProgress,
   amountToTransferIsApproved,
@@ -599,7 +598,7 @@ const estimate = async () => {
   if (allowanceCheckInProgress.value) {
     return;
   }
-  if (requireAllowance.value && !amountToTransferIsApproved.value) {
+  if (isNativeToken.value && !amountToTransferIsApproved.value) {
     return;
   }
 
@@ -656,7 +655,7 @@ watch(
 
 const nativeTokenBridgingOnly = computed(() => {
   if (
-    eraNetwork.value.nativeBridgingOnly &&
+    eraNetwork.value.nativeTokenBridgingOnly &&
     eraNetwork.value.nativeCurrency &&
     selectedToken.value &&
     selectedToken.value.symbol !== eraNetwork.value.nativeCurrency.symbol
@@ -679,7 +678,7 @@ const continueButtonDisabled = computed(() => {
   }
   if (feeLoading.value || !fee.value) return true;
   if (allowanceCheckInProgress.value) return true;
-  if (requireAllowance.value && !amountToTransferIsApproved.value) {
+  if (isNativeToken.value && !amountToTransferIsApproved.value) {
     return true;
   }
   return false;

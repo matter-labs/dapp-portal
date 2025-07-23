@@ -30,7 +30,20 @@ export const useZkSyncTokensStore = defineStore("zkSyncTokens", () => {
         $fetch(`${eraNetwork.value.blockExplorerApi}/tokens?minLiquidity=0&limit=100&page=2`),
         $fetch(`${eraNetwork.value.blockExplorerApi}/tokens?minLiquidity=0&limit=100&page=3`),
       ]);
-      explorerTokens = responses.map((response) => response.items.map(mapApiToken)).flat();
+      const baseTokenData = await $fetch(
+        `${eraNetwork.value.blockExplorerApi}/api?module=token&action=tokeninfo&contractaddress=${L2_BASE_TOKEN_ADDRESS}`
+      ).then((data) => ({
+        address: L2_BASE_TOKEN_ADDRESS,
+        l1Address: data.result[0].l1Address,
+        l2Address: L2_BASE_TOKEN_ADDRESS,
+        symbol: data.result[0].symbol,
+        name: data.result[0].tokenName,
+        decimals: +data.result[0].tokenDecimal,
+        usdPrice: +data.result[0].tokenPriceUSD,
+        liquidity: +data.result[0].liquidity,
+        iconUrl: data.result[0].iconURL,
+      }));
+      explorerTokens = [baseTokenData, ...responses.map((response) => response.items.map(mapApiToken)).flat()];
       baseToken = explorerTokens.find((token) => token.address.toUpperCase() === L2_BASE_TOKEN_ADDRESS.toUpperCase());
       ethToken = explorerTokens.find((token) => token.address.toUpperCase() === ethL2TokenAddress.toUpperCase());
     }
@@ -49,10 +62,10 @@ export const useZkSyncTokensStore = defineStore("zkSyncTokens", () => {
       baseToken = {
         address: L2_BASE_TOKEN_ADDRESS,
         l1Address: await provider.getBaseTokenContractAddress(),
-        symbol: eraNetwork.value.nativeCurrency!.symbol ?? "BASETOKEN",
-        name: eraNetwork.value.nativeCurrency!.name ?? "Base Token",
-        decimals: eraNetwork.value.nativeCurrency!.decimals ?? 18,
-        iconUrl: eraNetwork.value.nativeCurrency!.iconUrl ?? "/img/eth.svg",
+        symbol: "BASETOKEN",
+        name: "Base Token",
+        decimals: 18,
+        iconUrl: "/img/eth.svg",
       };
     }
     if (!ethToken) {

@@ -671,10 +671,10 @@ watch(
 
 const nativeTokenBridgingOnly = computed(() => {
   if (
-    eraNetwork.value.nativeBridgingOnly &&
+    eraNetwork.value.nativeTokenBridgingOnly &&
     eraNetwork.value.nativeCurrency &&
     selectedToken.value &&
-    selectedToken.value.symbol !== eraNetwork.value.nativeCurrency.symbol
+    selectedToken.value.address !== baseToken.value?.l1Address
   ) {
     return true;
   }

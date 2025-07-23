@@ -14,8 +14,7 @@ export const useNativeAllowance = (tokenAddress: Ref<string | undefined>, amount
   const { eraNetwork } = storeToRefs(providerStore);
   const { captureException } = useSentryLogger();
 
-  const isNativeToken = ref<boolean | null>(false);
-  const requireAllowance = ref<null | boolean>(null);
+  const isNativeToken = ref<boolean | null>(null);
   const allowanceCheckInProgress = ref<boolean>(false);
   const assetId = ref<null | string>(null);
   const approvedAllowance = ref<null | bigint>(null);
@@ -24,12 +23,10 @@ export const useNativeAllowance = (tokenAddress: Ref<string | undefined>, amount
     [tokenAddress],
     async () => {
       if (!tokenAddress.value) {
-        requireAllowance.value = false;
         isNativeToken.value = null;
         return;
       }
       if (tokenAddress.value === L2_BASE_TOKEN_ADDRESS) {
-        requireAllowance.value = false;
         isNativeToken.value = false;
         return;
       }
@@ -59,8 +56,7 @@ export const useNativeAllowance = (tokenAddress: Ref<string | undefined>, amount
       })) as bigint;
 
       allowanceCheckInProgress.value = false;
-      requireAllowance.value = BigInt(eraNetwork.value.id) === originChainId;
-      isNativeToken.value = requireAllowance.value;
+      isNativeToken.value = BigInt(eraNetwork.value.id) === originChainId;
     },
     { immediate: true }
   );
@@ -77,13 +73,13 @@ export const useNativeAllowance = (tokenAddress: Ref<string | undefined>, amount
   });
 
   const hideBasedOnAllowance = computed(() => {
-    if (requireAllowance.value == null) {
+    if (isNativeToken.value == null) {
       return true;
     }
     if (allowanceCheckInProgress.value) {
       return true;
     }
-    return requireAllowance.value;
+    return isNativeToken.value;
   });
 
   const setAllowanceStatus = ref<"not-started" | "processing" | "waiting-for-signature" | "sending" | "done">(
@@ -155,7 +151,7 @@ export const useNativeAllowance = (tokenAddress: Ref<string | undefined>, amount
 
   const showAllowanceProcess = computed(() => {
     if (
-      requireAllowance.value &&
+      isNativeToken.value &&
       approvedAllowance.value != null &&
       amount.value > 0 &&
       amount.value > approvedAllowance.value
@@ -172,7 +168,6 @@ export const useNativeAllowance = (tokenAddress: Ref<string | undefined>, amount
     approvedAllowance,
     assetId,
     hideBasedOnAllowance,
-    requireAllowance,
     setAllowanceStatus,
     showAllowanceProcess,
 

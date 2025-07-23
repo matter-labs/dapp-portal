@@ -52,8 +52,8 @@ export type ZkSyncNetwork = {
     onramp?: boolean;
     showPartnerLinks?: boolean;
   };
-  nativeCurrency?: { name: string; symbol: string; decimals: number; iconUrl: string; l1Address: string };
-  nativeBridgingOnly?: boolean;
+  nativeCurrency?: { name: string; symbol: string; decimals: number };
+  nativeTokenBridgingOnly?: boolean;
   getTokens?: () => Token[] | Promise<Token[]>; // If blockExplorerApi is specified, tokens will be fetched from there. Otherwise, this function will be used.
 };
 
@@ -138,23 +138,8 @@ const publicChains: ZkSyncNetwork[] = [
       name: "ZKsync",
       symbol: "ZK",
       decimals: 18,
-      iconUrl: "img/era.svg",
-      l1Address: "0x66A5cFB2e9c529f14FE6364Ad1075dF3a649C0A5",
     },
-    nativeBridgingOnly: true,
-    getTokens: () => {
-      return [
-        {
-          address: L2_BASE_TOKEN_ADDRESS,
-          l1Address: "0x2569600E58850a0AaD61F7Dd2569516C3d909521",
-          name: "ZKsync",
-          symbol: "ZK",
-          decimals: 18,
-          iconUrl: "/img/era.svg",
-          isETH: false,
-        },
-      ];
-    },
+    nativeTokenBridgingOnly: true,
   },
   {
     id: 32657,
@@ -172,23 +157,8 @@ const publicChains: ZkSyncNetwork[] = [
       name: "ZKsync",
       symbol: "ZK",
       decimals: 18,
-      iconUrl: "img/era.svg",
-      l1Address: "0x2569600E58850a0AaD61F7Dd2569516C3d909521",
     },
-    nativeBridgingOnly: true,
-    getTokens: () => {
-      return [
-        {
-          address: L2_BASE_TOKEN_ADDRESS,
-          l1Address: "0x2569600E58850a0AaD61F7Dd2569516C3d909521",
-          name: "ZKsync",
-          symbol: "ZK",
-          decimals: 18,
-          iconUrl: "/img/era.svg",
-          isETH: false,
-        },
-      ];
-    },
+    nativeTokenBridgingOnly: true,
   },
 ];
 
