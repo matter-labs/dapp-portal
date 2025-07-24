@@ -35,24 +35,6 @@ export const useZkSyncTokensStore = defineStore("zkSyncTokens", () => {
       ethToken = explorerTokens.find((token) => token.address.toUpperCase() === ethL2TokenAddress.toUpperCase());
     }
 
-    if (!baseToken) {
-      const baseTokenData = await $fetch(
-        `${eraNetwork.value.blockExplorerApi}/api?module=token&action=tokeninfo&contractaddress=${L2_BASE_TOKEN_ADDRESS}`
-      ).then((data) => ({
-        address: L2_BASE_TOKEN_ADDRESS,
-        l1Address: data.result[0].l1Address,
-        l2Address: L2_BASE_TOKEN_ADDRESS,
-        symbol: data.result[0].symbol,
-        name: data.result[0].tokenName,
-        decimals: +data.result[0].tokenDecimal,
-        usdPrice: +data.result[0].tokenPriceUSD,
-        liquidity: +data.result[0].liquidity,
-        iconUrl: data.result[0].iconURL,
-      }));
-      explorerTokens.push(baseTokenData);
-      baseToken = baseTokenData;
-    }
-
     if (eraNetwork.value.getTokens && (!baseToken || !ethToken)) {
       configTokens = await eraNetwork.value.getTokens();
       if (!baseToken) {
