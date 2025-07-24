@@ -31,7 +31,7 @@
           </MenuItem>
         </div>
         <template v-if="testnetList.length > 0">
-          <hr class="border-neutral-200" />
+          <hr class="border-neutral-200 dark:border-neutral-800" />
           <p class="mt-2 pl-3 text-xs font-bold text-neutral-600">Testnets</p>
         </template>
         <div v-for="item in testnetList.filter((e) => !e.hidden)" :key="item.key">
