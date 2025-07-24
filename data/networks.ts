@@ -18,7 +18,7 @@ export const l1Networks = {
     network: "mainnet",
     rpcUrls: {
       default: {
-        http: ["https://rpc.ankr.com/eth/", "https://ethereum-rpc.publicnode.com", "https://cloudflare-eth.com"],
+        http: ["https://ethereum-rpc.publicnode.com", "https://cloudflare-eth.com"],
       },
     },
   },
@@ -27,11 +27,7 @@ export const l1Networks = {
     name: "Ethereum Sepolia Testnet",
     rpcUrls: {
       default: {
-        http: [
-          "https://rpc.ankr.com/eth_sepolia/",
-          "https://ethereum-sepolia-rpc.publicnode.com",
-          "https://rpc.sepolia.org",
-        ],
+        http: ["https://ethereum-sepolia-rpc.publicnode.com", "https://rpc.sepolia.org"],
       },
     },
   },
