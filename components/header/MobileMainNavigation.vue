@@ -87,7 +87,25 @@
         </div>
         <CommonCardWithLineButtons>
           <DestinationItem
-            v-for="item in chainList.filter((e) => !e.hidden)"
+            v-for="item in mainnetList.filter((e) => !e.hidden)"
+            :key="item.key"
+            :label="item.name"
+            :icon="isNetworkSelected(item) ? CheckIcon : undefined"
+            size="sm"
+            @click="buttonClicked(item)"
+          >
+            <template #image>
+              <DestinationIconContainer>
+                <IconsEra aria-hidden="true" />
+              </DestinationIconContainer>
+            </template>
+          </DestinationItem>
+          <template v-if="testnetList.length > 0">
+            <hr class="border-neutral-200 dark:border-neutral-800" />
+            <p class="mt-2 pl-3 text-xs font-bold text-neutral-600">Testnets</p>
+          </template>
+          <DestinationItem
+            v-for="item in testnetList.filter((e) => !e.hidden)"
             :key="item.key"
             :label="item.name"
             :icon="isNetworkSelected(item) ? CheckIcon : undefined"
@@ -121,6 +139,9 @@ import {
 import { chainList } from "@/data/networks";
 
 import type { ZkSyncNetwork } from "@/data/networks";
+
+const mainnetList = computed(() => chainList.filter((e) => e.displaySettings && !e.displaySettings.isTestnet));
+const testnetList = computed(() => chainList.filter((e) => e.displaySettings && e.displaySettings.isTestnet));
 
 const props = defineProps({
   opened: {
