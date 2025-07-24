@@ -11,23 +11,48 @@
 
     <transition v-bind="TransitionAlertScaleInOutTransition">
       <MenuItems class="network-options-container">
-        <MenuItem v-for="item in chainList.filter((e) => !e.hidden)" :key="item.key" v-slot="{ active }" as="template">
-          <CommonButtonDropdown
-            size="sm"
-            no-chevron
-            :active="{ active }"
-            class="options-item"
-            @click="buttonClicked(item)"
-          >
-            <template #left-icon>
-              <IconsEra />
-            </template>
-            <span>{{ item.name }}</span>
-            <template #right-icon>
-              <CheckIcon v-if="isNetworkSelected(item)" aria-hidden="true" />
-            </template>
-          </CommonButtonDropdown>
-        </MenuItem>
+        <div v-for="item in mainnetList.filter((e) => !e.hidden)" :key="item.key">
+          <MenuItem v-slot="{ active }" as="template">
+            <CommonButtonDropdown
+              size="sm"
+              no-chevron
+              :active="{ active }"
+              class="options-item"
+              @click="buttonClicked(item)"
+            >
+              <template #left-icon>
+                <IconsEra />
+              </template>
+              <span>{{ item.name }}</span>
+              <template #right-icon>
+                <CheckIcon v-if="isNetworkSelected(item)" aria-hidden="true" />
+              </template>
+            </CommonButtonDropdown>
+          </MenuItem>
+        </div>
+        <template v-if="testnetList.length > 0">
+          <hr class="border-neutral-200" />
+          <p class="mt-2 pl-3 text-xs font-bold text-neutral-600">Testnets</p>
+        </template>
+        <div v-for="item in testnetList.filter((e) => !e.hidden)" :key="item.key">
+          <MenuItem v-slot="{ active }" as="template">
+            <CommonButtonDropdown
+              size="sm"
+              no-chevron
+              :active="{ active }"
+              class="options-item"
+              @click="buttonClicked(item)"
+            >
+              <template #left-icon>
+                <IconsEra />
+              </template>
+              <span>{{ item.name }}</span>
+              <template #right-icon>
+                <CheckIcon v-if="isNetworkSelected(item)" aria-hidden="true" />
+              </template>
+            </CommonButtonDropdown>
+          </MenuItem>
+        </div>
       </MenuItems>
     </transition>
   </Menu>
@@ -40,6 +65,9 @@ import { CheckIcon } from "@heroicons/vue/24/outline";
 import { chainList } from "@/data/networks";
 
 import type { ZkSyncNetwork } from "@/data/networks";
+
+const mainnetList = computed(() => chainList.filter((e) => e.displaySettings && !e.displaySettings.isTestnet));
+const testnetList = computed(() => chainList.filter((e) => e.displaySettings && e.displaySettings.isTestnet));
 
 const route = useRoute();
 

@@ -51,6 +51,7 @@ export type ZkSyncNetwork = {
   displaySettings?: {
     onramp?: boolean;
     showPartnerLinks?: boolean;
+    isTestnet?: boolean;
   };
   nativeCurrency?: { name: string; symbol: string; decimals: number };
   nativeTokenBridgingOnly?: boolean;
@@ -89,26 +90,28 @@ const publicChains: ZkSyncNetwork[] = [
   {
     id: 324,
     key: "mainnet",
-    name: "ZKsync",
+    name: "ZKsync Era",
     rpcUrl: "https://mainnet.era.zksync.io",
     blockExplorerUrl: "https://era.zksync.network",
     blockExplorerApi: "https://block-explorer-api.mainnet.zksync.io",
     displaySettings: {
       onramp: true,
       showPartnerLinks: true,
+      isTestnet: false,
     },
     l1Network: l1Networks.mainnet,
   },
   {
     id: 300,
     key: "sepolia",
-    name: "ZKsync Sepolia Testnet",
+    name: "ZKsync Era Sepolia",
     rpcUrl: "https://sepolia.era.zksync.dev",
     blockExplorerUrl: "https://sepolia-era.zksync.network",
     blockExplorerApi: "https://block-explorer-api.sepolia.zksync.dev",
     displaySettings: {
       onramp: false,
       showPartnerLinks: true,
+      isTestnet: true,
     },
     l1Network: l1Networks.sepolia,
   },
@@ -121,11 +124,14 @@ const publicChains: ZkSyncNetwork[] = [
     blockExplorerApi: "https://block-explorer-api.stage.zksync.dev",
     l1Network: l1Networks.sepolia,
     hidden: true,
+    displaySettings: {
+      isTestnet: true,
+    },
   },
   {
     id: 9075,
     key: "gateway",
-    name: "ZKsync Gateway Mainnet",
+    name: "ZKsync Gateway",
     rpcUrl: "https://rpc.era-gateway-mainnet.zksync.dev",
     blockExplorerUrl: "https://explorer.era-gateway-mainnet.zksync.dev",
     blockExplorerApi: "https://block-explorer-api.era-gateway-mainnet.zksync.dev",
@@ -133,6 +139,7 @@ const publicChains: ZkSyncNetwork[] = [
     displaySettings: {
       onramp: false,
       showPartnerLinks: false,
+      isTestnet: false,
     },
     nativeCurrency: {
       name: "ZKsync",
@@ -152,6 +159,7 @@ const publicChains: ZkSyncNetwork[] = [
     displaySettings: {
       onramp: false,
       showPartnerLinks: false,
+      isTestnet: true,
     },
     nativeCurrency: {
       name: "ZKsync",

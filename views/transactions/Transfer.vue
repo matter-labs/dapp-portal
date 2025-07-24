@@ -53,7 +53,7 @@
           :tokens="availableTokens"
           :balances="availableBalances"
           :max-amount="maxAmount"
-          :approve-required="!!isNativeToken && amountToTransferIsApproved"
+          :approve-required="!!isNativeToken && !amountToTransferIsApproved"
           :loading="tokensRequestInProgress || balanceInProgress || feeLoading"
         >
           <template v-if="type === 'withdrawal' && account.address" #token-dropdown-bottom>
