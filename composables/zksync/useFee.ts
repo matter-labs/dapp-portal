@@ -119,7 +119,7 @@ export default (
         return;
       }
 
-      if (params.isNativeToken !== null && params.isNativeToken && +params!.amount <= 0) {
+      if (params.isNativeToken && +params!.amount <= 0) {
         resetFee();
         return;
       }
