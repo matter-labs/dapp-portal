@@ -30,6 +30,12 @@ export const useZkSyncTokensStore = defineStore("zkSyncTokens", () => {
         $fetch(`${eraNetwork.value.blockExplorerApi}/tokens?minLiquidity=0&limit=100&page=2`),
         $fetch(`${eraNetwork.value.blockExplorerApi}/tokens?minLiquidity=0&limit=100&page=3`),
       ]);
+      explorerTokens = responses.map((response) => response.items.map(mapApiToken)).flat();
+      baseToken = explorerTokens.find((token) => token.address.toUpperCase() === L2_BASE_TOKEN_ADDRESS.toUpperCase());
+      ethToken = explorerTokens.find((token) => token.address.toUpperCase() === ethL2TokenAddress.toUpperCase());
+    }
+
+    if (!baseToken) {
       const baseTokenData = await $fetch(
         `${eraNetwork.value.blockExplorerApi}/api?module=token&action=tokeninfo&contractaddress=${L2_BASE_TOKEN_ADDRESS}`
       ).then((data) => ({
@@ -43,9 +49,8 @@ export const useZkSyncTokensStore = defineStore("zkSyncTokens", () => {
         liquidity: +data.result[0].liquidity,
         iconUrl: data.result[0].iconURL,
       }));
-      explorerTokens = [baseTokenData, ...responses.map((response) => response.items.map(mapApiToken)).flat()];
-      baseToken = explorerTokens.find((token) => token.address.toUpperCase() === L2_BASE_TOKEN_ADDRESS.toUpperCase());
-      ethToken = explorerTokens.find((token) => token.address.toUpperCase() === ethL2TokenAddress.toUpperCase());
+      explorerTokens.push(baseTokenData);
+      baseToken = baseTokenData;
     }
 
     if (eraNetwork.value.getTokens && (!baseToken || !ethToken)) {
