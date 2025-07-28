@@ -55,10 +55,17 @@ export default (getL1Signer: () => Promise<L1Signer | undefined>) => {
       l2Value
     );
 
-    const baseCost = await l1Signer.getBaseCost({
-      gasLimit: l2GasLimit,
-      gasPerPubdataByte: gasPerPubdata,
-    });
+    // Use baseCost from fee if available to prevent gas price timing issues
+    // Otherwise recalculate (fallback for backward compatibility)
+    let baseCost: bigint;
+    if (fee.baseCost) {
+      baseCost = fee.baseCost;
+    } else {
+      baseCost = await l1Signer.getBaseCost({
+        gasLimit: l2GasLimit,
+        gasPerPubdataByte: gasPerPubdata,
+      });
+    }
 
     const overrides = {
       gasPrice: fee.gasPrice,

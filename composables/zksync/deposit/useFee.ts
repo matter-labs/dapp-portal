@@ -1,5 +1,6 @@
 import { parseEther } from "ethers";
 import { utils } from "zksync-ethers";
+import { REQUIRED_L1_TO_L2_GAS_PER_PUBDATA_LIMIT } from "zksync-ethers/build/utils";
 
 import { useSentryLogger } from "@/composables/useSentryLogger";
 
@@ -59,16 +60,45 @@ export default (tokens: Ref<Token[]>, balances: Ref<TokenAmount[] | undefined>) 
     const signer = getL1VoidSigner();
     if (!signer) throw new Error("Signer is not available");
 
-    return await retry(() =>
+    const feeData = await retry(() =>
       signer.getFullRequiredDepositFee({
         token: utils.ETH_ADDRESS,
         to: params.to,
       })
     );
+
+    // Ensure baseCost is included for consistent fee calculation
+    // getFullRequiredDepositFee should include this, but make it explicit
+    if (!feeData.baseCost && feeData.l2GasLimit) {
+      const gasPerPubdata = BigInt(REQUIRED_L1_TO_L2_GAS_PER_PUBDATA_LIMIT);
+      feeData.baseCost = await signer.getBaseCost({
+        gasLimit: feeData.l2GasLimit,
+        gasPerPubdataByte: gasPerPubdata,
+      });
+    }
+
+    return feeData;
   };
-  const getERC20TransactionFee = () => {
+  const getERC20TransactionFee = async () => {
+    const signer = getL1VoidSigner();
+    if (!signer) throw new Error("Signer is not available");
+
+    const l1GasLimit = BigInt(utils.L1_RECOMMENDED_MIN_ERC20_DEPOSIT_GAS_LIMIT);
+
+    // Calculate baseCost for ERC20 deposits to prevent gas price timing issues
+    // Use typical L2 gas limit for ERC20 deposits and standard gas per pubdata
+    const l2GasLimit = 400000n; // Default L2 gas limit for ERC20 deposits
+    const gasPerPubdata = BigInt(REQUIRED_L1_TO_L2_GAS_PER_PUBDATA_LIMIT);
+
+    const baseCost = await signer.getBaseCost({
+      gasLimit: l2GasLimit,
+      gasPerPubdataByte: gasPerPubdata,
+    });
+
     return {
-      l1GasLimit: BigInt(utils.L1_RECOMMENDED_MIN_ERC20_DEPOSIT_GAS_LIMIT),
+      l1GasLimit,
+      l2GasLimit,
+      baseCost,
     };
   };
   const getGasPrice = async () => {
@@ -91,7 +121,7 @@ export default (tokens: Ref<Token[]>, balances: Ref<TokenAmount[] | undefined>) 
         if (isEthBasedChain && params.tokenAddress === feeToken.value?.address) {
           fee.value = await getEthTransactionFee();
         } else {
-          fee.value = getERC20TransactionFee();
+          fee.value = await getERC20TransactionFee();
         }
       } catch (err) {
         const message = (err as any)?.message;
