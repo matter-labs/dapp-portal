@@ -116,6 +116,15 @@ export default (tokens: Ref<Token[]>, balances: Ref<TokenAmount[] | undefined>) 
       /* It can be either maxFeePerGas or gasPrice */
       if (fee.value && !fee.value?.maxFeePerGas) {
         fee.value.gasPrice = await getGasPrice();
+      } else if (fee.value?.maxFeePerGas) {
+        // Apply 130% buffer to EIP-1559 parameters
+        fee.value.maxFeePerGas = (fee.value.maxFeePerGas * 130n) / 100n;
+        if (fee.value.maxPriorityFeePerGas) {
+          fee.value.maxPriorityFeePerGas = (fee.value.maxPriorityFeePerGas * 130n) / 100n;
+        }
+        if (fee.value.l1GasLimit) {
+          fee.value.l1GasLimit = (fee.value.l1GasLimit * 130n) / 100n;
+        }
       }
     },
     { cache: false }
