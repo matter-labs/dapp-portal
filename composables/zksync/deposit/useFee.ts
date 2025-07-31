@@ -72,7 +72,7 @@ export default (tokens: Ref<Token[]>, balances: Ref<TokenAmount[] | undefined>) 
     };
   };
   const getGasPrice = async () => {
-    return (BigInt(await retry(() => getPublicClient().getGasPrice())) * 110n) / 100n;
+    return (BigInt(await retry(() => getPublicClient().getGasPrice())) * 120n) / 100n;
   };
   const {
     inProgress,
