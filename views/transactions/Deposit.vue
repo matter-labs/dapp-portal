@@ -484,7 +484,7 @@ const tokenCustomBridge = computed(() => {
     return undefined;
   }
   const customBridgeToken = customBridgeTokens.find(
-    (e) => eraNetwork.value.l1Network?.id === e.chainId && e.l2Address === selectedToken.value?.address
+    (e) => eraNetwork.value.l1Network?.id === e.chainId && e.l1Address === selectedToken.value?.address
   );
   return customBridgeToken;
 });
