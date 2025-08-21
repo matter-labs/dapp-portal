@@ -126,6 +126,11 @@ export default (tokens: Ref<Token[]>, balances: Ref<TokenAmount[] | undefined>) 
           fee.value.l1GasLimit = (fee.value.l1GasLimit * 130n) / 100n;
         }
       }
+      
+      // Apply 130% buffer to baseCost to prevent MsgValueTooLow errors
+      if (fee.value?.baseCost) {
+        fee.value.baseCost = (fee.value.baseCost * 130n) / 100n;
+      }
     },
     { cache: false }
   );
