@@ -16,7 +16,7 @@
           <DestinationItem
             label="View on Explorer"
             as="a"
-            :href="`${selectedNetwork.blockExplorerUrl}/address/${account.address}`"
+            :href="buildExplorerUrl(selectedNetwork.blockExplorerUrl, account.address)"
             target="_blank"
             :icon="ArrowTopRightOnSquareIcon"
             size="sm"

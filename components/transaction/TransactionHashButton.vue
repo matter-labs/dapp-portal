@@ -34,7 +34,7 @@
         size="xs"
         variant="light"
         as="a"
-        :href="`${explorerUrl}/tx/${transactionHash}`"
+        :href="buildExplorerUrl(explorerUrl, transactionHash)"
         target="_blank"
         class="transaction-hash-button"
       >
