@@ -1,5 +1,6 @@
 <template>
   <div class="app-layout">
+    <AuthPrividiumAuthModal />
     <LoadersConnecting />
     <ModalConnectingWalletError />
     <ModalNetworkChangedWarning v-if="!isConnectingWallet" />

@@ -317,6 +317,7 @@ import { useRouteQuery } from "@vueuse/router";
 import { isAddress } from "ethers";
 
 import AllowancePanel from "@/components/transaction/AllowancePanel.vue";
+import { useNativeAllowance } from "@/composables/transaction/useNativeAllowance";
 import { useSentryLogger } from "@/composables/useSentryLogger";
 import useFee from "@/composables/zksync/useFee";
 import useTransaction, { isWithdrawalManualFinalizationRequired } from "@/composables/zksync/useTransaction";
@@ -324,7 +325,6 @@ import { customBridgeTokens } from "@/data/customBridgeTokens";
 import { isCustomNode } from "@/data/networks";
 import TransferSubmitted from "@/views/transactions/TransferSubmitted.vue";
 import WithdrawalSubmitted from "@/views/transactions/WithdrawalSubmitted.vue";
-import { useNativeAllowance } from "~/composables/transaction/useNativeAllowance";
 
 import type { FeeEstimationParams } from "@/composables/zksync/useFee";
 import type { Token, TokenAmount } from "@/types";
@@ -355,13 +355,13 @@ const { captureException } = useSentryLogger();
 const toNetworkModalOpened = ref(false);
 const toNetworkSelected = (networkKey?: string) => {
   if (destinations.value.era.key === networkKey) {
-    router.replace({ name: "bridge", query: route.query });
+    // router.replace({ name: "bridge", query: route.query });
   }
 };
 const fromNetworkModalOpened = ref(false);
 const fromNetworkSelected = (networkKey?: string) => {
   if (destinations.value.ethereum.key === networkKey) {
-    router.replace({ name: "bridge", query: route.query });
+    // router.replace({ name: "bridge", query: route.query });
   }
 };
 

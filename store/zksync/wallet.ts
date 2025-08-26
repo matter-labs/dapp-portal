@@ -1,9 +1,12 @@
+import { readContract } from "@wagmi/core";
 import { ethers } from "ethers";
 import { $fetch } from "ofetch";
+import { erc20Abi, type Address } from "viem";
 import { L1Signer, L1VoidSigner, BrowserProvider, Signer } from "zksync-ethers";
 
 import { customBridgeTokens } from "@/data/customBridgeTokens";
 import { getBalancesWithCustomBridgeTokens, AddressChainType } from "@/utils/helpers";
+import { wagmiConfig } from "~/data/wagmi";
 
 import type { Api, TokenAmount } from "@/types";
 import type { BigNumberish } from "ethers";
@@ -95,10 +98,16 @@ export const useZkSyncWalletStore = defineStore("zkSyncWallet", () => {
     if (!tokens.value) throw new Error("Tokens are not available");
     if (!account.value.address) throw new Error("Account is not available");
 
-    const provider = providerStore.requestProvider();
+    // const provider = providerStore.requestProvider();
     const balances = await Promise.all(
       Object.entries(tokens.value).map(async ([, token]) => {
-        const amount = await provider.getBalance(onboardStore.account.address!, undefined, token.address);
+        console.log("Reading from ", wagmiConfig);
+        const amount = await readContract(wagmiConfig, {
+          address: token.address as Address,
+          abi: erc20Abi,
+          functionName: "balanceOf",
+          args: [onboardStore.account.address!],
+        });
         return {
           ...token,
           amount: amount.toString(),
@@ -127,6 +136,7 @@ export const useZkSyncWalletStore = defineStore("zkSyncWallet", () => {
     reset: resetBalance,
   } = usePromise<TokenAmount[]>(
     async () => {
+      console.log(123);
       if (eraNetwork.value.blockExplorerApi) {
         return await getBalancesFromBlockExplorerApi();
       } else {

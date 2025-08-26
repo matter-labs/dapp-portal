@@ -1,5 +1,6 @@
 import { mainnet, sepolia } from "@wagmi/core/chains";
 
+import { prividiumNetworks } from "@/data/prividium";
 import Hyperchains from "@/hyperchains/config.json";
 import { type Config } from "@/scripts/hyperchains/common";
 
@@ -194,6 +195,8 @@ const determineChainList = (): ZkSyncNetwork[] => {
       return [dockerizedNode];
     case "hyperchain":
       return getHyperchains();
+    case "prividium":
+      return prividiumNetworks;
     default:
       return [...publicChains];
   }
