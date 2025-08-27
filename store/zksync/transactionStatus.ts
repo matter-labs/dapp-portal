@@ -22,7 +22,7 @@ export type TransactionInfo = {
 };
 
 export const ESTIMATED_DEPOSIT_DELAY = 15 * 60 * 1000; // 15 minutes
-export const WITHDRAWAL_DELAY = 5 * 60 * 60 * 1000; // 5 hours
+export const WITHDRAWAL_DELAY = 6 * 60 * 60 * 1000; // 6 hours
 
 export const useZkSyncTransactionStatusStore = defineStore("zkSyncTransactionStatus", () => {
   const onboardStore = useOnboardStore();
@@ -127,12 +127,31 @@ export const useZkSyncTransactionStatusStore = defineStore("zkSyncTransactionSta
       if (transactionDetails.status !== "verified") {
         return transaction;
       }
+      // Check if settlement layer has executed on L1 before marking as ready for finalization
+      if (transactionDetails.ethExecuteTxHash) {
+        const publicClient = onboardStore.getPublicClient();
+        try {
+          const l1Receipt = await publicClient.getTransactionReceipt({
+            hash: transactionDetails.ethExecuteTxHash as `0x${string}`,
+          });
+          if (!l1Receipt || l1Receipt.status === "reverted") {
+            // Settlement layer hasn't executed yet or failed - not ready for finalization
+            return transaction;
+          }
+          // Settlement layer executed successfully on L1 - now ready for finalization
+          transaction.info.withdrawalFinalizationAvailable = true;
+        } catch (error) {
+          // Transaction not found or other error - not ready yet
+          return transaction;
+        }
+      }
     }
+
+    // Check if already finalized
     const isFinalized = await useZkSyncWalletStore()
       .getL1VoidSigner(true)
       ?.isWithdrawalFinalized(transaction.transactionHash)
       .catch(() => false);
-    transaction.info.withdrawalFinalizationAvailable = true;
     transaction.info.completed = isFinalized;
     return transaction;
   };

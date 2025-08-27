@@ -13,6 +13,30 @@ export const useZkSyncWithdrawalsStore = defineStore("zkSyncWithdrawals", () => 
   const { userTransactions } = storeToRefs(transactionStatusStore);
   const { destinations } = storeToRefs(useDestinationsStore());
 
+  // Check if settlement layer has executed on Gateway before marking as ready for finalization
+  const checkSettlementLayerExecution = async (ethExecuteTxHash: string | null): Promise<boolean> => {
+    if (!ethExecuteTxHash) return false;
+
+    try {
+      // Use Gateway provider to check Gateway transaction status
+      const gatewayProvider = providerStore.requestGatewayProvider();
+
+      // Check transaction details like zkSync chains do
+      const gatewayTransactionDetails = await gatewayProvider.getTransactionDetails(ethExecuteTxHash);
+
+      if (!gatewayTransactionDetails) {
+        return false;
+      }
+
+      // Check if the withdrawal is actually ready (similar to zkSync chain logic)
+      const isReady = gatewayTransactionDetails.status === "verified";
+
+      return isReady;
+    } catch (error) {
+      return false;
+    }
+  };
+
   const updateWithdrawals = async () => {
     if (!isConnected.value) throw new Error("Account is not available");
     if (!eraNetwork.value.blockExplorerApi)
@@ -33,7 +57,9 @@ export const useZkSyncWithdrawalsStore = defineStore("zkSyncWithdrawals", () => 
         providerStore.requestProvider().getTransactionDetails(withdrawal.transactionHash!)
       );
 
-      const withdrawalFinalizationAvailable = !!transactionDetails.ethExecuteTxHash;
+      const withdrawalFinalizationAvailable = await checkSettlementLayerExecution(
+        transactionDetails.ethExecuteTxHash || null
+      );
       const isFinalized = withdrawalFinalizationAvailable
         ? await useZkSyncWalletStore()
             .getL1VoidSigner(true)
