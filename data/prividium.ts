@@ -9,14 +9,14 @@ const prividiumTestnetInstance = createPrividiumChain({
     nativeCurrency: { name: "Ether", symbol: "ETH", decimals: 18 },
     blockExplorers: {
       default: {
-        name: "Prividium Testnet Explorer",
-        url: "https://block-explorer.era-prividium.zksync.dev/",
+        name: "Prividium Era Testnet Explorer",
+        url: "https://block-explorer.era-prividium.zksync.dev",
       },
     },
   },
   clientId: "portal",
-  rpcUrl: "http://localhost:8001/rpc",
-  authBaseUrl: "http://localhost:3001",
+  rpcUrl: "https://proxy.era-prividium.zksync.dev/rpc",
+  authBaseUrl: "https://user-panel.era-prividium.zksync.dev",
   redirectUrl: `${window.location.origin}/callback`,
   onAuthExpiry: () => {
     const prividiumStore = usePrividiumStore();

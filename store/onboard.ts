@@ -103,11 +103,6 @@ export const useOnboardStore = defineStore("onboard", () => {
   });
 
   const openModal = () => {
-    // Check if Prividium auth is required and not authenticated
-    if (prividiumStore.requiresAuth && !prividiumStore.isAuthenticated) {
-      prividiumStore.openAuthModal();
-      return;
-    }
     web3modal.open();
   };
   const disconnect = () => {

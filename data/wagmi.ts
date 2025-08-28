@@ -78,7 +78,7 @@ const chainTransports = (chain: Chain) => {
 
 const chains = getAllChains();
 export const wagmiConfig = defaultWagmiConfig({
-  chains: getAllChains() as any,
+  chains: getAllChains() as unknown as readonly [Chain, ...Chain[]],
   transports: Object.fromEntries(chains.map((chain) => [chain.id, chainTransports(chain)])),
   projectId: portalRuntimeConfig.walletConnectProjectId,
   metadata,
