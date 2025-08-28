@@ -1,4 +1,4 @@
-import { createPrividiumChain } from "@repo/prividium-sdk";
+import { createPrividiumChain } from "test-prividium-sdk";
 
 import type { Transport } from "@wagmi/core";
 

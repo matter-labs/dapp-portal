@@ -161,7 +161,7 @@ export default (getSigner: () => Promise<Signer | undefined>, getProvider: () =>
           account: wagmiClient.account,
           chain: prividiumInstance.chain,
           transport: custom({
-            async request({ method, params }) {
+            async request({ method, params }: any) {
               const response = await wagmiClient.transport.request({ method, params });
               return response;
             },
