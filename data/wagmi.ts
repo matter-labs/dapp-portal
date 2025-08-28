@@ -54,7 +54,9 @@ const getAllChains = () => {
     }
   };
   for (const network of chainList) {
-    addUniqueChain(useExistingEraChain(network) ?? formatZkSyncChain(network));
+    addUniqueChain(
+      (portalRuntimeConfig.nodeType !== "prividium" && useExistingEraChain(network)) || formatZkSyncChain(network)
+    );
     if (network.l1Network) {
       addUniqueChain(network.l1Network);
     }
@@ -67,13 +69,9 @@ const getAllChains = () => {
 const chainTransports = (chain: Chain) => {
   // Check if this is a Prividium chain and use its authenticated transport
   const prividiumTransport = getPrividiumTransport(chain.id);
-  // if (prividiumTransport) {
-  //   console.log(`Using custom transport for ${chain.name}`);
-  // }
   if (prividiumTransport) return prividiumTransport;
 
   // We expect all the transports to support batch requests.
-  // console.log("Using Fallback", chain.rpcUrls.default.http);
   const httpTransports = chain.rpcUrls.default.http.map((e) => http(e, { batch: true }));
   return fallback(httpTransports);
 };
@@ -82,10 +80,6 @@ const chains = getAllChains();
 export const wagmiConfig = defaultWagmiConfig({
   chains: getAllChains() as any,
   transports: Object.fromEntries(chains.map((chain) => [chain.id, chainTransports(chain)])),
-  // client({ chain }) {
-  //   console.log("Creating client for ", chain.name);
-  //   return createClient({ chain, transport: chainTransports(chain) });
-  // },
   projectId: portalRuntimeConfig.walletConnectProjectId,
   metadata,
   enableCoinbase: false,

@@ -1,6 +1,5 @@
 import { mainnet, sepolia } from "@wagmi/core/chains";
 
-import { prividiumNetworks } from "@/data/prividium";
 import Hyperchains from "@/hyperchains/config.json";
 import { type Config } from "@/scripts/hyperchains/common";
 
@@ -164,6 +163,23 @@ const publicChains: ZkSyncNetwork[] = [
       decimals: 18,
     },
     nativeTokenBridgingOnly: true,
+  },
+];
+
+export const prividiumNetworks: ZkSyncNetwork[] = [
+  {
+    id: 300,
+    key: "prividium-testnet",
+    name: "Prividium Testnet",
+    rpcUrl: "http://localhost:8001/rpc/public",
+    blockExplorerUrl: "https://sepolia-era.zksync.network",
+    blockExplorerApi: "https://block-explorer-api.sepolia.zksync.dev",
+    l1Network: l1Networks.sepolia,
+    displaySettings: {
+      onramp: false,
+      showPartnerLinks: false,
+      isTestnet: true,
+    },
   },
 ];
 
