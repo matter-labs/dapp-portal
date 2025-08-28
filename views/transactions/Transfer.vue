@@ -355,13 +355,13 @@ const { captureException } = useSentryLogger();
 const toNetworkModalOpened = ref(false);
 const toNetworkSelected = (networkKey?: string) => {
   if (destinations.value.era.key === networkKey) {
-    // router.replace({ name: "bridge", query: route.query });
+    router.replace({ name: "bridge", query: route.query });
   }
 };
 const fromNetworkModalOpened = ref(false);
 const fromNetworkSelected = (networkKey?: string) => {
   if (destinations.value.ethereum.key === networkKey) {
-    // router.replace({ name: "bridge", query: route.query });
+    router.replace({ name: "bridge", query: route.query });
   }
 };
 
@@ -798,5 +798,3 @@ onBeforeUnmount(() => {
   unsubscribeFetchBalance();
 });
 </script>
-
-<style lang="scss" scoped></style>

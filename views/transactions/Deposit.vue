@@ -515,7 +515,7 @@ const {
 } = useAllowance(
   computed(() => account.value.address),
   computed(() => selectedToken.value?.address),
-  async () => (await providerStore.requestProvider().getDefaultBridgeAddresses()).sharedL1,
+  async () => (await providerStore.requestProvider().then((provider) => provider.getDefaultBridgeAddresses())).sharedL1,
   eraWalletStore.getL1Signer
 );
 const enoughAllowance = computedAsync(async () => {

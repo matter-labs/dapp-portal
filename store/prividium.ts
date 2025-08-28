@@ -1,14 +1,27 @@
 import { defineStore } from "pinia";
 
-import type { PrividiumChain } from "@repo/prividium-sdk";
+import { getPrividiumInstance } from "@/data/prividium";
+
+let authenticationPromise: Promise<void>;
+let resolveAuthentication: (() => void) | null = null;
+
+const createAuthenticationPromise = () => {
+  authenticationPromise = new Promise<void>((resolve) => {
+    resolveAuthentication = resolve;
+  });
+};
+
+// Initialize the promise immediately
+createAuthenticationPromise();
 
 export const usePrividiumStore = defineStore("prividium", () => {
   const { selectedNetwork } = storeToRefs(useNetworkStore());
+  const { nodeType } = usePortalRuntimeConfig();
 
   const isAuthenticated = ref(false);
   const isAuthenticating = ref(false);
   const authError = ref<string | undefined>();
-  const prividiumInstance = ref<PrividiumChain | null>(null);
+  const prividiumInstance = nodeType === "prividium" ? getPrividiumInstance(selectedNetwork.value.id) : undefined;
   const authModalOpen = ref(false);
   const authStep = ref<"prividium" | "wallet">("prividium");
 
@@ -16,12 +29,8 @@ export const usePrividiumStore = defineStore("prividium", () => {
     return selectedNetwork.value?.key?.includes("prividium") || false;
   });
 
-  const setPrividiumInstance = (instance: PrividiumChain | null) => {
-    prividiumInstance.value = instance;
-  };
-
   const authenticate = async () => {
-    if (!prividiumInstance.value) {
+    if (!prividiumInstance) {
       throw new Error("Prividium instance not initialized");
     }
 
@@ -29,9 +38,16 @@ export const usePrividiumStore = defineStore("prividium", () => {
     authError.value = undefined;
 
     try {
-      await prividiumInstance.value.authorize();
+      await prividiumInstance.authorize();
       isAuthenticated.value = true;
       authStep.value = "wallet";
+
+      // Resolve the authentication promise on successful login
+      if (resolveAuthentication) {
+        resolveAuthentication();
+        resolveAuthentication = null;
+      }
+
       return true;
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : "Authentication failed";
@@ -50,29 +66,37 @@ export const usePrividiumStore = defineStore("prividium", () => {
   };
 
   const logout = () => {
-    if (prividiumInstance.value) {
-      prividiumInstance.value.unauthorize();
-    }
+    prividiumInstance?.unauthorize();
     isAuthenticated.value = false;
     authStep.value = "prividium";
     authError.value = undefined;
+
+    // Reset the authentication promise for future logins
+    createAuthenticationPromise();
   };
 
   const checkAuthStatus = () => {
-    if (!prividiumInstance.value) {
+    if (!prividiumInstance) {
       isAuthenticated.value = false;
       return false;
     }
 
-    const authStatus = prividiumInstance.value.isAuthorized();
+    const authStatus = prividiumInstance.isAuthorized();
     isAuthenticated.value = authStatus;
 
     if (authStatus) {
       authStep.value = "wallet";
+
+      // If already authenticated, resolve the promise immediately
+      if (resolveAuthentication) {
+        resolveAuthentication();
+        resolveAuthentication = null;
+      }
     }
 
     return authStatus;
   };
+  checkAuthStatus();
 
   const openAuthModal = () => {
     authModalOpen.value = true;
@@ -92,6 +116,9 @@ export const usePrividiumStore = defineStore("prividium", () => {
     isAuthenticated.value = false;
     authStep.value = "prividium";
 
+    // Reset the authentication promise when auth expires
+    createAuthenticationPromise();
+
     if (requiresAuth.value) {
       openAuthModal();
     }
@@ -103,6 +130,10 @@ export const usePrividiumStore = defineStore("prividium", () => {
     }
   });
 
+  const waitForAuthentication = (): Promise<void> => {
+    return authenticationPromise;
+  };
+
   return {
     isAuthenticated: computed(() => isAuthenticated.value),
     isAuthenticating: computed(() => isAuthenticating.value),
@@ -110,9 +141,7 @@ export const usePrividiumStore = defineStore("prividium", () => {
     requiresAuth,
     authModalOpen: computed(() => authModalOpen.value),
     authStep: computed(() => authStep.value),
-    prividiumInstance: computed(() => prividiumInstance.value),
 
-    setPrividiumInstance,
     authenticate,
     logout,
     checkAuthStatus,
@@ -120,5 +149,7 @@ export const usePrividiumStore = defineStore("prividium", () => {
     closeAuthModal,
     resetAuthStep,
     onAuthExpiry,
+    waitForAuthentication,
+    getPrividiumInstance: () => prividiumInstance,
   };
 });

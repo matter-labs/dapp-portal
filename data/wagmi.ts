@@ -1,6 +1,7 @@
 import { fallback, http } from "@wagmi/core";
-import { type Chain, zksync, zksyncSepoliaTestnet } from "@wagmi/core/chains";
+import { type Chain, zksyncSepoliaTestnet } from "@wagmi/core/chains";
 import { defaultWagmiConfig } from "@web3modal/wagmi";
+import { chainConfig, zksync } from "viem/zksync";
 
 import { chainList, type ZkSyncNetwork } from "@/data/networks";
 import { getPrividiumTransport } from "@/data/prividium";
@@ -22,6 +23,7 @@ const useExistingEraChain = (network: ZkSyncNetwork) => {
   const existingNetworks = [zksync, zksyncSepoliaTestnet];
   return existingNetworks.find((existingNetwork) => existingNetwork.id === network.id);
 };
+
 const formatZkSyncChain = (network: ZkSyncNetwork) => {
   return {
     id: network.id,
@@ -40,6 +42,7 @@ const formatZkSyncChain = (network: ZkSyncNetwork) => {
           },
         }
       : undefined,
+    ...chainConfig,
   };
 };
 
@@ -64,13 +67,13 @@ const getAllChains = () => {
 const chainTransports = (chain: Chain) => {
   // Check if this is a Prividium chain and use its authenticated transport
   const prividiumTransport = getPrividiumTransport(chain.id);
-  if (prividiumTransport) {
-    console.log(`Using custom transport for ${chain.name}`);
-  }
+  // if (prividiumTransport) {
+  //   console.log(`Using custom transport for ${chain.name}`);
+  // }
   if (prividiumTransport) return prividiumTransport;
 
   // We expect all the transports to support batch requests.
-  console.log("Using Fallback", chain.rpcUrls.default.http);
+  // console.log("Using Fallback", chain.rpcUrls.default.http);
   const httpTransports = chain.rpcUrls.default.http.map((e) => http(e, { batch: true }));
   return fallback(httpTransports);
 };

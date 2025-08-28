@@ -19,8 +19,6 @@
           </div>
         </div>
 
-        <div class="step-divider" />
-
         <div class="step" :class="{ active: authStep === 'wallet', completed: isConnected }">
           <div class="step-indicator">
             <CheckIcon v-if="isConnected" class="h-5 w-5" />
@@ -73,11 +71,9 @@
 <script lang="ts" setup>
 import { CheckIcon, CheckCircleIcon, ExclamationTriangleIcon } from "@heroicons/vue/24/outline";
 
-import { getPrividiumInstance } from "@/data/prividium";
-
 const prividiumStore = usePrividiumStore();
+const { nodeType } = usePortalRuntimeConfig();
 const onboardStore = useOnboardStore();
-const { selectedNetwork } = storeToRefs(useNetworkStore());
 
 const { authModalOpen, authStep, isAuthenticated, isAuthenticating, authError } = storeToRefs(prividiumStore);
 
@@ -90,14 +86,16 @@ const handlePrividiumAuth = async () => {
       await nextTick();
     }
   } catch (error) {
+    // eslint-disable-next-line no-console
     console.error("Prividium authentication failed:", error);
   }
 };
 
-const handleWalletConnect = async () => {
+const handleWalletConnect = () => {
   try {
-    await onboardStore.openModal();
+    onboardStore.openModal();
   } catch (error) {
+    // eslint-disable-next-line no-console
     console.error("Wallet connection failed:", error);
   }
 };
@@ -112,34 +110,17 @@ const handleClose = () => {
   }
 };
 
-watch([isAuthenticated, isConnected], ([authStatus, walletStatus]) => {
-  if (authStatus && !walletStatus && authStep.value === "wallet") {
-    return;
-  }
+watch(
+  isAuthenticated,
+  (authenticated) => {
+    if (authenticated) return;
+    if (nodeType !== "prividium") return;
 
-  if (authStatus && walletStatus) {
-    setTimeout(() => {
-      prividiumStore.closeAuthModal();
-    }, 2000);
-  }
-});
-
-onMounted(() => {
-  const networkKey = selectedNetwork.value?.key;
-  if (networkKey?.includes("prividium")) {
-    const chainId = selectedNetwork.value.id;
-    const instance = getPrividiumInstance(chainId);
-
-    if (instance) {
-      prividiumStore.setPrividiumInstance(instance);
-      prividiumStore.checkAuthStatus();
-
-      if (!prividiumStore.isAuthenticated) {
-        prividiumStore.openAuthModal();
-      }
-    }
-  }
-});
+    prividiumStore.checkAuthStatus();
+    prividiumStore.openAuthModal();
+  },
+  { immediate: true }
+);
 </script>
 
 <style lang="scss" scoped>
@@ -183,10 +164,6 @@ onMounted(() => {
           @apply text-sm text-neutral-600 dark:text-neutral-400;
         }
       }
-    }
-
-    .step-divider {
-      @apply mx-auto h-8 w-0.5 bg-neutral-300 dark:bg-neutral-600;
     }
   }
 

@@ -89,7 +89,8 @@ export const useZkSyncTransactionStatusStore = defineStore("zkSyncTransactionSta
 
       // L1 transaction succeeded, extract L2 transaction hash from the same receipt
       const l2TransactionHash = getDepositL2TransactionHash(l1Receipt);
-      const l2TransactionReceipt = await providerStore.requestProvider().getTransactionReceipt(l2TransactionHash);
+      const provider = await providerStore.requestProvider();
+      const l2TransactionReceipt = await provider.getTransactionReceipt(l2TransactionHash);
       if (!l2TransactionReceipt) return updatedTransaction;
 
       updatedTransaction.info.toTransactionHash = l2TransactionHash;
@@ -115,9 +116,8 @@ export const useZkSyncTransactionStatusStore = defineStore("zkSyncTransactionSta
   };
   const getWithdrawalStatus = async (transaction: TransactionInfo) => {
     if (!transaction.info.withdrawalFinalizationAvailable) {
-      const transactionDetails = await providerStore
-        .requestProvider()
-        .getTransactionDetails(transaction.transactionHash);
+      const provider = await providerStore.requestProvider();
+      const transactionDetails = await provider.getTransactionDetails(transaction.transactionHash);
       if (transactionDetails.status === "failed") {
         transaction.info.withdrawalFinalizationAvailable = false;
         transaction.info.failed = true;
@@ -130,16 +130,17 @@ export const useZkSyncTransactionStatusStore = defineStore("zkSyncTransactionSta
     }
     const isFinalized = await useZkSyncWalletStore()
       .getL1VoidSigner(true)
-      ?.isWithdrawalFinalized(transaction.transactionHash)
+      .then((signer) => signer.isWithdrawalFinalized(transaction.transactionHash))
       .catch(() => false);
     transaction.info.withdrawalFinalizationAvailable = true;
     transaction.info.completed = isFinalized;
     return transaction;
   };
   const getTransferStatus = async (transaction: TransactionInfo) => {
-    const transactionReceipt = await providerStore.requestProvider().getTransactionReceipt(transaction.transactionHash);
+    const provider = await providerStore.requestProvider();
+    const transactionReceipt = await provider.getTransactionReceipt(transaction.transactionHash);
     if (!transactionReceipt) return transaction;
-    const transactionDetails = await providerStore.requestProvider().getTransactionDetails(transaction.transactionHash);
+    const transactionDetails = await provider.getTransactionDetails(transaction.transactionHash);
     if (transactionDetails.status === "failed") {
       transaction.info.failed = true;
     }

@@ -7,12 +7,12 @@ import type { Transport } from "@wagmi/core";
 
 export const prividiumNetworks: ZkSyncNetwork[] = [
   {
-    id: 260,
+    id: 300,
     key: "prividium-testnet",
     name: "Prividium Testnet",
     rpcUrl: "http://localhost:8001/rpc/public",
-    // blockExplorerUrl: "https://testnet-explorer.prividium.io",
-    // blockExplorerApi: "https://testnet-api.explorer.prividium.io",
+    blockExplorerUrl: "https://sepolia-era.zksync.network",
+    blockExplorerApi: "https://block-explorer-api.sepolia.zksync.dev",
     // l1Network: l1Networks.sepolia,
     displaySettings: {
       onramp: false,
@@ -24,7 +24,7 @@ export const prividiumNetworks: ZkSyncNetwork[] = [
 
 const prividiumTestnetInstance = createPrividiumChain({
   chain: {
-    id: 260,
+    id: 300,
     name: "Prividium Testnet",
     nativeCurrency: { name: "Ether", symbol: "ETH", decimals: 18 },
     // blockExplorers: {
