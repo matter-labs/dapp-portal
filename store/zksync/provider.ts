@@ -27,7 +27,7 @@ export const useZkSyncProviderStore = defineStore("zkSyncProvider", () => {
         r.processFunc = async (_req, resp) => {
           if (!resp.ok()) {
             const code = resp.statusCode;
-            if (!destroyed && code === 401) {
+            if (!destroyed && code === 403) {
               destroyed = true;
               onAuthExpiry();
             }
