@@ -127,21 +127,17 @@ export const useZkSyncTransactionStatusStore = defineStore("zkSyncTransactionSta
       if (transactionDetails.status !== "verified") {
         return transaction;
       }
-      // Check if settlement layer has executed on L1 before marking as ready for finalization
+      // Check if settlement layer has executed before marking as ready for finalization
       if (transactionDetails.ethExecuteTxHash) {
-        const publicClient = onboardStore.getPublicClient();
         try {
-          const l1Receipt = await publicClient.getTransactionReceipt({
-            hash: transactionDetails.ethExecuteTxHash as `0x${string}`,
-          });
-          if (!l1Receipt || l1Receipt.status === "reverted") {
-            // Settlement layer hasn't executed yet or failed - not ready for finalization
-            return transaction;
+          const settlementExecuted = await providerStore.checkSettlementLayerExecution(
+            transactionDetails.ethExecuteTxHash
+          );
+          if (settlementExecuted) {
+            transaction.info.withdrawalFinalizationAvailable = true;
           }
-          // Settlement layer executed successfully on L1 - now ready for finalization
-          transaction.info.withdrawalFinalizationAvailable = true;
         } catch (error) {
-          // Transaction not found or other error - not ready yet
+          // Settlement layer check failed - not ready yet
           return transaction;
         }
       }

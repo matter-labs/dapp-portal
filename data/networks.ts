@@ -34,6 +34,12 @@ export const l1Networks = {
 } as const;
 export type L1Network = Chain;
 
+export type SettlementChain = {
+  explorerUrl: string;
+  name: string;
+  chainId: number;
+};
+
 export type ZkSyncNetwork = {
   id: number;
   key: string;
@@ -51,6 +57,7 @@ export type ZkSyncNetwork = {
   };
   nativeCurrency?: { name: string; symbol: string; decimals: number };
   nativeTokenBridgingOnly?: boolean;
+  settlementChains?: SettlementChain[];
   getTokens?: () => Token[] | Promise<Token[]>; // If blockExplorerApi is specified, tokens will be fetched from there. Otherwise, this function will be used.
 };
 
@@ -96,6 +103,18 @@ const publicChains: ZkSyncNetwork[] = [
       isTestnet: false,
     },
     l1Network: l1Networks.mainnet,
+    settlementChains: [
+      {
+        explorerUrl: "https://etherscan.io",
+        name: "Ethereum",
+        chainId: 1,
+      },
+      {
+        explorerUrl: "https://gateway.explorer.zksync.io",
+        name: "Gateway",
+        chainId: 9075,
+      },
+    ],
   },
   {
     id: 300,
@@ -110,6 +129,18 @@ const publicChains: ZkSyncNetwork[] = [
       isTestnet: true,
     },
     l1Network: l1Networks.sepolia,
+    settlementChains: [
+      {
+        explorerUrl: "https://sepolia.etherscan.io",
+        name: "Ethereum",
+        chainId: 11155111,
+      },
+      {
+        explorerUrl: "https://sepolia.gateway.explorer.zksync.io",
+        name: "Gateway",
+        chainId: 32657,
+      },
+    ],
   },
   {
     id: 270,
@@ -123,6 +154,13 @@ const publicChains: ZkSyncNetwork[] = [
     displaySettings: {
       isTestnet: true,
     },
+    settlementChains: [
+      {
+        explorerUrl: "https://sepolia.etherscan.io",
+        name: "Ethereum",
+        chainId: 11155111,
+      },
+    ],
   },
   {
     id: 9075,
@@ -173,6 +211,8 @@ const getHyperchains = (): ZkSyncNetwork[] => {
       ...e.network,
       getTokens: () => e.tokens,
     };
+
+    // Handle L1 network resolution for publicL1NetworkId
     if (e.network.publicL1NetworkId) {
       network.l1Network = Object.entries(l1Networks).find(([, chain]) => chain.id === e.network.publicL1NetworkId)?.[1];
       if (!network.l1Network) {
@@ -181,6 +221,13 @@ const getHyperchains = (): ZkSyncNetwork[] => {
         );
       }
     }
+
+    // Ensure settlementChains from hyperchain config are properly applied
+    // (They should already be included via the spread operator, but making it explicit)
+    if (e.network.settlementChains) {
+      network.settlementChains = e.network.settlementChains;
+    }
+
     return network;
   });
 };

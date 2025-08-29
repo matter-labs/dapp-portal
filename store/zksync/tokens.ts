@@ -2,6 +2,8 @@ import { $fetch } from "ofetch";
 import { utils } from "zksync-ethers";
 
 import { customBridgeTokens } from "@/data/customBridgeTokens";
+import { L2_BASE_TOKEN_ADDRESS } from "@/utils/constants";
+import { mapApiToken } from "@/utils/mappers";
 
 import type { Api, Token } from "@/types";
 
