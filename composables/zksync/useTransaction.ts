@@ -32,7 +32,7 @@ export default (getSigner: () => Promise<Signer | undefined>, getProvider: () =>
   const transactionHash = ref<string | undefined>();
   const eraWalletStore = useZkSyncWalletStore();
   const { captureException } = useSentryLogger();
-  const { nodeType } = usePortalRuntimeConfig();
+  const { selectedNetwork } = storeToRefs(useNetworkStore());
 
   const retrieveBridgeAddresses = useMemoize(() =>
     getProvider().then((provider) => provider.getDefaultBridgeAddresses())
@@ -135,7 +135,7 @@ export default (getSigner: () => Promise<Signer | undefined>, getProvider: () =>
         },
       });
 
-      if (nodeType === "prividium") {
+      if (selectedNetwork.value.isPrividium) {
         const wagmiClient = await getWalletClient(wagmiConfig);
         if (!wagmiClient) throw new Error("Wagmi client is not available");
         const { getPrividiumInstance } = usePrividiumStore();

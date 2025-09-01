@@ -72,7 +72,7 @@
 import { CheckIcon, CheckCircleIcon, ExclamationTriangleIcon } from "@heroicons/vue/24/outline";
 
 const prividiumStore = usePrividiumStore();
-const { nodeType } = usePortalRuntimeConfig();
+const { selectedNetwork } = storeToRefs(useNetworkStore());
 const onboardStore = useOnboardStore();
 
 const { authModalOpen, authStep, isAuthenticated, isAuthenticating, authError } = storeToRefs(prividiumStore);
@@ -114,7 +114,7 @@ watch(
   isAuthenticated,
   (authenticated) => {
     if (authenticated) return;
-    if (nodeType !== "prividium") return;
+    if (!selectedNetwork.value.isPrividium) return;
 
     prividiumStore.checkAuthStatus();
     prividiumStore.openAuthModal();

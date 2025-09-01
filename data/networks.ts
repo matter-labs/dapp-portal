@@ -52,6 +52,7 @@ export type ZkSyncNetwork = {
   nativeCurrency?: { name: string; symbol: string; decimals: number };
   nativeTokenBridgingOnly?: boolean;
   getTokens?: () => Token[] | Promise<Token[]>; // If blockExplorerApi is specified, tokens will be fetched from there. Otherwise, this function will be used.
+  isPrividium?: boolean;
 };
 
 // See the official documentation on running a local ZKsync node: https://era.zksync.io/docs/tools/testing/
@@ -164,9 +165,6 @@ const publicChains: ZkSyncNetwork[] = [
     },
     nativeTokenBridgingOnly: true,
   },
-];
-
-export const prividiumNetworks: ZkSyncNetwork[] = [
   {
     id: 300,
     hidden: true,
@@ -174,13 +172,14 @@ export const prividiumNetworks: ZkSyncNetwork[] = [
     name: "Prividium Era Testnet",
     rpcUrl: "https://proxy.era-prividium.zksync.dev/rpc/public",
     blockExplorerUrl: "https://block-explorer.era-prividium.zksync.dev",
-    blockExplorerApi: "https://block-explorer-api.sepolia.zksync.dev",
+    // blockExplorerApi: "https://block-explorer-api.sepolia.zksync.dev",
     // l1Network: l1Networks.sepolia,
     displaySettings: {
       onramp: false,
       showPartnerLinks: false,
       isTestnet: true,
     },
+    isPrividium: true,
   },
 ];
 
@@ -212,8 +211,6 @@ const determineChainList = (): ZkSyncNetwork[] => {
       return [dockerizedNode];
     case "hyperchain":
       return getHyperchains();
-    case "prividium":
-      return prividiumNetworks;
     default:
       return [...publicChains];
   }

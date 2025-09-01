@@ -54,9 +54,7 @@ const getAllChains = () => {
     }
   };
   for (const network of chainList) {
-    addUniqueChain(
-      (portalRuntimeConfig.nodeType !== "prividium" && useExistingEraChain(network)) || formatZkSyncChain(network)
-    );
+    addUniqueChain((!network.isPrividium && useExistingEraChain(network)) || formatZkSyncChain(network));
     if (network.l1Network) {
       addUniqueChain(network.l1Network);
     }
