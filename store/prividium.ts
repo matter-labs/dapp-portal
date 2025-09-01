@@ -23,6 +23,7 @@ export const usePrividiumStore = defineStore("prividium", () => {
   const prividiumInstance = selectedNetwork.value.isPrividium
     ? getPrividiumInstance(selectedNetwork.value.id)
     : undefined;
+
   const authModalOpen = ref(false);
   const authStep = ref<"prividium" | "wallet">("prividium");
 

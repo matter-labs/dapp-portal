@@ -1,9 +1,10 @@
+import { useStorage } from "@vueuse/core";
 import { fallback, http } from "@wagmi/core";
 import { type Chain, zksyncSepoliaTestnet } from "@wagmi/core/chains";
 import { defaultWagmiConfig } from "@web3modal/wagmi";
 import { chainConfig, zksync } from "viem/zksync";
 
-import { chainList, type ZkSyncNetwork } from "@/data/networks";
+import { chainList, defaultNetwork, type ZkSyncNetwork } from "@/data/networks";
 import { getPrividiumTransport } from "@/data/prividium";
 
 const portalRuntimeConfig = usePortalRuntimeConfig();
@@ -46,28 +47,77 @@ const formatZkSyncChain = (network: ZkSyncNetwork) => {
   };
 };
 
+/* TODO: fix this very hacky hack */
+const identifyNetworkByQueryParam = () => {
+  const networkUsesLocalStorage = useStorage<boolean>("networkUsesLocalStorage", false);
+  const selectedNetworkKey = useStorage<string>(
+    "selectedNetwork",
+    defaultNetwork.key,
+    networkUsesLocalStorage.value ? window.localStorage : window.sessionStorage
+  );
+  const networkFromQueryParam = new URLSearchParams(window.location.search).get("network");
+  if (networkFromQueryParam && chainList.some((e) => e.key === networkFromQueryParam)) {
+    return chainList.find((e) => e.key === networkFromQueryParam);
+  }
+  if (selectedNetworkKey.value && chainList.some((e) => e.key === selectedNetworkKey.value)) {
+    return chainList.find((e) => e.key === selectedNetworkKey.value);
+  }
+  return null;
+};
+
 const getAllChains = () => {
-  const chains: Chain[] = [];
-  const addUniqueChain = (chain: Chain) => {
-    if (!chains.some((existingChain) => existingChain.id === chain.id)) {
-      chains.push(chain);
+  type ChainData = { config: ZkSyncNetwork; chain: Chain; isL1: boolean };
+  const chains: ChainData[] = [];
+  const addUniqueChain = (config: ZkSyncNetwork, chain: Chain, isL1: boolean) => {
+    if (!chains.some((existingChain) => existingChain.config.key === config.key)) {
+      chains.push({ config, chain, isL1 });
     }
   };
-  for (const network of chainList) {
-    addUniqueChain((!network.isPrividium && useExistingEraChain(network)) || formatZkSyncChain(network));
-    if (network.l1Network) {
-      addUniqueChain(network.l1Network);
+  for (const config of chainList) {
+    addUniqueChain(config, (!config.isPrividium && useExistingEraChain(config)) || formatZkSyncChain(config), false);
+    if (config.l1Network) {
+      addUniqueChain(config, config.l1Network, true);
     }
   }
 
-  return chains;
+  const uniqueChains: ChainData[] = [];
+  chains.forEach((e) => {
+    if (!uniqueChains.some((existing) => existing.chain.id === e.chain.id)) {
+      uniqueChains.push(e);
+    }
+  });
+
+  /*
+    The issue is that if some prividium chain runs on same chain id
+    2 chains with same chain id will end up in the list
+    this causes all sorts of issues, especially with wagmi.
+    We need to make sure we don't include e.g. prividium on zk sepolia but just zk sepolia
+    or vice versa when prividium chain is selected
+  */
+  const hackyCurrentNetwork = identifyNetworkByQueryParam();
+  if (hackyCurrentNetwork) {
+    return [
+      {
+        config: hackyCurrentNetwork,
+        chain: formatZkSyncChain(hackyCurrentNetwork),
+        isL1: false,
+      },
+      ...uniqueChains.filter((e) => e.chain.id !== hackyCurrentNetwork.id),
+    ];
+  }
+
+  return uniqueChains;
 };
 
 // Creates a fallback transport for a particular chain.
-const chainTransports = (chain: Chain) => {
-  // Check if this is a Prividium chain and use its authenticated transport
-  const prividiumTransport = getPrividiumTransport(chain.id);
-  if (prividiumTransport) return prividiumTransport;
+const chainTransports = (config: ZkSyncNetwork, chain: Chain, isL1: boolean) => {
+  if (!isL1 && config.isPrividium) {
+    const prividiumTransport = getPrividiumTransport(chain.id);
+    if (!prividiumTransport) {
+      throw new Error(`Prividium config not found for chain ${chain.id}`);
+    }
+    return prividiumTransport;
+  }
 
   // We expect all the transports to support batch requests.
   const httpTransports = chain.rpcUrls.default.http.map((e) => http(e, { batch: true }));
@@ -76,8 +126,10 @@ const chainTransports = (chain: Chain) => {
 
 const chains = getAllChains();
 export const wagmiConfig = defaultWagmiConfig({
-  chains: getAllChains() as unknown as readonly [Chain, ...Chain[]],
-  transports: Object.fromEntries(chains.map((chain) => [chain.id, chainTransports(chain)])),
+  chains: chains.map((e) => e.chain) as unknown as readonly [Chain, ...Chain[]],
+  transports: Object.fromEntries(
+    chains.map(({ config, chain, isL1 }) => [chain.id, chainTransports(config, chain, isL1)])
+  ),
   projectId: portalRuntimeConfig.walletConnectProjectId,
   metadata,
   enableCoinbase: false,
