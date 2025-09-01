@@ -48,7 +48,7 @@ export const useZkSyncTokensStore = defineStore("zkSyncTokens", () => {
     if (!baseToken) {
       baseToken = {
         address: L2_BASE_TOKEN_ADDRESS,
-        l1Address: await provider.getBaseTokenContractAddress(),
+        l1Address: eraNetwork.value.l1Network ? await provider.getBaseTokenContractAddress() : undefined,
         symbol: "BASETOKEN",
         name: "Base Token",
         decimals: 18,

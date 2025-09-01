@@ -182,10 +182,18 @@ const publicChains: ZkSyncNetwork[] = [
     isPrividium: true,
     getTokens: () => [
       {
+        address: L2_BASE_TOKEN_ADDRESS,
+        l2Address: L2_BASE_TOKEN_ADDRESS,
+        symbol: "ETH",
+        name: "Ether",
+        decimals: 18,
+        iconUrl: "/img/eth.svg",
+      },
+      {
         address: "0xd12660590f4D07864a6a077E4638F3f2235732A2",
         l2Address: "0xd12660590f4D07864a6a077E4638F3f2235732A2",
-        name: "ZK Token",
         symbol: "ZK",
+        name: "ZKsync Token",
         decimals: 18,
         iconUrl: "https://s2.coinmarketcap.com/static/img/coins/128x128/24091.png",
       },
