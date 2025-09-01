@@ -180,6 +180,16 @@ const publicChains: ZkSyncNetwork[] = [
       isTestnet: true,
     },
     isPrividium: true,
+    getTokens: () => [
+      {
+        address: "0xd12660590f4D07864a6a077E4638F3f2235732A2",
+        l2Address: "0xd12660590f4D07864a6a077E4638F3f2235732A2",
+        name: "ZK Token",
+        symbol: "ZK",
+        decimals: 18,
+        iconUrl: "https://s2.coinmarketcap.com/static/img/coins/128x128/24091.png",
+      },
+    ],
   },
 ];
 
