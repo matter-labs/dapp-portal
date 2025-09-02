@@ -22,7 +22,7 @@ export type FeeEstimationParams = {
 
 export default (
   userAddress: ComputedRef<Address | undefined>,
-  getProvider: () => Provider,
+  getProvider: () => Promise<Provider>,
   tokens: Ref<{ [tokenSymbol: string]: Token } | undefined>,
   balances: Ref<TokenAmount[]>
 ) => {
@@ -70,7 +70,7 @@ export default (
     tx.overrides.from ??= tx.from;
     tx.overrides.type ??= EIP712_TX_TYPE;
 
-    const provider = getProvider();
+    const provider = await getProvider();
     const bridge = await provider.connectL2Bridge(tx.bridgeAddress!);
     let populatedTx = await bridge.withdraw.populateTransaction(tx.to!, tx.token, tx.amount, tx.overrides);
     if (tx.paymasterParams) {
@@ -106,7 +106,7 @@ export default (
         return;
       }
 
-      const provider = getProvider();
+      const provider = await getProvider();
       const token = balances.value.find((e) => e.address === params!.tokenAddress);
       if (!token || token.amount === "0") {
         resetFee();

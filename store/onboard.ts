@@ -19,6 +19,7 @@ export const useOnboardStore = defineStore("onboard", () => {
   const { selectedColorMode } = useColorMode();
   const { selectedNetwork, l1Network } = storeToRefs(useNetworkStore());
   const { captureException } = useSentryLogger();
+  const prividiumStore = usePrividiumStore();
 
   reconnect(wagmiConfig);
 
@@ -101,11 +102,18 @@ export const useOnboardStore = defineStore("onboard", () => {
     web3modal.setThemeMode(colorMode);
   });
 
-  const openModal = () => web3modal.open();
+  const openModal = () => {
+    web3modal.open();
+  };
   const disconnect = () => {
     const { connector } = getAccount(wagmiConfig);
     if (!connector) return;
     walletDisconnect(wagmiConfig, { connector });
+
+    // Also disconnect from Prividium if connected
+    if (prividiumStore.isAuthenticated) {
+      prividiumStore.logout();
+    }
   };
 
   const isCorrectNetworkSet = computed(() => {

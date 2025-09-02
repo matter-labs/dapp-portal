@@ -23,9 +23,11 @@ export default (transactionInfo: ComputedRef<TransactionInfo>) => {
   const { ethToken } = storeToRefs(tokensStore);
   const { captureException } = useSentryLogger();
 
-  const retrieveBridgeAddresses = useMemoize(() => providerStore.requestProvider().getDefaultBridgeAddresses());
+  const retrieveBridgeAddresses = useMemoize(() =>
+    providerStore.requestProvider().then((provider) => provider.getDefaultBridgeAddresses())
+  );
   const retrieveL1NullifierAddress = useMemoize(async () => {
-    const providerL1 = walletStore.getL1VoidSigner();
+    const providerL1 = await walletStore.getL1VoidSigner();
     return await IL1AssetRouterFactory.connect((await retrieveBridgeAddresses()).sharedL1, providerL1).L1_NULLIFIER();
   });
 
@@ -42,7 +44,7 @@ export default (transactionInfo: ComputedRef<TransactionInfo>) => {
   });
 
   const getFinalizationParams = async () => {
-    const provider = providerStore.requestProvider();
+    const provider = await providerStore.requestProvider();
     const wallet = new Wallet(
       // random private key cause we don't care about actual signer
       // finalizeWithdrawalParams method only exists on Wallet class
@@ -54,7 +56,7 @@ export default (transactionInfo: ComputedRef<TransactionInfo>) => {
 
   const getTransactionParams = async () => {
     finalizeWithdrawalParams.value = await getFinalizationParams();
-    const provider = providerStore.requestProvider();
+    const provider = await providerStore.requestProvider();
     const chainId = BigInt(await provider.getNetwork().then((n) => n.chainId));
     const p = finalizeWithdrawalParams.value!;
 

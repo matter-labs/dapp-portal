@@ -18,7 +18,7 @@ export const useZkSyncTokensStore = defineStore("zkSyncTokens", () => {
     execute: requestTokens,
     reset: resetTokens,
   } = usePromise<Token[]>(async () => {
-    const provider = providerStore.requestProvider();
+    const provider = await providerStore.requestProvider();
     const ethL2TokenAddress = await provider.l2TokenAddress(utils.ETH_ADDRESS);
 
     let baseToken = null;
@@ -50,7 +50,7 @@ export const useZkSyncTokensStore = defineStore("zkSyncTokens", () => {
     if (!baseToken) {
       baseToken = {
         address: L2_BASE_TOKEN_ADDRESS,
-        l1Address: await provider.getBaseTokenContractAddress(),
+        l1Address: eraNetwork.value.l1Network ? await provider.getBaseTokenContractAddress() : undefined,
         symbol: "BASETOKEN",
         name: "Base Token",
         decimals: 18,

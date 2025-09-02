@@ -59,6 +59,7 @@ export type ZkSyncNetwork = {
   nativeTokenBridgingOnly?: boolean;
   settlementChains?: SettlementChain[];
   getTokens?: () => Token[] | Promise<Token[]>; // If blockExplorerApi is specified, tokens will be fetched from there. Otherwise, this function will be used.
+  isPrividium?: boolean;
 };
 
 // See the official documentation on running a local ZKsync node: https://era.zksync.io/docs/tools/testing/
@@ -201,6 +202,40 @@ const publicChains: ZkSyncNetwork[] = [
       decimals: 18,
     },
     nativeTokenBridgingOnly: true,
+  },
+  {
+    id: 300,
+    hidden: true,
+    key: "prividium-era-testnet",
+    name: "Prividium Era Testnet",
+    rpcUrl: "https://proxy.era-prividium.zksync.dev/rpc/public",
+    blockExplorerUrl: "https://block-explorer.era-prividium.zksync.dev",
+    // blockExplorerApi: "https://block-explorer-api.sepolia.zksync.dev",
+    // l1Network: l1Networks.sepolia,
+    displaySettings: {
+      onramp: false,
+      showPartnerLinks: false,
+      isTestnet: true,
+    },
+    isPrividium: true,
+    getTokens: () => [
+      {
+        address: L2_BASE_TOKEN_ADDRESS,
+        l2Address: L2_BASE_TOKEN_ADDRESS,
+        symbol: "ETH",
+        name: "Ether",
+        decimals: 18,
+        iconUrl: "/img/eth.svg",
+      },
+      {
+        address: "0xd12660590f4D07864a6a077E4638F3f2235732A2",
+        l2Address: "0xd12660590f4D07864a6a077E4638F3f2235732A2",
+        symbol: "ZK",
+        name: "ZKsync Token",
+        decimals: 18,
+        iconUrl: "https://s2.coinmarketcap.com/static/img/coins/128x128/24091.png",
+      },
+    ],
   },
 ];
 

@@ -56,7 +56,7 @@ export default (tokens: Ref<Token[]>, balances: Ref<TokenAmount[] | undefined>) 
   });
 
   const getEthTransactionFee = async () => {
-    const signer = getL1VoidSigner();
+    const signer = await getL1VoidSigner();
     if (!signer) throw new Error("Signer is not available");
 
     return await retry(() =>
@@ -84,7 +84,7 @@ export default (tokens: Ref<Token[]>, balances: Ref<TokenAmount[] | undefined>) 
       recommendedBalance.value = undefined;
       if (!feeToken.value) throw new Error("Fee tokens is not available");
 
-      const provider = requestProvider();
+      const provider = await requestProvider();
       const isEthBasedChain = await provider.isEthBasedChain();
 
       try {
