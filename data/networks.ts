@@ -235,5 +235,4 @@ const determineChainList = (): ZkSyncNetwork[] => {
 };
 export const isCustomNode = !!nodeType;
 export const chainList: ZkSyncNetwork[] = determineChainList();
-console.log(chainList);
 export const defaultNetwork = chainList[0];
