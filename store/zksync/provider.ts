@@ -86,6 +86,7 @@ export const useZkSyncProviderStore = defineStore("zkSyncProvider", () => {
         try {
           const isExecuted = await checkTransactionOnSettlementChain(settlementChain, ethExecuteTxHash);
           if (isExecuted) {
+            // Transaction found and verified on this settlement chain
             return true;
           }
         } catch (error) {
@@ -94,6 +95,7 @@ export const useZkSyncProviderStore = defineStore("zkSyncProvider", () => {
         }
       }
 
+      // Transaction not found on any settlement chain or not verified yet
       return false;
     } catch (error) {
       return false;
@@ -114,6 +116,10 @@ export const useZkSyncProviderStore = defineStore("zkSyncProvider", () => {
 
         if (settlementTransactionDetails && settlementTransactionDetails.status === "verified") {
           return true;
+        }
+        // If transaction exists but not verified, return false (not ready yet)
+        if (settlementTransactionDetails) {
+          return false;
         }
       }
     } catch (error) {
@@ -147,9 +153,13 @@ export const useZkSyncProviderStore = defineStore("zkSyncProvider", () => {
         if (receipt && receipt.status === "success") {
           return true;
         }
+        // If transaction exists but failed, return false
+        if (receipt) {
+          return false;
+        }
       }
     } catch (error) {
-      // Both methods failed, transaction not found on this chain
+      // Transaction not found on this chain continue to the next settlement chain
     }
 
     return false;
