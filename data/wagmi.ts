@@ -69,7 +69,7 @@ const getAllChains = () => {
   type ChainData = { config: ZkSyncNetwork; chain: Chain; isL1: boolean };
   const chains: ChainData[] = [];
   const addUniqueChain = (config: ZkSyncNetwork, chain: Chain, isL1: boolean) => {
-    if (!chains.some((existingChain) => existingChain.config.key === config.key)) {
+    if (isL1 || !chains.some((existingChain) => existingChain.config.key === config.key)) {
       chains.push({ config, chain, isL1 });
     }
   };
