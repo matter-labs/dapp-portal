@@ -1,8 +1,7 @@
-import crypto from "crypto";
 import https from "https";
 import { Status } from "@cucumber/cucumber";
 import * as dotenv from "dotenv";
-import { ethers } from "ethers";
+import { ethers, Wallet } from "ethers";
 import { Provider } from "zksync-ethers";
 
 import type { Pickle } from "@cucumber/messages";
@@ -11,9 +10,6 @@ import { config, wallet } from "../support/config";
 
 import type { ICustomWorld } from "../support/custom-world";
 const tracesDir = "./artifacts/";
-const algorithm = "aes-256-cbc";
-const key = Buffer.from(wallet.secret, "hex"); // crypto.randomBytes(32);
-const iv = Buffer.from(wallet.salt, "hex"); // crypto.randomBytes(16);
 
 let result: any;
 export let depositTag: boolean;
@@ -26,10 +22,10 @@ let emptyWalletTag: boolean;
 let incognitoTag: boolean;
 let transactionsTag: boolean;
 let noBlockChain: boolean;
-let wallet_1: string[];
-let wallet_2: string[];
-let wallet_0: string[];
-let wallet_password: string;
+let wallet_1 = wallet._1_mnemonic ? wallet._1_mnemonic.split(" ") : [];
+let wallet_2 = wallet._2_mnemonic ? wallet._2_mnemonic.split(" ") : [];
+let wallet_0 = Wallet.createRandom().mnemonic?.phrase;
+let wallet_password = wallet.password;
 
 export class Helper {
   world: ICustomWorld;
@@ -54,13 +50,6 @@ export class Helper {
 
   async clearLocalStorage() {
     await this.world.page?.evaluate(() => window.localStorage.clear());
-  }
-
-  async decryptVars() {
-    wallet_0 = (await this.decrypt(wallet._0_public_key)).split(" ");
-    wallet_1 = (await this.decrypt(wallet._1_public_key)).split(" ");
-    wallet_2 = (await this.decrypt(wallet._2_public_key)).split(" ");
-    wallet_password = await this.decrypt(wallet.password);
   }
 
   async predefineTags(filteredTag: any) {
@@ -106,6 +95,7 @@ export class Helper {
     result = true;
     try {
       if (element == "string") {
+        await this.world.page?.waitForSelector(element, { timeout: config.defaultTimeout.timeout });
         await this.world.page?.locator(element).click({ trial: true, timeout: waitTime });
       } else {
         await element.click({ trial: true, timeout: waitTime });
@@ -167,16 +157,18 @@ export class Helper {
     } else {
       console.log(`Wrong layer: ${layer}`);
     }
-    const balanceEth = Number(ethers.utils.formatEther(await provider.getBalance(walletAddress)));
+    const balanceEth = Number(ethers.formatEther(await provider.getBalance(walletAddress)));
     return balanceEth;
   }
 
   async thresholdBalanceIsOk() {
     const mainPage = new MainPage(this.world);
     if (depositTag && !noBlockChain) {
-      await mainPage.monitorBalance(wallet._1, "L1");
+      const walletAddress1 = Wallet.fromPhrase(wallet._1_mnemonic).address;
+      await mainPage.monitorBalance(walletAddress1, "L1");
     } else if (withdrawTag || transferTag) {
-      await mainPage.monitorBalance(wallet._2, "L2");
+      const walletAddress2 = Wallet.fromPhrase(wallet._2_mnemonic).address;
+      await mainPage.monitorBalance(walletAddress2, "L2");
     }
   }
 
@@ -218,19 +210,11 @@ export class Helper {
     }
   }
 
-  async decrypt(encryptedData: string) {
-    const encryptedText = Buffer.from(encryptedData, "hex");
-
-    const decipher = crypto.createDecipheriv(algorithm, Buffer.from(key), iv);
-
-    let decrypted = decipher.update(encryptedText);
-    decrypted = Buffer.concat([decrypted, decipher.final()]);
-
-    return decrypted.toString();
+  getWalletPassword() {
+    return wallet_password;
   }
 
   async metamaskAuthorization(metamaskPage: any, basePage: any, pickle: Pickle) {
-    await this.decryptVars();
     const targetUrl = config.BASE_URL + config.DAPP_NETWORK;
     const tags = pickle.tags;
     const filteredTag = (tag: string) => tags.filter((i) => i.name.includes(tag)).length > 0;
