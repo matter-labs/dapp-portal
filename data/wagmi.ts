@@ -74,6 +74,9 @@ const getAllChains = () => {
     }
   };
   for (const config of chainList) {
+    // Skip hidden networks as they shouldn't be included in wagmi configuration
+    if (config.hidden) continue;
+    
     addUniqueChain(config, (!config.isPrividium && useExistingEraChain(config)) || formatZkSyncChain(config), false);
     if (config.l1Network) {
       addUniqueChain(config, config.l1Network, true);
