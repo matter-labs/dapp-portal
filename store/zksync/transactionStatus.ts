@@ -135,11 +135,18 @@ export const useZkSyncTransactionStatusStore = defineStore("zkSyncTransactionSta
           );
           if (settlementExecuted) {
             transaction.info.withdrawalFinalizationAvailable = true;
+          } else {
+            // Settlement layer not executed yet - not ready for claiming
+            transaction.info.withdrawalFinalizationAvailable = false;
           }
         } catch (error) {
           // Settlement layer check failed - not ready yet
+          transaction.info.withdrawalFinalizationAvailable = false;
           return transaction;
         }
+      } else {
+        // No ethExecuteTxHash yet - not ready for claiming
+        transaction.info.withdrawalFinalizationAvailable = false;
       }
     }
 
