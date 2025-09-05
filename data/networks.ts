@@ -84,85 +84,17 @@ export const dockerizedNode: ZkSyncNetwork = {
 
 const publicChains: ZkSyncNetwork[] = [
   {
-    id: 324,
-    key: "mainnet",
-    name: "ZKsync Era",
-    rpcUrl: "https://mainnet.era.zksync.io",
-    blockExplorerUrl: "https://era.zksync.network",
-    blockExplorerApi: "https://block-explorer-api.mainnet.zksync.io",
-    displaySettings: {
-      onramp: true,
-      showPartnerLinks: true,
-      isTestnet: false,
-    },
-    l1Network: l1Networks.mainnet,
-  },
-  {
-    id: 300,
-    key: "sepolia",
-    name: "ZKsync Era Sepolia",
-    rpcUrl: "https://sepolia.era.zksync.dev",
-    blockExplorerUrl: "https://sepolia-era.zksync.network",
-    blockExplorerApi: "https://block-explorer-api.sepolia.zksync.dev",
-    displaySettings: {
-      onramp: false,
-      showPartnerLinks: true,
-      isTestnet: true,
-    },
-    l1Network: l1Networks.sepolia,
-  },
-  {
     id: 270,
     key: "stage",
-    name: "ZKsync Stage",
-    rpcUrl: "https://z2-dev-api.zksync.dev",
-    blockExplorerUrl: "https://sepolia-beta.staging-scan-v2.zksync.dev",
-    blockExplorerApi: "https://block-explorer-api.stage.zksync.dev",
+    name: "ZKsyncOS Stage",
+    rpcUrl: "https://z2-dev-api.zksync.dev", // TODO (@zksyncos): replace with the final staging RPC when available
+    blockExplorerUrl: "https://sepolia-beta.staging-scan-v2.zksync.dev", // TODO (@zksyncos): replace with the final staging RPC when available
+    blockExplorerApi: "https://block-explorer-api.stage.zksync.dev", // TODO (@zksyncos): replace with the final staging RPC when available
     l1Network: l1Networks.sepolia,
-    hidden: true,
+    hidden: false,
     displaySettings: {
       isTestnet: true,
     },
-  },
-  {
-    id: 9075,
-    key: "gateway",
-    name: "ZKsync Gateway",
-    rpcUrl: "https://rpc.era-gateway-mainnet.zksync.dev",
-    blockExplorerUrl: "https://explorer.era-gateway-mainnet.zksync.dev",
-    blockExplorerApi: "https://block-explorer-api.era-gateway-mainnet.zksync.dev",
-    l1Network: l1Networks.mainnet,
-    displaySettings: {
-      onramp: false,
-      showPartnerLinks: false,
-      isTestnet: false,
-    },
-    nativeCurrency: {
-      name: "ZKsync",
-      symbol: "ZK",
-      decimals: 18,
-    },
-    nativeTokenBridgingOnly: true,
-  },
-  {
-    id: 32657,
-    key: "gateway-testnet",
-    name: "ZKsync Gateway Testnet",
-    rpcUrl: "https://rpc.era-gateway-testnet.zksync.dev",
-    blockExplorerUrl: "https://explorer.era-gateway-testnet.zksync.dev",
-    blockExplorerApi: "https://block-explorer.era-gateway-testnet.zksync.dev",
-    l1Network: l1Networks.sepolia,
-    displaySettings: {
-      onramp: false,
-      showPartnerLinks: false,
-      isTestnet: true,
-    },
-    nativeCurrency: {
-      name: "ZKsync",
-      symbol: "ZK",
-      decimals: 18,
-    },
-    nativeTokenBridgingOnly: true,
   },
 ];
 
