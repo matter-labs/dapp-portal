@@ -5,22 +5,34 @@
       "key": "my-hyperchain",
       "name": "My new hyperchain",
       "rpcUrl": "http://127.0.0.1:3050",
+      "blockExplorerUrl": "http://127.0.0.1:3010",
+      "displaySettings": {
+        "isTestnet": true
+      },
       "l1Network": {
         "id": 9,
         "name": "Localhost",
         "network": "localhost",
         "nativeCurrency": { "name": "Ether", "symbol": "ETH", "decimals": 18 },
         "rpcUrls": {
-          "default": { "http": ["http://localhost:8545"] },
-          "public": { "http": ["http://localhost:8545"] }
+          "default": { "http": ["http://127.0.0.1:8545"] },
+          "public": { "http": ["http://127.0.0.1:8545"] }
         }
-      }
+      },
+      "settlementChains": [
+        {
+          "explorerUrl": "http://127.0.0.1:8545",
+          "name": "Localhost",
+          "chainId": 9
+        }
+      ]
     },
     "tokens": [
       {
         "address": "0x000000000000000000000000000000000000800A",
         "l1Address": "0x0000000000000000000000000000000000000000",
         "symbol": "ETH",
+        "name": "Ether",
         "decimals": 18,
         "iconUrl": "/img/eth.svg"
       }

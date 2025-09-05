@@ -48,6 +48,11 @@ npm run dev:node:docker
 
 To use Portal with your ZK Stack Hyperchain, see the guide [here](./hyperchains/README.md).
 
+**Key requirements for hyperchain configuration:**
+- Proper `l1Network` configuration for L1 balance fetching
+- Valid `settlementChains` for withdrawal tracking
+- Token configuration with correct `l1Address` mapping for withdrawals
+
 ---
 
 ## 🛠 Development
