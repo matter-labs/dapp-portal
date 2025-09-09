@@ -218,9 +218,13 @@ const {
 } = useWithdrawalFinalization(computed(() => props.transaction));
 watch(
   withdrawalFinalizationAvailable,
-  (finalizationAvailable) => {
+  async (finalizationAvailable) => {
     if (finalizationAvailable) {
-      estimate();
+      try {
+        await estimate();
+      } catch {
+        // Proof might not be available yet; avoid unhandled rejection
+      }
     }
   },
   { immediate: true }
