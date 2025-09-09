@@ -17,7 +17,9 @@ const prividiumTestnetInstance = createPrividiumChain({
   clientId: "portal",
   rpcUrl: "https://proxy.era-prividium.zksync.dev/rpc",
   authBaseUrl: "https://user-panel.era-prividium.zksync.dev",
+  permissionsApiBaseUrl: "https://permissions-api.era-prividium.zksync.dev",
   redirectUrl: `${window.location.origin}/callback`,
+  scope: ["wallet:required"],
   onAuthExpiry: () => {
     const prividiumStore = usePrividiumStore();
     prividiumStore.onAuthExpiry();
