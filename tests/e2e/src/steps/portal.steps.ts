@@ -231,9 +231,22 @@ Given("I go to the main page", config.stepTimeout, async function (this: ICustom
 Given("I am on the Main page", async function (this: ICustomWorld) {
   const basePage = new BasePage(this);
   await this.page?.waitForTimeout(config.minimalTimeout.timeout);
-  element = await basePage.returnElementByType("text", "Assets");
+  element = await basePage.returnElementByType("class", "title");
   await expect(element).toBeVisible(config.increasedTimeout);
+  const textContent = await element.textContent();
+  await expect(textContent).toContain("Bridge");
   result = await basePage.isImOnTheMainPage();
+  await expect(result).toBe(true);
+});
+
+Given("I am on the Assets page", async function (this: ICustomWorld) {
+  const basePage = new BasePage(this);
+  await this.page?.waitForTimeout(config.minimalTimeout.timeout);
+  element = await basePage.returnElementByType("class", "title");
+  await expect(element).toBeVisible(config.increasedTimeout);
+  const textContent = await element.textContent();
+  await expect(textContent).toContain("Assets");
+  result = await basePage.isImOnTheAssetsPage();
   await expect(result).toBe(true);
 });
 

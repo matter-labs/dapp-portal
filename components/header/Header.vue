@@ -47,7 +47,7 @@
     </div>
     <div class="right-side">
       <HeaderNetworkDropdown class="network-dropdown" />
-      <CommonButton v-if="!isConnected" variant="primary" @click="onboardStore.openModal()">
+      <CommonButton v-if="!isConnected" variant="primary" data-testid="login-button" @click="onboardStore.openModal()">
         <span class="whitespace-nowrap">Connect wallet</span>
       </CommonButton>
       <template v-else>

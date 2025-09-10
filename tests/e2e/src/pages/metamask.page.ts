@@ -1,8 +1,8 @@
 import { setTimeout } from "timers/promises";
 
 import { Extension } from "../data/data";
-import { depositTag, Helper, resetAllowanceTag } from "../helpers/helper";
-import { config, wallet } from "../support/config";
+import { Helper, resetAllowanceTag } from "../helpers/helper";
+import { config } from "../support/config";
 
 import type { ICustomWorld } from "../support/custom-world";
 import { MainPage } from "./main.page";
@@ -66,8 +66,24 @@ export class MetamaskPage extends BasePage {
     return "page-container-footer-next";
   }
 
+  get noThanksBtn() {
+    return "//button[contains(text(), 'No thanks')]";
+  }
+
   get confirmTransaction() {
-    return "//*[@data-testid='page-container-footer-next'] | //button[contains(text(), 'Confirm')]";
+    return "//*[@data-testid='page-container-footer-next'] | //button[contains(text(), 'Confirm')] | //*[@data-testid='confirmation-submit-button']";
+  }
+
+  get signTransaction() {
+    return "//*[@data-testid='page-container-footer-next'] | //button[contains(text(), 'Sign')]";
+  }
+
+  get scrolldownButton() {
+    return "//*[@data-testid='signature-request-scroll-button']";
+  }
+
+  get cancelBtn() {
+    return "//*[@data-testid='page-container-footer-cancel'] | //button[contains(text(), 'Cancel')]";
   }
 
   get declineBtn() {
@@ -75,35 +91,67 @@ export class MetamaskPage extends BasePage {
   }
 
   get newPasswordField() {
-    return "//*[@autocomplete='new-password' and @id='password']";
+    return "//*[@data-testid='create-password-new' and @type='password']";
   }
 
   get confirmPasswordField() {
-    return "id=confirm-password";
+    return "//*[@data-testid='create-password-confirm' and @type='password']";
   }
 
   get unlockPasswordField() {
-    return "#password";
+    return '[data-testid="unlock-password"]';
   }
 
   get confirmUnlockBtn() {
-    return "//button[1]";
+    return '[data-testid="unlock-submit"]';
+  }
+
+  get metamaskNextBtn() {
+    return '[data-testid="page-container-footer-next"]';
+  }
+
+  get onboardingDoneBtn() {
+    return '[data-testid="onboarding-complete-done"]';
+  }
+
+  get pinExtensionNextBtn() {
+    return '[data-testid="pin-extension-next"]';
+  }
+
+  get pinExtensionDoneBtn() {
+    return '[data-testid="pin-extension-done"]';
+  }
+
+  get popoverCloseBtn() {
+    return '[data-testid="popover-close"]';
   }
 
   get checkboxTermsUsage() {
-    return "//*[@href='https://metamask.io/terms.html']/../../../../input";
+    return '[data-testid="create-password-terms"]';
   }
 
   get importBtn() {
-    return "//button[@type='submit']";
+    return "//button[contains(text(), 'Confirm Secret Recovery Phrase')]";
   }
 
   get succeedBtn() {
-    return "//button[@role='button']";
+    return "//button[@data-testid='create-password-import']";
   }
 
   get confirmBtn() {
     return "//div[@class='confirmation-footer']//button[2]";
+  }
+
+  get switchNetworkBtnMM() {
+    return "//div[@class='confirmation-footer']//button[contains(text(), 'Switch network')]";
+  }
+
+  get onboardingTermsLabel() {
+    return "label[for='onboarding__terms-checkbox']";
+  }
+
+  get importExistingWalletBtn() {
+    return "//button[contains(text(), 'Import an existing wallet')]";
   }
 
   get mainBtn() {
@@ -144,18 +192,18 @@ export class MetamaskPage extends BasePage {
     testId = new BasePage(this.world).byTestId;
     await page.bringToFront();
     await page.reload();
+    await page.locator(this.onboardingTermsLabel).click();
+    await page.click(this.importExistingWalletBtn);
     await page.click(this.mainBtn);
-    await page.click(this.mainBtn);
-    await page.click(testId + this.acceptMetricsBtn);
   }
 
   async importMetamaskAccount(secretPhrase: Array<string>, password: string) {
     await this.fillSecretPhrase(secretPhrase);
+    await page.click(this.importBtn);
     await page.fill(this.newPasswordField, password);
     await page.fill(this.confirmPasswordField, password);
     await page.locator(this.checkboxTermsUsage).click({ force: true });
     await page.bringToFront();
-    await page.click(this.importBtn);
     await page.click(this.succeedBtn);
   }
 
@@ -180,7 +228,7 @@ export class MetamaskPage extends BasePage {
 
   async authorizeInMetamaskExtension(secretPhrase: Array<string>, password: string) {
     const helper = await new Helper(this.world);
-    const wallet_password = await helper.decrypt(wallet.password);
+    const wallet_password = helper.getWalletPassword();
     page = this.world.page;
 
     if (metamaskWelcomeUrl === undefined) {
@@ -231,31 +279,70 @@ export class MetamaskPage extends BasePage {
   }
 
   async operateTransaction(selector: string, argument: string) {
+    await this.world.page?.locator(selector).waitFor({
+      state: "visible",
+      timeout: config.defaultTimeout.timeout,
+    });
     const popUpContext = await this.catchPopUpByClick(selector);
     await setTimeout(config.minimalTimeout.timeout);
     await popUpContext?.setViewportSize(config.popUpWindowSize);
     if (argument == "confirm" || argument == "continue") {
-      await popUpContext?.click(this.confirmTransaction);
+      const confirmBtn = await popUpContext?.locator(this.confirmTransaction);
+      let isDisabled: boolean | undefined = false;
+      try {
+        isDisabled = !(await confirmBtn?.isVisible()) || (await confirmBtn?.isDisabled());
+      } catch (e) {
+        console.log(e);
+      }
+      if (isDisabled) {
+        const isVisibleScrolldown = await popUpContext?.isVisible(this.scrolldownButton);
+        if (isVisibleScrolldown) {
+          await popUpContext?.click(this.scrolldownButton, { timeout: config.defaultTimeout.timeout });
+          const signBtnElement = await popUpContext?.locator(this.signTransaction);
+          await signBtnElement?.scrollIntoViewIfNeeded();
+          await popUpContext?.click(this.signTransaction, { timeout: config.increasedTimeout.timeout });
+          return;
+        }
+      }
+      // confirmScrolldownButton
+      await popUpContext?.click(this.confirmTransaction, { timeout: config.increasedTimeout.timeout });
     } else if (argument == "next and confirm") {
       await popUpContext?.click(this.nextButton);
       await popUpContext?.click(this.confirmTransaction);
     } else if (argument == "networkSwitch") {
       await popUpContext?.click(this.switchNetworkButton);
     } else if (argument == "reject") {
-      await popUpContext?.click(this.declineBtn, config.increasedTimeout);
+      const cancelBtn = await popUpContext?.locator(this.cancelBtn);
+      let isDisabled: boolean | undefined = false;
+      try {
+        isDisabled = !(await cancelBtn?.isVisible()) || (await cancelBtn?.isDisabled());
+      } catch (e) {
+        console.log(e);
+      }
+      if (isDisabled) {
+        const isVisibleScrolldown = await popUpContext?.isVisible(this.scrolldownButton);
+        if (isVisibleScrolldown) {
+          await popUpContext?.click(this.scrolldownButton, { timeout: config.defaultTimeout.timeout });
+          const cancelBtnElement = await popUpContext?.locator(this.cancelBtn);
+          await cancelBtnElement?.scrollIntoViewIfNeeded();
+          await popUpContext?.click(this.cancelBtn, { timeout: config.increasedTimeout.timeout });
+          return;
+        }
+      }
+
+      await popUpContext?.click(this.cancelBtn, config.increasedTimeout);
     }
   }
 
   async catchPopUpByClick(element: string) {
-    testId = new BasePage(this.world).byTestId;
     const helper = await new Helper(this.world);
     const [popUp] = await Promise.all([
-      this.world.context?.waitForEvent("page"),
-      await helper.checkElementVisible(element),
-      await this.world.page?.locator(element).first().click(),
-      await setTimeout(config.minimalTimeout.timeout),
-      await this.isFeeAlert(element),
+      this.world.context?.waitForEvent("page", { timeout: config.increasedTimeout.timeout }),
+      this.world.page?.locator(element).first().click({ timeout: config.increasedTimeout.timeout }),
     ]);
+
+    await popUp?.waitForLoadState("domcontentloaded");
+
     return popUp;
   }
 
@@ -265,7 +352,10 @@ export class MetamaskPage extends BasePage {
     const feeAlert = await helper.checkElementVisible(this.feeChangerAlert);
     if (feeAlert) {
       await helper.checkElementVisible(mainPage.confirmFeeChangeButton);
+      await helper.checkElementClickable(mainPage.confirmFeeChangeButton);
       await this.click(mainPage.confirmFeeChangeButton);
+      await helper.checkElementVisible(element);
+      await helper.checkElementClickable(element);
       await this.catchPopUpByClick(element);
     }
   }
@@ -276,18 +366,62 @@ export class MetamaskPage extends BasePage {
   }
 
   async switchNetwork() {
+    const continueBtnSelector = "//button[contains(text(), ' Continue ')]";
+    const continueBtnElement: any = await this.world.page?.locator(continueBtnSelector);
+    const isContinueBtnElementVisible = await continueBtnElement.isVisible();
+
     const switchNetworkBtnSelector = "//div[@class='transaction-footer-row']//button";
+
+    // Wait for the state to update
+    await this.world.page?.waitForTimeout(300);
     const switchNetworkBtnElement: any = await this.world.page?.locator(switchNetworkBtnSelector);
-    // check that switchNetworkBtnSelector is switcher network button
     const buttonText = await switchNetworkBtnElement.innerText();
-    const result = buttonText.includes("Change wallet network");
-    if ((await switchNetworkBtnElement.isEnabled()) && result) {
+    const isChangeWalletNetwork = buttonText.includes("Change wallet network");
+    const isConnectWallet = buttonText.includes("Connect wallet");
+    const isButtonEnabled = isChangeWalletNetwork || isConnectWallet;
+    const isSwitchNetworkBtnElementEnabled = await switchNetworkBtnElement.isEnabled();
+
+    if (isSwitchNetworkBtnElementEnabled && isButtonEnabled && !isContinueBtnElementVisible) {
       const popUpContext = await this.catchPopUpByClick(switchNetworkBtnSelector);
       await popUpContext?.setViewportSize(config.popUpWindowSize);
-      if (!depositTag) {
-        await popUpContext?.click(this.confirmBtn);
+      try {
+        const confirmButton = await popUpContext?.waitForSelector(this.confirmTransaction, {
+          state: "visible",
+          timeout: config.increasedTimeout.timeout,
+        });
+
+        if (confirmButton) {
+          await confirmButton.click();
+        }
+      } catch (error) {
+        console.log("Confirm Transaction button not visible within timeout.");
       }
-      await popUpContext?.click(this.confirmBtn);
+
+      try {
+        const confirmButton = await popUpContext?.waitForSelector(this.confirmTransaction, {
+          state: "visible",
+          timeout: config.increasedTimeout.timeout,
+        });
+
+        if (confirmButton) {
+          await confirmButton.click();
+        }
+      } catch (error) {
+        console.log("Confirm Transaction button not visible within timeout.");
+      }
+
+      try {
+        const switchNetworkButton = await popUpContext?.waitForSelector(this.switchNetworkBtnMM, {
+          state: "visible",
+          timeout: config.increasedTimeout.timeout,
+        });
+
+        if (switchNetworkButton) {
+          await switchNetworkButton.click();
+        }
+      } catch (error) {
+        // Switch Network button not visible, skipping click.
+      }
     }
   }
 
