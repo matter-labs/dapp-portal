@@ -243,7 +243,7 @@
                 <template v-for="allowanceReceipt in setAllowanceReceipts" :key="allowanceReceipt.transactionHash">
                   <a
                     v-if="l1BlockExplorerUrl"
-                    :href="`${l1BlockExplorerUrl}/tx/${allowanceReceipt.transactionHash}`"
+                    :href="buildExplorerUrl(l1BlockExplorerUrl, allowanceReceipt.transactionHash)"
                     target="_blank"
                     class="inline-flex items-center gap-1 underline underline-offset-2"
                   >
@@ -267,7 +267,7 @@
                 >
                   <a
                     v-if="l1BlockExplorerUrl && allowanceTransactionHash"
-                    :href="`${l1BlockExplorerUrl}/tx/${allowanceTransactionHash}`"
+                    :href="buildExplorerUrl(l1BlockExplorerUrl, allowanceTransactionHash)"
                     target="_blank"
                     class="inline-flex items-center gap-1 underline underline-offset-2"
                   >
