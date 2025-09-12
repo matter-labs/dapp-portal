@@ -5,6 +5,11 @@
       "key": "my-hyperchain",
       "name": "My new hyperchain",
       "rpcUrl": "http://127.0.0.1:3050",
+      "blockExplorerUrl": "http://127.0.0.1:3010",
+      "blockExplorerApi": "http://127.0.0.1:3002",
+      "displaySettings": {
+        "isTestnet": true
+      },
       "l1Network": {
         "id": 9,
         "name": "Localhost",
