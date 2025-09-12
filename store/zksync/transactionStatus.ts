@@ -22,7 +22,7 @@ export type TransactionInfo = {
 };
 
 export const ESTIMATED_DEPOSIT_DELAY = 15 * 60 * 1000; // 15 minutes
-export const WITHDRAWAL_DELAY = 5 * 60 * 60 * 1000; // 5 hours
+export const WITHDRAWAL_DELAY = 6 * 60 * 60 * 1000; // 6 hours
 
 export const useZkSyncTransactionStatusStore = defineStore("zkSyncTransactionStatus", () => {
   const onboardStore = useOnboardStore();

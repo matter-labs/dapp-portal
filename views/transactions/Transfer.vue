@@ -201,7 +201,7 @@
             target="_blank"
             class="ml-auto text-right"
           >
-            5+ hours
+            6+ hours
           </CommonButtonLabel>
           <CommonButtonLabel v-else-if="type === 'transfer'" as="span" class="ml-auto text-right">
             Almost instant
