@@ -170,7 +170,7 @@ const publicChains: ZkSyncNetwork[] = [
     hidden: true,
     key: "prividium-era-testnet",
     name: "Prividium Era Testnet",
-    rpcUrl: "https://proxy.era-prividium.zksync.dev/rpc/public",
+    rpcUrl: "https://proxy.era-prividium.zksync.dev/rpc",
     blockExplorerUrl: "https://block-explorer.era-prividium.zksync.dev",
     // blockExplorerApi: "https://block-explorer-api.sepolia.zksync.dev",
     // l1Network: l1Networks.sepolia,
