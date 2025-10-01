@@ -62,7 +62,10 @@ Array<{
       rpcUrls: {
         default: { http: [ string ] },
         public: { http: [ string ] }
-      }
+      };
+      blockExplorers?: {
+        default: { name: string; url: string }
+      };
     };
   },
   tokens: Array<{ // Must include the base token for the chain so the UI can label balances correctly
@@ -77,7 +80,7 @@ Array<{
 }>
 ```
 
-> ℹ️ **Heads up:** include `displaySettings` so your network appears in the selector, fill in `nativeCurrency` for accurate chain metadata, and list the chain's base token in `tokens` to avoid the generic `BASETOKEN` label in the UI.
+> ℹ️ **Heads up:** include `displaySettings` so your network appears in the selector, fill in `nativeCurrency` for accurate chain metadata, provide `blockExplorers.default.url` on both L2 and `l1Network` if you want explorer links in the UI, and list the chain's base token in `tokens` to avoid the generic `BASETOKEN` label.
 </details>
 
 ---

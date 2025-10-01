@@ -21,14 +21,20 @@
         "id": 9,
         "name": "Localhost",
         "network": "localhost",
-        "nativeCurrency": { 
-          "name": "Ether", 
-          "symbol": "ETH", 
-          "decimals": 18 
+        "nativeCurrency": {
+          "name": "Ether",
+          "symbol": "ETH",
+          "decimals": 18
         },
         "rpcUrls": {
           "default": { "http": ["http://localhost:8545"] },
           "public": { "http": ["http://localhost:8545"] }
+        },
+        "blockExplorers": {
+          "default": {
+            "name": "Local Block Explorer",
+            "url": "http://localhost:3010"
+          }
         }
       }
     },
