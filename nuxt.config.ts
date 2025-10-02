@@ -61,6 +61,12 @@ export default defineNuxtConfig({
 
   css: ["@/assets/css/tailwind.css", "@/assets/css/style.scss", "web3-avatar-vue/dist/style.css"],
   ssr: false,
+  nitro: {
+    preset: "static",
+    output: {
+      publicDir: "dist",
+    },
+  },
 
   pinia: {
     storesDirs: ["./store/**"],
