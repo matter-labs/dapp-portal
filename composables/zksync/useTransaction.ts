@@ -1,9 +1,8 @@
 import { useMemoize } from "@vueuse/core";
 import { getWalletClient, getPublicClient, prepareTransactionRequest, custom } from "@wagmi/core";
 import { ethers, type BigNumberish, type ContractTransaction } from "ethers";
-import { createWalletClient, type Hash } from "viem";
+import { createWalletClient, type Hash, type Address } from "viem";
 import { eip712WalletActions } from "viem/zksync";
-import { EIP712_TX_TYPE } from "zksync-ethers/build/utils";
 
 import { isCustomNode } from "@/data/networks";
 import { wagmiConfig } from "~/data/wagmi";
@@ -12,14 +11,13 @@ import { useSentryLogger } from "../useSentryLogger";
 
 import type { TokenAmount } from "@/types";
 import type { Provider, Signer } from "zksync-ethers";
-import type { Address } from "zksync-ethers/build/types";
 
 type TransactionParams = {
   type: "transfer" | "withdrawal";
-  to: string;
-  tokenAddress: string;
+  to: Address;
+  tokenAddress: Address;
   amount: BigNumberish;
-  bridgeAddress?: string;
+  bridgeAddress?: Address;
 };
 
 export const isWithdrawalManualFinalizationRequired = (_token: TokenAmount, l1NetworkId: number) => {
@@ -69,7 +67,7 @@ export default (getSigner: () => Promise<Signer | undefined>, getProvider: () =>
     transaction: TransactionParams,
     fee: { gasPrice: BigNumberish; gasLimit: BigNumberish }
   ) => {
-    let accountAddress = "";
+    let accountAddress = "" as Address;
     try {
       error.value = undefined;
 
@@ -77,7 +75,7 @@ export default (getSigner: () => Promise<Signer | undefined>, getProvider: () =>
       const signer = await getSigner();
       if (!signer) throw new Error("ZKsync Signer is not available");
 
-      accountAddress = await signer.getAddress();
+      accountAddress = (await signer.getAddress()) as Address;
 
       const provider = await getProvider();
 
@@ -85,7 +83,7 @@ export default (getSigner: () => Promise<Signer | undefined>, getProvider: () =>
         if (transaction.bridgeAddress) return transaction.bridgeAddress;
         if (transaction.tokenAddress === L2_BASE_TOKEN_ADDRESS) return undefined;
         const bridgeAddresses = await retrieveBridgeAddresses();
-        return bridgeAddresses.sharedL2;
+        return bridgeAddresses.sharedL2 as Address;
       };
       const bridgeAddress = transaction.type === "withdrawal" ? await getRequiredBridgeAddress() : undefined;
 
@@ -140,20 +138,18 @@ export default (getSigner: () => Promise<Signer | undefined>, getProvider: () =>
         if (!wagmiPublicClient) throw new Error("Wagmi public client is not available");
 
         const prepared = await prepareTransactionRequest(wagmiConfig, {
-          chain: wagmiClient.chain,
+          chainId: wagmiClient.chain.id,
           account: wagmiClient.account,
           to: txRequest.to as Address,
-          from: txRequest.from as Address,
           data: txRequest.data as Hash,
           value: BigInt(txRequest.value || 0) as bigint,
-          type: "eip712",
         });
 
         const client = createWalletClient({
           account: wagmiClient.account,
           chain: prividiumInstance.chain,
           transport: custom({
-            async request({ method, params }: any) {
+            async request({ method, params }) {
               const response = await wagmiClient.transport.request({ method, params });
               return response;
             },
@@ -161,7 +157,7 @@ export default (getSigner: () => Promise<Signer | undefined>, getProvider: () =>
         }).extend(eip712WalletActions());
         const signature = await client.signTransaction({
           ...prepared,
-          type: "eip712",
+          type: "eip712" as any,
         });
 
         const txResponse = {
