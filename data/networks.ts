@@ -42,6 +42,7 @@ export type ZkSyncNetwork = {
   hidden?: boolean; // If set to true, the network will not be shown in the network selector
   deprecated?: boolean;
   l1Network?: L1Network;
+  isPrividium?: boolean; // If true, the network uses Prividium for authentication
   blockExplorerUrl?: string;
   blockExplorerApi?: string;
   displaySettings?: {
@@ -92,6 +93,25 @@ const publicChains: ZkSyncNetwork[] = [
     blockExplorerApi: "https://block-explorer-api.zksync-os-testnet-alpha.zksync.dev",
     l1Network: l1Networks.sepolia,
     hidden: false,
+    displaySettings: {
+      isTestnet: true,
+    },
+  },
+  {
+    id: 270,
+    key: "prividium-local",
+    name: "ZKsyncOS Local Prividium",
+    rpcUrl: "https://localhost:5050",
+    l1Network: {
+      id: 31337,
+      name: "Local L1",
+      nativeCurrency: { name: "Ether", symbol: "ETH", decimals: 18 },
+      rpcUrls: {
+        default: { http: ["http://localhost:5010"] },
+      },
+    },
+    isPrividium: true,
+    hidden: true,
     displaySettings: {
       isTestnet: true,
     },
