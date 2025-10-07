@@ -27,18 +27,20 @@ export const useZkSyncEthereumBalanceStore = defineStore("zkSyncEthereumBalances
     // Special handling: if base token is ETH but has different L1 address than standard ETH,
     // merge Ankr's standard ETH balance with the base token entry to avoid duplicates
     const baseETHToken = Object.values(l1Tokens.value ?? []).find((token) => token.isETH);
-    const ankrStandardETH = ethereumBalance.value.find((e) => e.address.toUpperCase() === utils.ETH_ADDRESS.toUpperCase());
-    const shouldMergeETH = baseETHToken && ankrStandardETH && baseETHToken.address.toUpperCase() !== ankrStandardETH.address.toUpperCase();
+    const ankrStandardETH = ethereumBalance.value.find(
+      (e) => e.address.toUpperCase() === utils.ETH_ADDRESS.toUpperCase()
+    );
+    const shouldMergeETH =
+      baseETHToken && ankrStandardETH && baseETHToken.address.toUpperCase() !== ankrStandardETH.address.toUpperCase();
 
-    const tokensNotInAnkr = Object.values(l1Tokens.value ?? [])
-      .filter((token) => {
-        const existsInAnkr = ethereumBalance.value?.find((e) => e.address === token.address);
-        // If this is the base ETH token and we're merging with Ankr's standard ETH, don't add it separately
-        if (shouldMergeETH && token.address === baseETHToken?.address) {
-          return false;
-        }
-        return !existsInAnkr;
-      });
+    const tokensNotInAnkr = Object.values(l1Tokens.value ?? []).filter((token) => {
+      const existsInAnkr = ethereumBalance.value?.find((e) => e.address === token.address);
+      // If this is the base ETH token and we're merging with Ankr's standard ETH, don't add it separately
+      if (shouldMergeETH && token.address === baseETHToken?.address) {
+        return false;
+      }
+      return !existsInAnkr;
+    });
 
     return [
       ...ethereumBalance.value.map((e) => {
