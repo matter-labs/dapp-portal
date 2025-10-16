@@ -1,0 +1,46 @@
+name: Deploy ZKsync OS
+on:
+  push:
+    branches:
+      - zksyncos-alpha
+
+jobs:
+  deploy:
+    name: Build and Deploy ZKsync OS
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: |
+          npm ci --force
+
+      - name: Setup .env
+        run: |
+          echo "WALLET_CONNECT_PROJECT_ID=${{ secrets.WALLET_CONNECT_PROJECT_ID }}" > .env
+          echo "ANKR_TOKEN=${{ secrets.ANKR_TOKEN }}" >> .env
+          echo "SCREENING_API_URL=${{ secrets.SCREENING_API_URL }}" >> .env
+          echo "DATAPLANE_URL=${{ secrets.DATAPLANE_URL }}" >> .env
+          echo "RUDDER_KEY=${{ secrets.RUDDER_KEY }}" >> .env
+
+      - name: Build
+        run: |
+          npm run generate
+
+      - name: Deploy to ZKsync OS Site
+        uses: matter-labs/action-hosting-deploy@main
+        with:
+          repoToken: "${{ secrets.GITHUB_TOKEN }}"
+          firebaseServiceAccount: "${{ secrets.FIREBASE_SERVICE_ACCOUNT_ZKSYNC_DAPP_WALLET_V2 }}"
+          projectId: zksync-dapp-wallet-v2
+          channelId: live
+          target: zksync-os

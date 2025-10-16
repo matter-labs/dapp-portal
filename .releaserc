@@ -11,6 +11,10 @@
     {
       "name": "alpha",
       "prerelease": true
+    },
+    {
+      "name": "zksyncos-alpha",
+      "prerelease": true
     }
   ],
   "plugins": [

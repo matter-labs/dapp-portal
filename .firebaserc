@@ -7,6 +7,9 @@
       "hosting": {
         "web": [
           "zksync-dapp-wallet-v2"
+        ],
+        "zksync-os": [
+          "zksync-os-dapp-portal"
         ]
       }
     },
@@ -14,6 +17,9 @@
       "hosting": {
         "web": [
           "staging-zksync-dapp-wallet-v2"
+        ],
+        "zksync-os": [
+          "staging-zksync-os-dapp-portal"
         ]
       }
     }
