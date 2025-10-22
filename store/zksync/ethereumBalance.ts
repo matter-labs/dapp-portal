@@ -5,7 +5,8 @@ import { l1Networks } from "@/data/networks";
 import { wagmiConfig } from "@/data/wagmi";
 import { getBalancesWithCustomBridgeTokens, AddressChainType } from "@/utils/helpers";
 
-import type { Hash, TokenAmount } from "@/types";
+import type { TokenAmount } from "@/types";
+import type { Address } from "viem";
 
 export const useZkSyncEthereumBalanceStore = defineStore("zkSyncEthereumBalances", () => {
   const portalRuntimeConfig = usePortalRuntimeConfig();
@@ -57,11 +58,7 @@ export const useZkSyncEthereumBalanceStore = defineStore("zkSyncEthereumBalances
         const amount = await getBalance(wagmiConfig, {
           address: account.value.address!,
           chainId: l1Network.value!.id,
-          token:
-            token.address.toUpperCase() === utils.ETH_ADDRESS.toUpperCase() ||
-            token.address.toUpperCase() === utils.ETH_ADDRESS_IN_CONTRACTS.toUpperCase()
-              ? undefined
-              : (token.address! as Hash),
+          token: token.isETH ? undefined : (token.address as Address),
         });
         return {
           ...token,
@@ -85,10 +82,10 @@ export const useZkSyncEthereumBalanceStore = defineStore("zkSyncEthereumBalances
         portalRuntimeConfig.ankrToken
       ) {
         const apiBalances = await getBalancesFromApi();
-        return getBalancesWithCustomBridgeTokens(apiBalances, AddressChainType.L1);
+        return getBalancesWithCustomBridgeTokens(apiBalances, AddressChainType.L1, l1Network.value.id);
       } else {
         const rpcBalances = await getBalancesFromRPC();
-        return getBalancesWithCustomBridgeTokens(rpcBalances, AddressChainType.L1);
+        return getBalancesWithCustomBridgeTokens(rpcBalances, AddressChainType.L1, l1Network.value.id);
       }
     },
     { cache: 30000 }

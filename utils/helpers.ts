@@ -66,18 +66,21 @@ export enum AddressChainType {
 
 export function getBalancesWithCustomBridgeTokens(
   balances: TokenAmount[] | undefined,
-  addressChainType: AddressChainType
+  addressChainType: AddressChainType,
+  l1ChainId?: number
 ): TokenAmount[] {
   if (!balances || balances.length === 0) return [];
 
-  const customBridgeTokensAddresses = customBridgeTokens.map((customToken) => {
+  const networkCustomBridgeTokens = customBridgeTokens.filter((customToken) => customToken.chainId === l1ChainId);
+
+  const customBridgeTokensAddresses = networkCustomBridgeTokens.map((customToken) => {
     if (addressChainType === AddressChainType.L1) {
       return customToken.l1Address;
     }
     return customToken.l2Address;
   });
 
-  const mappedCustomBridgeTokens: TokenAmount[] = customBridgeTokens.map((customToken) => {
+  const mappedCustomBridgeTokens: TokenAmount[] = networkCustomBridgeTokens.map((customToken) => {
     const customTokenAddress = addressChainType === AddressChainType.L1 ? customToken.l1Address : customToken.l2Address;
     const customTokenBalance = balances.find((balance) => balance.address === customTokenAddress);
     return {
@@ -122,18 +125,21 @@ export function getBalancesWithCustomBridgeTokens(
 
 export function getTokensWithCustomBridgeTokens(
   tokens: Token[] | undefined,
-  addressChainType: AddressChainType
+  addressChainType: AddressChainType,
+  l1ChainId?: number
 ): Token[] {
   if (!tokens || tokens.length === 0) return [];
 
-  const customBridgeTokensAddresses = customBridgeTokens.map((customToken) => {
+  const networkCustomBridgeTokens = customBridgeTokens.filter((customToken) => customToken.chainId === l1ChainId);
+
+  const customBridgeTokensAddresses = networkCustomBridgeTokens.map((customToken) => {
     if (addressChainType === AddressChainType.L1) {
       return customToken.l1Address;
     }
     return customToken.l2Address;
   });
 
-  const mappedCustomBridgeTokens: Token[] = customBridgeTokens.map((customBridgeToken) => {
+  const mappedCustomBridgeTokens: Token[] = networkCustomBridgeTokens.map((customBridgeToken) => {
     const customBridgeTokenAddress =
       addressChainType === AddressChainType.L1 ? customBridgeToken.l1Address : customBridgeToken.l2Address;
     const customToken = tokens.find((token) => token.address === customBridgeTokenAddress);

@@ -442,7 +442,11 @@ const destination = computed(() => destinations.value.era);
 
 const availableTokens = computed<Token[]>(() => {
   if (balance.value) return balance.value;
-  return getTokensWithCustomBridgeTokens(Object.values(l1Tokens.value ?? []), AddressChainType.L1);
+  return getTokensWithCustomBridgeTokens(
+    Object.values(l1Tokens.value ?? []),
+    AddressChainType.L1,
+    eraNetwork.value.l1Network?.id
+  );
 });
 const availableBalances = computed<TokenAmount[]>(() => {
   return balance.value ?? [];

@@ -45,7 +45,7 @@ export default (
       accountAddress.value &&
       tokenAddress.value &&
       tokenAddress.value !== utils.ETH_ADDRESS &&
-      tokenAddress.value !== utils.ETH_ADDRESS_IN_CONTRACTS
+      tokenAddress.value !== L2_BASE_TOKEN_ADDRESS
     ) {
       await getAllowance();
     } else {

@@ -329,6 +329,7 @@ import WithdrawalSubmitted from "@/views/transactions/WithdrawalSubmitted.vue";
 import type { FeeEstimationParams } from "@/composables/zksync/useFee";
 import type { Token, TokenAmount } from "@/types";
 import type { BigNumberish } from "ethers";
+import type { Address } from "viem";
 
 const props = defineProps({
   type: {
@@ -370,10 +371,15 @@ const destination = computed(() => (props.type === "transfer" ? destinations.val
 
 const availableTokens = computed(() => {
   if (!tokens.value) return [];
+  const list = getTokensWithCustomBridgeTokens(
+    Object.values(tokens.value),
+    AddressChainType.L2,
+    eraNetwork.value.l1Network?.id
+  );
   if (props.type === "withdrawal") {
-    return getTokensWithCustomBridgeTokens(Object.values(tokens.value), AddressChainType.L2).filter((e) => e.l1Address);
+    return list.filter((e) => e.l1Address);
   }
-  return getTokensWithCustomBridgeTokens(Object.values(tokens.value), AddressChainType.L2);
+  return list;
 });
 const availableBalances = computed(() => {
   if (props.type === "withdrawal") {
@@ -568,7 +574,10 @@ const {
   setAllowanceStatus,
   showAllowanceProcess,
   approveAllowanceInProgress,
-} = useNativeAllowance(selectedTokenAddress, totalComputeAmount);
+} = useNativeAllowance(
+  computed(() => selectedToken.value?.address),
+  totalComputeAmount
+);
 
 const setTokenAllowance = async () => {
   await executeApproveAllowance();
@@ -706,10 +715,10 @@ const makeTransaction = async () => {
   const tx = await commitTransaction(
     {
       type: props.type,
-      to: transaction.value!.to.address,
-      tokenAddress: transaction.value!.token.address,
+      to: transaction.value!.to.address as Address,
+      tokenAddress: transaction.value!.token.address as Address,
       amount: transaction.value!.token.amount,
-      bridgeAddress: transaction.value!.token.l2BridgeAddress,
+      bridgeAddress: transaction.value!.token.l2BridgeAddress as Address,
     },
     {
       gasLimit: gasLimit.value!,

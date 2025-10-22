@@ -44,7 +44,7 @@ export default (tokens: Ref<Token[]>, balances: Ref<TokenAmount[] | undefined>) 
     return tokens.value.find(
       (e) =>
         e.address.toUpperCase() === utils.ETH_ADDRESS.toUpperCase() ||
-        e.address.toUpperCase() === utils.ETH_ADDRESS_IN_CONTRACTS.toUpperCase()
+        e.address.toUpperCase() === L2_BASE_TOKEN_ADDRESS.toUpperCase()
     );
   });
   const enoughBalanceToCoverFee = computed(() => {
