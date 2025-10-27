@@ -187,34 +187,8 @@
           </transition>
           <CommonButtonLabel v-if="!isCustomNode" as="span" class="ml-auto text-right">~15 seconds</CommonButtonLabel>
         </div>
-        <transition v-bind="TransitionAlertScaleInOutTransition" mode="out-in">
-          <CommonAlert
-            v-if="recommendedBalance && feeToken"
-            class="mt-4"
-            variant="error"
-            :icon="ExclamationTriangleIcon"
-          >
-            <p>
-              Insufficient <span class="font-medium">{{ feeToken?.symbol }}</span> balance on
-              {{ destinations.ethereum.label }} to cover the fee. We recommend having at least
-              <span class="font-medium"
-                >{{
-                  feeToken?.price
-                    ? removeSmallAmountPretty(recommendedBalance, feeToken?.decimals, feeToken?.price)
-                    : parseTokenAmount(recommendedBalance, feeToken?.decimals || 18)
-                }}
-                {{ feeToken?.symbol }}</span
-              >
-              on {{ eraNetwork.l1Network?.name ?? "L1" }} for deposit.
-            </p>
-            <NuxtLink :to="{ name: 'receive-methods' }" class="alert-link">Receive funds</NuxtLink>
-          </CommonAlert>
-          <CommonAlert
-            v-else-if="!enoughBalanceToCoverFee"
-            class="mt-4"
-            variant="error"
-            :icon="ExclamationTriangleIcon"
-          >
+        <transition v-bind="TransitionAlertScaleInOutTransition">
+          <CommonAlert v-if="!enoughBalanceToCoverFee" class="mt-4" variant="error" :icon="ExclamationTriangleIcon">
             <p>
               Insufficient <span class="font-medium">{{ feeToken?.symbol }}</span> balance on
               <span class="font-medium">{{ destinations.ethereum.label }}</span> to cover the fee
@@ -552,8 +526,8 @@ const {
   result: fee,
   inProgress: feeInProgress,
   error: feeError,
-  recommendedBalance,
   feeToken,
+  feeTokenBalance,
   enoughBalanceToCoverFee,
   estimateFee,
   resetFee,
@@ -648,7 +622,7 @@ const estimate = async () => {
   await estimateFee(transaction.value.to.address, selectedToken.value.address);
 };
 watch(
-  [() => selectedToken.value?.address, () => transaction.value?.from.address],
+  [() => selectedToken.value?.address, () => transaction.value?.from.address, feeTokenBalance],
   () => {
     resetFee();
     estimate();
@@ -656,7 +630,9 @@ watch(
   { immediate: true }
 );
 
-const autoUpdatingFee = computed(() => !feeError.value && fee.value && !feeLoading.value);
+const autoUpdatingFee = computed(
+  () => feeTokenBalance.value !== undefined && !feeError.value && fee.value && !feeLoading.value
+);
 const { reset: resetAutoUpdateEstimate, stop: stopAutoUpdateEstimate } = useInterval(async () => {
   if (!autoUpdatingFee.value) return;
   await estimate();

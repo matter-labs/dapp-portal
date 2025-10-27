@@ -1,4 +1,6 @@
+import { createEthersClient, createEthersSdk } from "@dutterbutter/zksync-sdk/ethers";
 import { readContract, writeContract } from "@wagmi/core";
+import { type BigNumberish } from "ethers";
 import { zeroAddress, type Address, type Hash } from "viem";
 import { L1Signer, utils } from "zksync-ethers";
 
@@ -7,7 +9,6 @@ import { L1_BRIDGE_ABI } from "@/data/abis/l1BridgeAbi";
 import { wagmiConfig } from "@/data/wagmi";
 
 import type { DepositFeeValues } from "@/composables/zksync/deposit/useFee";
-import type { BigNumberish } from "ethers";
 
 export default (getL1Signer: () => Promise<L1Signer | undefined>) => {
   const status = ref<"not-started" | "processing" | "waiting-for-signature" | "done">("not-started");
@@ -40,7 +41,7 @@ export default (getL1Signer: () => Promise<L1Signer | undefined>) => {
     });
     const bridgeData = await utils.getERC20DefaultBridgeData(transaction.tokenAddress, l1Signer.provider);
 
-    const gasPerPubdata = transaction.gasPerPubdata ?? BigInt(utils.REQUIRED_L1_TO_L2_GAS_PER_PUBDATA_LIMIT);
+    const gasPerPubdata = transaction.gasPerPubdata ?? fee.gasPerPubdata;
     const l2Value = 0n; // L2 value is not used in this context
     const l2GasLimit = await l1Signer.providerL2.estimateCustomBridgeDepositL2Gas(
       transaction.bridgeAddress,
@@ -59,16 +60,6 @@ export default (getL1Signer: () => Promise<L1Signer | undefined>) => {
       gasPerPubdataByte: gasPerPubdata,
     });
 
-    const overrides = {
-      gasPrice: fee.gasPrice,
-      gasLimit: fee.l1GasLimit,
-      maxFeePerGas: fee.maxFeePerGas,
-      maxPriorityFeePerGas: fee.maxPriorityFeePerGas,
-    };
-    if (overrides.gasPrice && overrides.maxFeePerGas) {
-      overrides.gasPrice = undefined;
-    }
-
     const hash = await writeContract(wagmiConfig, {
       address: transaction.bridgeAddress as Address,
       abi: L1_BRIDGE_ABI,
@@ -81,7 +72,7 @@ export default (getL1Signer: () => Promise<L1Signer | undefined>) => {
         gasPerPubdata,
         transaction.refundRecipient ?? zeroAddress,
       ],
-      value: baseCost + (overrides.maxPriorityFeePerGas ? BigInt(overrides.maxPriorityFeePerGas) : 0n),
+      value: baseCost + fee.maxPriorityFeePerGas,
     });
 
     return {
@@ -105,7 +96,7 @@ export default (getL1Signer: () => Promise<L1Signer | undefined>) => {
       bridgeAddress?: Address;
     },
     fee: DepositFeeValues
-  ) => {
+  ): Promise<{ hash: Hash } | undefined> => {
     try {
       error.value = undefined;
 
@@ -116,16 +107,6 @@ export default (getL1Signer: () => Promise<L1Signer | undefined>) => {
       await eraWalletStore.walletAddressValidate();
       await validateAddress(transaction.to);
 
-      const overrides = {
-        gasPrice: fee.gasPrice,
-        gasLimit: fee.l1GasLimit,
-        maxFeePerGas: fee.maxFeePerGas,
-        maxPriorityFeePerGas: fee.maxPriorityFeePerGas,
-      };
-      if (overrides.gasPrice && overrides.maxFeePerGas) {
-        overrides.gasPrice = undefined;
-      }
-
       status.value = "waiting-for-signature";
 
       if (transaction.bridgeAddress) {
@@ -135,20 +116,31 @@ export default (getL1Signer: () => Promise<L1Signer | undefined>) => {
         );
         ethTransactionHash.value = depositResponse.hash;
         status.value = "done";
-        return depositResponse;
+        return { hash: depositResponse.hash };
       } else {
-        const depositResponse = await wallet.deposit({
+        const client = createEthersClient({ l1: wallet.provider, l2: wallet.providerL2, signer: wallet });
+        const sdk = createEthersSdk(client);
+
+        const deposit = await sdk.deposits.create({
           to: transaction.to,
           token: transaction.tokenAddress,
-          amount: transaction.amount,
+          amount: BigInt(transaction.amount?.toString()),
           l2GasLimit: fee.l2GasLimit,
-          approveBaseERC20: true,
-          overrides,
+          gasPerPubdata: fee.gasPerPubdata,
+          l1TxOverrides: {
+            gasLimit: fee.l1GasLimit,
+            maxFeePerGas: fee.maxFeePerGas,
+            maxPriorityFeePerGas: fee.maxPriorityFeePerGas,
+          },
         });
+
+        const depositResponse = {
+          hash: deposit.l1TxHash,
+        };
 
         ethTransactionHash.value = depositResponse.hash as Hash;
         status.value = "done";
-        return depositResponse;
+        return { hash: depositResponse.hash as Hash };
       }
     } catch (err) {
       error.value = formatError(err as Error);
