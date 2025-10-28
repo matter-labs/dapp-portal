@@ -17,7 +17,7 @@ export const useDestinationsStore = defineStore("destinations", () => {
     ethereum: {
       key: "ethereum",
       label: l1Network.value ? l1Network.value.name : "",
-      iconUrl: "/img/ethereum.svg",
+      iconUrl: l1Network.value?.id === 97 ? "/img/bnb.svg" : "/img/ethereum.svg", // BSC Testnet uses BNB icon
     },
     layerswap: {
       key: "layerswap",
