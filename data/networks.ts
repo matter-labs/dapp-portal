@@ -199,6 +199,50 @@ const publicChains: ZkSyncNetwork[] = [
       },
     ],
   },
+  {
+    id: 9720,
+    key: "zk_bsc_chain",
+    name: "ZK BSC Chain",
+    rpcUrl: "http://13.228.79.240:3050",
+    blockExplorerUrl: "http://54.255.170.191:3010",
+    blockExplorerApi: "http://54.255.170.191:3002",
+    displaySettings: {
+      onramp: false,
+      showPartnerLinks: false,
+      isTestnet: true,
+    },
+    l1Network: {
+      id: 97,
+      name: "BSC Testnet",
+      nativeCurrency: { name: "Test BNB", symbol: "BNB", decimals: 18 },
+      rpcUrls: {
+        default: { http: ["http://47.130.24.70:10575"] },
+        public: { http: ["http://47.130.24.70:10575"] },
+      },
+      blockExplorers: {
+        default: {
+          name: "BSC Testnet Explorer",
+          url: "https://testnet.bscscan.com",
+        },
+      },
+    },
+    nativeCurrency: {
+      name: "Test BNB",
+      symbol: "BNB",
+      decimals: 18,
+    },
+    getTokens: () => [
+      {
+        address: "0x000000000000000000000000000000000000800A",
+        l2Address: "0x000000000000000000000000000000000000800A",
+        symbol: "BNB",
+        name: "Test BNB",
+        decimals: 18,
+        l1Address: "0x0000000000000000000000000000000000000000",
+        iconUrl: "/img/bnb.svg",
+      },
+    ],
+  },
 ];
 
 const getHyperchains = (): ZkSyncNetwork[] => {

@@ -60,15 +60,14 @@ export default (getL1Signer: () => Promise<L1Signer | undefined>) => {
       gasPerPubdataByte: gasPerPubdata,
     });
 
+    // Force legacy transaction type for BSC network compatibility
     const overrides = {
+      type: 0, // Force legacy transaction type (non-EIP-1559)
       gasPrice: fee.gasPrice,
       gasLimit: fee.l1GasLimit,
-      maxFeePerGas: fee.maxFeePerGas,
-      maxPriorityFeePerGas: fee.maxPriorityFeePerGas,
+      maxFeePerGas: undefined, // Not used in legacy transactions
+      maxPriorityFeePerGas: undefined, // Not used in legacy transactions
     };
-    if (overrides.gasPrice && overrides.maxFeePerGas) {
-      overrides.gasPrice = undefined;
-    }
 
     const hash = await writeContract(wagmiConfig, {
       address: transaction.bridgeAddress as Address,
@@ -117,15 +116,14 @@ export default (getL1Signer: () => Promise<L1Signer | undefined>) => {
       await eraWalletStore.walletAddressValidate();
       await validateAddress(transaction.to);
 
+      // Force legacy transaction type for BSC network compatibility
       const overrides = {
+        type: 0, // Force legacy transaction type (non-EIP-1559)
         gasPrice: fee.gasPrice,
         gasLimit: fee.l1GasLimit,
-        maxFeePerGas: fee.maxFeePerGas,
-        maxPriorityFeePerGas: fee.maxPriorityFeePerGas,
+        maxFeePerGas: undefined, // Not used in legacy transactions
+        maxPriorityFeePerGas: undefined, // Not used in legacy transactions
       };
-      if (overrides.gasPrice && overrides.maxFeePerGas) {
-        overrides.gasPrice = undefined;
-      }
 
       status.value = "waiting-for-signature";
 

@@ -38,6 +38,7 @@ export const useEthereumBalanceStore = defineStore("ethereumBalance", () => {
       const networkIdToAnkr = new Map<number, AnkrSupportedChains | "eth_sepolia">([
         [l1Networks.mainnet.id, "eth"],
         [l1Networks.sepolia.id, "eth_sepolia"],
+        [97, "bsc_testnet"], // BSC Testnet support
       ]);
       if (!networkIdToAnkr.has(eraNetwork.value.l1Network.id)) {
         throw new Error(`Ankr does not support ${eraNetwork.value.l1Network.name}`);
