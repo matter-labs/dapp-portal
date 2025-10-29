@@ -216,8 +216,8 @@ const publicChains: ZkSyncNetwork[] = [
       name: "BSC Testnet",
       nativeCurrency: { name: "Test BNB", symbol: "BNB", decimals: 18 },
       rpcUrls: {
-        default: { http: ["http://47.130.24.70:10575"] },
-        public: { http: ["http://47.130.24.70:10575"] },
+        default: { http: ["https://bsc-testnet-rpc.publicnode.com"] },
+        public: { http: ["https://bsc-testnet-rpc.publicnode.com"] },
       },
       blockExplorers: {
         default: {
