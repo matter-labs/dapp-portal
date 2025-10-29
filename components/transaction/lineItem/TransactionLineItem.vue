@@ -14,7 +14,7 @@
           <slot name="top-left" />
         </template>
         <template v-if="failed || $slots['bottom-left']" #underline>
-          <div v-if="failed" class="failed-underline">Failed</div>
+          <div v-if="failed" class="failed-underline">{{ $t("transaction.failed") }}</div>
           <slot v-else name="bottom-left" />
         </template>
       </CommonButtonLineBodyInfo>

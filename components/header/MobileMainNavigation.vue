@@ -2,7 +2,9 @@
   <HeaderMobileNavigation v-model:opened="modalOpened" title="Menu">
     <transition v-bind="TabsTransition" mode="out-in">
       <div v-if="openedTab === 'main'">
-        <TypographyCategoryLabel size="sm" :padded="false" class="mb-4">Network</TypographyCategoryLabel>
+        <TypographyCategoryLabel size="sm" :padded="false" class="mb-4">{{
+          $t("common.network")
+        }}</TypographyCategoryLabel>
         <CommonCardWithLineButtons>
           <DestinationItem
             :label="selectedNetwork.name"
@@ -18,11 +20,11 @@
           </DestinationItem>
         </CommonCardWithLineButtons>
 
-        <TypographyCategoryLabel size="sm">Portal</TypographyCategoryLabel>
+        <TypographyCategoryLabel size="sm">{{ $t("common.portal") }}</TypographyCategoryLabel>
         <CommonCardWithLineButtons>
           <DestinationItem
             v-if="selectedNetwork.displaySettings?.onramp"
-            label="On Ramp"
+            :label="$t('onRamp.buyCrypto')"
             as="RouterLink"
             :to="{ name: 'on-ramp' }"
             size="sm"
@@ -33,7 +35,7 @@
               </DestinationIconContainer>
             </template>
           </DestinationItem>
-          <DestinationItem label="Bridge" as="RouterLink" :to="{ name: 'bridge' }" size="sm">
+          <DestinationItem :label="$t('common.bridge')" as="RouterLink" :to="{ name: 'bridge' }" size="sm">
             <template #image>
               <DestinationIconContainer>
                 <ArrowsUpDownIcon aria-hidden="true" />

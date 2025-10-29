@@ -20,11 +20,15 @@
         <transition v-bind="TransitionOpacity()">
           <template v-if="displayedMaxAmount && displayedMaxAmount !== '0'">
             <span>
-              <CommonButtonLabel variant="light" as="span">Max:&nbsp;</CommonButtonLabel>
+              <CommonButtonLabel variant="light" as="span">{{ $t("transaction.max") }}&nbsp;</CommonButtonLabel>
               <CommonButtonLabel
                 variant="light"
                 :class="{ 'is-max': isMaxAmountSet }"
-                :title="isMaxAmountSet ? 'Max amount is set' : `Your max amount is ${maxDecimalAmount}`"
+                :title="
+                  isMaxAmountSet
+                    ? $t('transaction.maxAmountSet')
+                    : $t('transaction.yourMaxAmount', { amount: maxDecimalAmount })
+                "
                 @click.prevent="setMaxAmount()"
               >
                 {{ displayedMaxAmount }}
@@ -52,7 +56,9 @@
               <template v-if="amountError === 'insufficient_balance' || maxDecimalAmount === '0'">
                 Insufficient balance
               </template>
-              <template v-else-if="amountError === 'exceeds_balance' && !maxAmount">Amount exceeds balance</template>
+              <template v-else-if="amountError === 'exceeds_balance' && !maxAmount">{{
+                $t("validation.amountExceedsBalance")
+              }}</template>
               <template v-else-if="amountError === 'exceeds_max_amount' || amountError === 'exceeds_balance'">
                 Max amount is
                 <button
@@ -74,7 +80,7 @@
         </div>
 
         <transition v-bind="TransitionOpacity(300)">
-          <div v-if="approveRequired" v-tooltip="'Allowance approval required'">
+          <div v-if="approveRequired" v-tooltip="$t('allowance.approvalRequired')">
             <LockClosedIcon class="mt-4 h-6 w-6 text-warning-400" aria-hidden="true" />
           </div>
         </transition>

@@ -1,29 +1,32 @@
 <template>
   <div>
     <h1 class="h1 mt-block-gap-1/2 text-center">
-      {{ transaction.info.completed ? "Transaction completed" : "Transaction submitted" }}
+      {{ transaction.info.completed ? $t("transaction.completed") : $t("transaction.submitted") }}
     </h1>
     <CommonHeightTransition :opened="!transaction.info.completed">
       <p class="mb-4 text-center">
         <template v-if="withdrawalManualFinalizationRequired && transaction.info.withdrawalFinalizationAvailable">
-          Your funds will be available on <span class="font-medium">{{ transaction.to.destination.label }}</span> after
-          you claim the withdrawal.
+          {{ $t("transaction.fundsAvailableAfterClaim", { network: transaction.to.destination.label }) }}
         </template>
         <template v-else-if="isCustomNode">
-          Your funds will be available for claiming after the transaction is processed on
-          <span class="font-medium">{{ eraNetwork.name }}</span> and executed on the
-          <span class="font-medium">{{ eraNetwork.l1Network?.name }}</span
-          >.
+          {{
+            $t("transaction.fundsAvailableAfterProcessing", {
+              network: eraNetwork.name,
+              l1Network: eraNetwork.l1Network?.name,
+            })
+          }}
         </template>
         <template v-else>
-          Your funds will be available on <span class="font-medium">{{ transaction.to.destination.label }}</span> after
-          the
-          <a class="underline underline-offset-2" :href="ZKSYNC_WITHDRAWAL_DELAY" target="_blank">~5+ hour delay</a>.
-          During this time, the transaction will be processed
+          {{
+            $t("transaction.fundsAvailableAfterDelay", {
+              network: transaction.to.destination.label,
+              delay: $t("transaction.withdrawalDelay"),
+            })
+          }}
           {{
             withdrawalManualFinalizationRequired
-              ? "and become available for claiming."
-              : "and finalized. You are free to close this page."
+              ? $t("transaction.processedForClaiming")
+              : $t("transaction.processedFinalized")
           }}
         </template>
       </p>
@@ -34,7 +37,7 @@
           :icon="ExclamationTriangleIcon"
           class="mb-4"
         >
-          <p>You can claim your withdrawal now.</p>
+          <p>{{ $t("transaction.claimNow") }}</p>
         </CommonAlert>
         <CommonAlert
           v-else-if="!props.transaction.token.l1Address && !isCustomBridgeToken"
@@ -42,12 +45,11 @@
           :icon="ExclamationTriangleIcon"
           class="mb-4"
         >
-          <p>This withdrawal was made through a third-party bridge. Please use that bridge to claim your withdrawal.</p>
+          <p>{{ $t("transaction.thirdPartyBridgeClaim") }}</p>
         </CommonAlert>
         <CommonAlert v-else variant="warning" :icon="ExclamationTriangleIcon" class="mb-4">
           <p>
-            You will have to claim your withdrawal once it's processed. Claiming will require paying the fee on the
-            {{ eraNetwork.l1Network?.name }} network.
+            {{ $t("transaction.claimRequiresFee", { network: eraNetwork.l1Network?.name }) }}
           </p>
         </CommonAlert>
       </template>
@@ -77,7 +79,7 @@
             :disabled="connectorName === 'WalletConnect'"
             @click="onboardStore.setCorrectNetwork()"
           >
-            Change wallet network to claim
+            {{ $t("transaction.changeNetworkToClaim") }}
           </CommonButton>
         </template>
         <CommonButton
@@ -101,11 +103,11 @@
     <CommonHeightTransition :opened="withdrawalFinalizationAvailable">
       <div>
         <CommonErrorBlock v-if="feeError" class="mt-2" @try-again="estimate">
-          Fee estimation error: {{ feeError.message }}
+          {{ $t("transaction.feeEstimationError", { message: feeError.message }) }}
         </CommonErrorBlock>
         <TransactionFeeDetails
           v-else
-          label="Claiming fee:"
+          :label="$t('transaction.claimingFee')"
           :fee-token="feeToken"
           :fee-amount="fee"
           :loading="feeLoading"
@@ -116,8 +118,10 @@
           <template #after-checks>
             <CommonButton :disabled="continueButtonDisabled" class="w-full" variant="primary" @click="buttonContinue()">
               <transition v-bind="TransitionPrimaryButtonText" mode="out-in">
-                <span v-if="finalizeTransactionStatus === 'processing'">Processing...</span>
-                <span v-else-if="finalizeTransactionStatus === 'waiting-for-signature'">Waiting for confirmation</span>
+                <span v-if="finalizeTransactionStatus === 'processing'">{{ $t("transaction.processing") }}</span>
+                <span v-else-if="finalizeTransactionStatus === 'waiting-for-signature'">{{
+                  $t("transaction.waitingForConfirmation")
+                }}</span>
                 <span
                   v-else-if="
                     finalizeTransactionStatus === 'sending' ||
@@ -126,33 +130,33 @@
                   "
                   class="flex items-center gap-2"
                 >
-                  <span>Claiming withdrawal...</span>
+                  <span>{{ $t("transaction.claimingWithdrawal") }}</span>
                   <CommonSpinner variant="text-color" class="h-5 w-5" aria-hidden="true" />
                 </span>
-                <span v-else>Claim withdrawal</span>
+                <span v-else>{{ $t("transaction.claimWithdrawal") }}</span>
               </transition>
             </CommonButton>
             <TransactionButtonUnderlineConfirmTransaction
               :opened="finalizeTransactionStatus === 'waiting-for-signature'"
             />
           </template>
-          <template #change-network-auto>Change wallet network to claim</template>
+          <template #change-network-auto>{{ $t("transaction.changeNetworkToClaim") }}</template>
           <template #change-network-manual="{ walletName }">
-            Change network manually in your {{ walletName }} wallet to claim
+            {{ $t("transaction.changeNetworkManuallyToClaim", { walletName }) }}
           </template>
         </TransactionEthereumTransactionFooter>
       </div>
     </CommonHeightTransition>
 
     <div class="mt-5 flex flex-wrap items-center justify-center gap-block-gap">
-      <CommonButton as="RouterLink" :to="{ name: 'assets' }" size="xs">Go to Assets page</CommonButton>
+      <CommonButton as="RouterLink" :to="{ name: 'assets' }" size="xs">{{ $t("bridge.goToAssets") }}</CommonButton>
       <CommonButton
         size="xs"
         :as="makeAnotherTransaction ? undefined : 'RouterLink'"
         :to="{ name: 'bridge-withdraw' }"
         @click="makeAnotherTransaction && makeAnotherTransaction()"
       >
-        Make another transaction
+        {{ $t("transaction.makeAnotherTransaction") }}
       </CommonButton>
     </div>
   </div>

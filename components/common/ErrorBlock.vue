@@ -1,10 +1,10 @@
 <template>
   <div class="error-block-container">
     <FaceFrownIcon class="error-block-icon" aria-hidden="true" />
-    <div class="error-block-text-container">
-      <slot>Unexpected error</slot>
-    </div>
-    <CommonButton v-if="retryButton" class="ml-3" variant="error" @click="emit('try-again')">Try again</CommonButton>
+    <slot>{{ $t("errors.unexpectedError") }}</slot>
+    <CommonButton v-if="retryButton" class="ml-3" variant="error" @click="emit('try-again')">{{
+      $t("common.tryAgain")
+    }}</CommonButton>
   </div>
 </template>
 

@@ -17,7 +17,7 @@
         :class="{ 'router-link-exact-active': routes.onramp.includes(route.name?.toString() || '') }"
       >
         <BanknotesIcon class="link-icon" aria-hidden="true" />
-        On-Ramp
+        {{ $t("common.onRamp") }}
       </NuxtLink>
       <NuxtLink
         class="link-item"
@@ -25,7 +25,7 @@
         :class="{ 'router-link-exact-active': routes.bridge.includes(route.name?.toString() || '') }"
       >
         <ArrowsUpDownIcon class="link-icon" aria-hidden="true" />
-        Bridge
+        {{ $t("common.bridge") }}
       </NuxtLink>
       <NuxtLink
         class="link-item"
@@ -33,11 +33,11 @@
         :class="{ 'router-link-exact-active': routes.assets.includes(route.name?.toString() || '') }"
       >
         <WalletIcon class="link-icon" aria-hidden="true" />
-        Assets
+        {{ $t("common.assets") }}
       </NuxtLink>
       <NuxtLink class="link-item" :to="{ name: 'transfers' }">
         <ArrowsRightLeftIcon class="link-icon" aria-hidden="true" />
-        Transfers
+        {{ $t("common.transfers") }}
         <transition v-bind="TransitionOpacity()">
           <CommonBadge v-if="withdrawalsAvailableForClaiming.length">
             {{ withdrawalsAvailableForClaiming.length }}
@@ -46,9 +46,10 @@
       </NuxtLink>
     </div>
     <div class="right-side">
+      <LanguageSwitcher class="language-switcher" />
       <HeaderNetworkDropdown class="network-dropdown" />
       <CommonButton v-if="!isConnected" variant="primary" @click="onboardStore.openModal()">
-        <span class="whitespace-nowrap">Connect wallet</span>
+        <span class="whitespace-nowrap">{{ $t("common.connectWallet") }}</span>
       </CommonButton>
       <template v-else>
         <div class="sm:hidden">
@@ -84,6 +85,8 @@ import {
   WalletIcon,
   BanknotesIcon,
 } from "@heroicons/vue/24/outline";
+
+import LanguageSwitcher from "@/components/common/LanguageSwitcher.vue";
 
 const route = useRoute();
 
@@ -142,6 +145,7 @@ const { selectedColorMode, switchColorMode } = useColorMode();
     .color-mode-button {
       @apply hidden xl:block;
     }
+
     .hamburger-icon {
       @apply relative xl:hidden;
 

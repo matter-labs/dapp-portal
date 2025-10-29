@@ -1,14 +1,14 @@
 <template>
   <div>
     <NetworkDeprecationAlert />
-    <PageTitle>Transfers</PageTitle>
+    <PageTitle>{{ $t("common.transfers") }}</PageTitle>
 
     <template v-if="!isConnected">
-      <ConnectWalletBlock>Connect wallet to view your latest transfers on {{ eraNetwork.name }}</ConnectWalletBlock>
+      <ConnectWalletBlock>{{ $t("transfers.connectToView", { network: eraNetwork.name }) }}</ConnectWalletBlock>
     </template>
     <template v-else>
       <template v-if="!loading && recentBridgeOperations.length">
-        <TypographyCategoryLabel>Recent bridge operations</TypographyCategoryLabel>
+        <TypographyCategoryLabel>{{ $t("transfers.recentBridgeOperations") }}</TypographyCategoryLabel>
         <div v-if="actionRequiredBridgeTransactions.length" class="space-y-block-gap">
           <CommonCardWithLineButtons v-for="(item, index) in actionRequiredBridgeTransactions" :key="index">
             <TransactionTransferWithdrawalLineItem
@@ -42,7 +42,9 @@
           />
         </CommonCardWithLineButtons>
 
-        <TypographyCategoryLabel v-if="!hasOnlyRecentBridgeOperations">Completed transfers</TypographyCategoryLabel>
+        <TypographyCategoryLabel v-if="!hasOnlyRecentBridgeOperations">{{
+          $t("transfers.completedTransfers")
+        }}</TypographyCategoryLabel>
       </template>
 
       <div v-if="loading">

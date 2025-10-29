@@ -5,12 +5,12 @@
     <WithdrawalSubmitted v-else-if="transaction.type === 'withdrawal'" :transaction="transaction" />
   </div>
   <div v-else>
-    <h1 class="h1 mt-block-gap-1/2 text-center">Transaction not found</h1>
+    <h1 class="h1 mt-block-gap-1/2 text-center">{{ $t("transaction.notFound") }}</h1>
     <p class="mb-block-gap text-center">
-      The transaction you are looking for is not found. It is possible you submitted it from another browser or device.
+      {{ $t("transaction.notFoundDescription") }}
     </p>
     <CommonButton as="RouterLink" :to="{ name: 'assets' }" class="mt-block-gap" variant="primary">
-      Go to Assets page
+      {{ $t("bridge.goToAssets") }}
     </CommonButton>
   </div>
 </template>

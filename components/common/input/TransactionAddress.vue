@@ -6,9 +6,9 @@
         <slot name="dropdown" />
       </div>
       <div v-if="!addressInputHidden && defaultLabel && isConnected">
-        <span class="font-bold">{{ inputVisible ? "To another account" : defaultLabel }}</span>
+        <span class="font-bold">{{ inputVisible ? $t("transaction.toAnotherAccount") : defaultLabel }}</span>
         <CommonButtonLabel variant="light" class="ml-1" @click="toggleCustomValue()">
-          {{ inputVisible ? "Use my account" : "Change" }}
+          {{ inputVisible ? $t("transaction.useMyAccount") : $t("common.change") }}
         </CommonButtonLabel>
       </div>
     </div>
@@ -18,7 +18,7 @@
           id="transaction-address-input"
           v-model.trim="inputted"
           :has-error="!!addressError"
-          placeholder="Address or ENS"
+          :placeholder="$t('transaction.addressOrEns')"
           type="text"
           maxlength="42"
           spellcheck="false"
@@ -54,8 +54,8 @@
     <CommonInputErrorMessage>
       <transition v-bind="TransitionOpacity()">
         <span v-if="addressError">
-          <template v-if="addressError === 'invalid_address'">Invalid Ethereum 0x address</template>
-          <template v-else-if="addressError === 'ens_not_found'">Nothing found for this name</template>
+          <template v-if="addressError === 'invalid_address'">{{ $t("validation.invalidEthereumAddress") }}</template>
+          <template v-else-if="addressError === 'ens_not_found'">{{ $t("validation.ensNotFound") }}</template>
         </span>
       </transition>
     </CommonInputErrorMessage>

@@ -2,7 +2,9 @@
   <div>
     <h1 class="h1 mt-block-gap-1/2 text-center">
       <template v-if="transaction.info.failed">Transaction failed</template>
-      <template v-else>{{ transaction.info.completed ? "Transaction completed" : "Transaction submitted" }}</template>
+      <template v-else>{{
+        transaction.info.completed ? $t("transaction.completed") : $t("transaction.submitted")
+      }}</template>
     </h1>
     <CommonHeightTransition :opened="!transaction.info.completed || transaction.info.failed">
       <p class="mb-4 text-center">

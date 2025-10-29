@@ -1,0 +1,297 @@
+{
+  "common": {
+    "connectWallet": "ウォレット接続",
+    "send": "送信",
+    "receive": "受信",
+    "balance": "残高",
+    "balances": "残高",
+    "viewAll": "すべて表示",
+    "assets": "資産",
+    "transfers": "送金",
+    "bridge": "ブリッジ",
+    "onRamp": "入金",
+    "deposit": "入金",
+    "withdraw": "出金",
+    "confirm": "確認",
+    "cancel": "キャンセル",
+    "save": "保存",
+    "delete": "削除",
+    "edit": "編集",
+    "copy": "コピー",
+    "copied": "コピーしました",
+    "loading": "読み込み中...",
+    "error": "エラー",
+    "success": "成功",
+    "warning": "警告",
+    "info": "情報",
+    "close": "閉じる",
+    "back": "戻る",
+    "next": "次へ",
+    "previous": "前へ",
+    "search": "検索",
+    "filter": "フィルター",
+    "sort": "並び替え",
+    "refresh": "更新",
+    "retry": "再試行",
+    "tryAgain": "もう一度試す",
+    "continue": "続行",
+    "submit": "送信",
+    "reset": "リセット",
+    "clear": "クリア",
+    "add": "追加",
+    "remove": "削除",
+    "create": "作成",
+    "update": "更新",
+    "download": "ダウンロード",
+    "upload": "アップロード",
+    "share": "共有",
+    "settings": "設定",
+    "help": "ヘルプ",
+    "about": "について",
+    "contact": "連絡先",
+    "privacy": "プライバシー",
+    "terms": "利用規約",
+    "faq": "よくある質問"
+  },
+  "assets": {
+    "title": "資産",
+    "noBalances": "{network} に残高がありません",
+    "addFunds": "資金を追加",
+    "depositTokens": "ZKsync にトークンを入金",
+    "connectToView": "ウォレットを接続して {network} の残高を表示",
+    "toStartUsing": "ZKsync エコシステムを利用開始するには、便利な方法でトークンを入金してください",
+    "viewYourAddress": "アドレスを表示",
+    "receiveTokens": "別の {network} アカウントからトークンを受信",
+    "bridgeFrom": "{network} からブリッジ",
+    "receiveFromNetwork": "{network} アカウントからトークンを受信",
+    "faucet": "フォーセット",
+    "receiveTestnetFunds": "テストネット資金を受信",
+    "topUpWithCash": "現金でチャージ",
+    "buyTokens": "カードまたはその他の法定通貨方法でトークンを購入",
+    "bridgeFromOtherNetworks": "他のネットワークからブリッジ",
+    "exploreEcosystem": "サードパーティブリッジのエコシステムを探索"
+  },
+  "transfers": {
+    "connectToView": "ウォレットを接続して {network} の最新送金を表示",
+    "recentBridgeOperations": "最近のブリッジ操作",
+    "completedTransfers": "完了した送金",
+    "noTransfers": "送金が見つかりません",
+    "allTransfers": "すべての送金"
+  },
+  "bridge": {
+    "goToAssets": "資産ページへ",
+    "deposit": "入金",
+    "withdraw": "出金",
+    "bridgeTokens": "トークンをブリッジ",
+    "fromNetwork": "送信元ネットワーク",
+    "toNetwork": "送信先ネットワーク", 
+    "amountToBridge": "ブリッジ金額",
+    "estimatedTime": "推定時間",
+    "bridgeFee": "ブリッジ手数料",
+    "confirmBridge": "ブリッジを確認",
+    "bridgeTemporarilyDisabled": "{network} へのブリッジはアップグレード中のため一時的に無効化されています。完了は 6月6日 22:00 UTC を予定しています。後ほど再度お試しください。",
+    "upgradeInformation": "アップグレード情報ページ",
+    "withdrawDisabled": "{network} からのブリッジはアップグレード中のため一時的に無効化されています。完了は 6月7日 15:00 UTC を予定しています。後ほど再度お試しください。詳細については、",
+    "bridgeTo": "{network} へブリッジ",
+    "bridgeNow": "今すぐブリッジ"
+  },
+  "onRamp": {
+    "buyCrypto": "暗号通貨を購入",
+    "activeTransactions": "アクティブな取引",
+    "completed": "完了",
+    "transactions": "取引",
+    "processing": "処理中",
+    "fiatAmount": "法定通貨金額",
+    "cryptoAmount": "暗号通貨金額",
+    "selectProvider": "プロバイダーを選択",
+    "estimatedRate": "推定レート",
+    "fee": "手数料",
+    "totalCost": "総費用"
+  },
+  "transaction": {
+    "notFound": "取引が見つかりません",
+    "notFoundDescription": "お探しの取引は見つかりませんでした。別のブラウザやデバイスから送信された可能性があります。",
+    "details": "取引詳細",
+    "hash": "取引ハッシュ",
+    "status": "ステータス",
+    "amount": "金額",
+    "fee": "手数料",
+    "from": "送信元",
+    "to": "送信先",
+    "timestamp": "タイムスタンプ"
+  },
+  "auth": {
+    "authenticationRequired": "認証が必要です",
+    "prividiumAuthentication": "Prividium 認証",
+    "signInWithPrividium": "Prividium アカウントでサインイン",
+    "connectWallet": "ウォレット接続",
+    "connectWalletToContinue": "続行するにはウォレットを接続してください",
+    "authenticating": "認証中...",
+    "signInWithPrividiumButton": "Prividium でサインイン",
+    "connecting": "接続中...",
+    "connectWalletButton": "ウォレット接続",
+    "selectPreferredWallet": "続行するにはお好みのウォレットを選択してください。",
+    "authenticationComplete": "認証完了！",
+    "canNowAccessApp": "アプリケーションにアクセスできるようになりました。",
+    "continueToApp": "アプリケーションに進む"
+  },
+  "legal": {
+    "bridgeBetaTitle": "ZKsync ブリッジはベータ版です",
+    "bridgeBetaText": "このウェブサイト上のいかなる内容も、投資活動への招待、誘引、または勧誘と解釈されるべきではありません。このウェブサイトを通じて利用可能なブリッジ、資産、および取引機能はベータ版であり、テスト、さらなる開発、変更の対象となり、したがって保証なしで「現状のまま」提供されていることを理解しています。このウェブサイトで利用可能な機能の使用は、完全に自己責任で行ってください。",
+    "agreeToTerms": "私は以下に同意します",
+    "termsOfService": "利用規約",
+    "and": "と",
+    "privacyPolicy": "プライバシーポリシー",
+    "proceed": "続行"
+  },
+  "ecosystem": {
+    "exploreWonders": "ZKsync エコシステムの素晴らしさを探索",
+    "exploreEcosystem": "エコシステムを探索"
+  },
+  
+  "errors": {
+    "unexpectedError": "予期しないエラー"
+  },
+  
+  "wallet": {
+    "connect": "ウォレット接続",
+    "disconnect": "切断",
+    "copyAddress": "アドレスをコピー",
+    "viewOnExplorer": "エクスプローラーで表示",
+    "connected": "接続済み",
+    "disconnected": "切断済み",
+    "connecting": "接続中...",
+    "walletAddress": "ウォレットアドレス"
+  },
+  "network": {
+    "ethereum": "イーサリアム",
+    "zksync": "ZKsync",
+    "mainnet": "メインネット",
+    "testnet": "テストネット",
+    "network": "ネットワーク",
+    "switchNetwork": "ネットワーク切替"
+  },
+  
+  "errors": {
+    "networkError": "ネットワークエラー",
+    "walletConnection": "ウォレット接続失敗",
+    "transactionFailed": "トランザクション失敗",
+    "insufficientBalance": "残高不足",
+    "invalidAddress": "無効なアドレス",
+    "unknownError": "不明なエラーが発生しました",
+    "tryAgain": "もう一度お試しください"
+  },
+  "success": {
+    "transactionSuccess": "トランザクション成功",
+    "copied": "クリップボードにコピーしました",
+    "saved": "正常に保存されました"
+  },
+  "validation": {
+    "required": "このフィールドは必須です",
+    "invalidFormat": "無効な形式",
+    "invalidEthereumAddress": "無効なイーサリアム0xアドレス",
+    "ensNotFound": "この名前では何も見つかりませんでした",
+    "amountExceedsBalance": "金額が残高を超えています",
+    "minLength": "最低 {length} 文字必要です",
+    "maxLength": "最大 {length} 文字まで許可されます"
+  },
+  "tokenSelect": {
+    "symbolOrAddress": "シンボルまたはアドレス",
+    "chooseToken": "トークンを選択",
+    "yourAssets": "あなたの資産",
+    "noTokensFound": "接続されたアカウントで \"{search}\" トークンが見つかりません",
+    "checkNetwork": "正しい ZKsync ネットワークを使用していることを確認してください",
+    "connectWalletToSee": "利用可能なすべてのトークンを表示するにはウォレットを接続してください"
+  },
+  
+  "allowance": {
+    "approved": "{token} 承認済み",
+    "approve": "{token} を承認",
+    "beforeDepositing": "入金前に、ブリッジに指定金額の使用許可を与える必要があります",
+    "youCanDepositUpTo": "最大で入金できます",
+    "withoutApproving": "新しい承認なしで",
+    "learnMore": "詳細を見る",
+    "approvalRequired": "承認が必要です",
+    "waitingForApproval": "承認確認待ち"
+  },
+  "timer": {
+    "hours": "{count} 时间",
+    "minutes": "{count} 分",
+    "seconds": "{count} 秒"
+  },
+  "transaction": {
+    "estimatedTimeMinutes": "約 {minutes} 分"
+  },
+  "onRamp": {
+    "redirectingInSeconds": "{seconds} 秒後にリダイレクトされます",
+    "clickToGoBack": "クリックして戻る"
+  },
+  "deprecation": {
+    "networkShutdown": "{network} は3月31日にシャットダウンされます。代わりに",
+    "forMoreInfo": "を使用してください。詳細については"
+  },
+  "footer": {
+    "addToWallet": "{network} をウォレットに追加"
+  },
+  "mobileMenu": {
+    "chooseNetwork": "ネットワークを選択",
+    "theme": "テーマ",
+    "darkMode": "ダークモード",
+    "lightMode": "ライトモード"
+  },
+  "ethereumTransaction": {
+    "connectWallet": "ウォレット接続",
+    "networkChangeError": "ネットワーク変更エラー: {message}",
+    "l1NetworkNotAvailable": "{network} では L1 ネットワークは利用できません"
+  },
+  "withdrawals": {
+    "availableForClaim": "{network} ネットワークで引き出し可能な資金があります",
+    "seeWithdrawals": "引き出しを表示"
+  },
+  "nativeBridge": {
+    "onlyNativeAllowed": "{token} のみが {direction} からのブリッジに許可されています"
+  },
+  
+  "transaction": {
+    "completed": "取引完了",
+    "submitted": "取引送信済み",
+    "fundsAvailableAfterClaim": "引き出しを請求すると、資金が {network} で利用可能になります",
+    "fundsAvailableAfterProcessing": "取引が {network} で処理され、{l1Network} で実行されると、資金が請求可能になります",
+    "fundsAvailableAfterDelay": "{delay} 後に資金が {network} で利用可能になります",
+    "withdrawalDelay": "約5時間以上の遅延",
+    "processedForClaiming": "請求可能になります",
+    "processedFinalized": "最終確定されました。このページを閉じても構いません",
+    "claimNow": "引き出しを今すぐ請求できます",
+    "thirdPartyBridgeClaim": "この引き出しはサードパーティのブリッジを通じて行われました。そのブリッジを使用して引き出しを請求してください",
+    "claimRequiresFee": "処理が完了したら引き出しを請求する必要があります。請求には {network} ネットワークでの手数料の支払いが必要です",
+    "changeNetworkToClaim": "請求するためにウォレットネットワークを変更",
+    "feeEstimationError": "手数料見積もりエラー: {message}",
+    "claimingFee": "請求手数料:",
+    "waitingForConfirmation": "確認待ち",
+    "claimingWithdrawal": "引き出しを請求中...",
+    "claimWithdrawal": "引き出しを請求",
+    "changeNetworkManuallyToClaim": "{walletName} ウォレットで手動でネットワークを変更して請求",
+    "makeAnotherTransaction": "別の取引を行う",
+    "useMyAccount": "自分のアカウントを使用",
+    "addressOrEns": "アドレスまたは ENS",
+    "max": "最大",
+    "maxAmountSet": "最大金額が設定されました",
+    "yourMaxAmount": "最大金額は {amount} です",
+    "onlyWithdrawableTokens": "引き出し可能なトークンのみ表示されています",
+    "bridged": "ブリッジ済み",
+    "bridgedTo": "{address} にブリッジ",
+    "bridgedFrom": "{address} からブリッジ",
+    "bridging": "ブリッジ中",
+    "feePayment": "手数料支払い",
+    "minted": "ミント済み",
+    "goToClaim": "請求へ移動",
+    "lossOfFunds": "資金の損失",
+    "receiveFunds": "資金を受け取る",
+    "goBackAndAdjustAmount": "金額を調整して続行してください",
+    "sendNow": "今すぐ送信",
+    "incorrectNetwork": "ウォレットで選択されたネットワークが間違っています",
+    "changeNetworkTo": "ウォレットネットワークを {network} に変更",
+    "changeNetworkManuallyTo": "{walletName} ウォレットで手動で {network} に変更",
+    "failed": "失敗"
+  }
+}

@@ -1,6 +1,6 @@
 <template>
   <div>
-    <PageTitle :fallback-route="{ name: 'assets' }">Send</PageTitle>
+    <PageTitle :fallback-route="{ name: 'assets' }">{{ $t("common.send") }}</PageTitle>
 
     <div class="space-y-4">
       <CommonCardWithLineButtons size="sm">

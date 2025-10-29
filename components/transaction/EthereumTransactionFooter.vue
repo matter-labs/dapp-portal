@@ -17,7 +17,7 @@
       </CommonButton>
     </div>
     <div v-if="buttonStep === 'network'" class="transaction-footer-row">
-      <CommonButtonTopInfo>Incorrect network selected in your wallet</CommonButtonTopInfo>
+      <CommonButtonTopInfo>{{ $t("transaction.incorrectNetwork") }}</CommonButtonTopInfo>
       <template v-if="l1Network">
         <CommonButton
           v-if="connectorName !== 'WalletConnect'"
@@ -28,12 +28,12 @@
           @click="onboardStore.setCorrectNetwork"
         >
           <slot v-bind="{ l1Network, walletName }" name="change-network-auto">
-            Change wallet network to {{ l1Network.name }}
+            {{ $t("transaction.changeNetworkTo", { network: l1Network.name }) }}
           </slot>
         </CommonButton>
         <CommonButton v-else disabled variant="primary" class="w-full">
           <slot v-bind="{ l1Network, walletName }" name="change-network-manual">
-            Change network manually to {{ l1Network.name }} in your {{ walletName }} wallet
+            {{ $t("transaction.changeNetworkManuallyTo", { network: l1Network.name, walletName }) }}
           </slot>
         </CommonButton>
       </template>

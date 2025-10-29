@@ -5,7 +5,7 @@
       <CommonInputSearch
         v-model.trim="search"
         class="mb-block-padding-1/4"
-        placeholder="Symbol or address"
+        :placeholder="$t('tokenSelect.symbolOrAddress')"
         autofocus="desktop"
       >
         <template #icon>
@@ -37,7 +37,7 @@
         <template v-else-if="balanceGroups.length || !search">
           <div v-for="(group, index) in balanceGroups" :key="index" class="category">
             <TypographyCategoryLabel size="sm" variant="darker" class="group-category-label">
-              {{ group.title || "Your assets" }}
+              {{ group.title || $t("tokenSelect.yourAssets") }}
             </TypographyCategoryLabel>
             <CommonLineButtonsGroup :gap="false">
               <TokenBalance
@@ -52,11 +52,11 @@
         </template>
         <p v-else class="mt-block-padding-1/2 text-center">
           <template v-if="isConnected">
-            No tokens for "{{ search }}" were found on connected account
+            {{ $t("tokenSelect.noTokensFound", { search }) }}
             <br />
-            <span class="mt-1.5 inline-block">Make sure you are using correct ZKsync network</span>
+            <span class="mt-1.5 inline-block">{{ $t("tokenSelect.checkNetwork") }}</span>
           </template>
-          <template v-else>Connect wallet to see all tokens available for you</template>
+          <template v-else>{{ $t("tokenSelect.connectWalletToSee") }}</template>
         </p>
         <slot name="body-bottom" />
       </div>

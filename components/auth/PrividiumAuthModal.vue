@@ -3,7 +3,7 @@
     :opened="authModalOpen"
     :closable="false"
     :close-on-background-click="false"
-    title="Authentication Required"
+    :title="$t('auth.authenticationRequired')"
     @close="handleClose"
   >
     <div class="prividium-auth-modal">
@@ -14,8 +14,8 @@
             <span v-else>1</span>
           </div>
           <div class="step-content">
-            <h3 class="step-title">Prividium Authentication</h3>
-            <p class="step-description">Sign in with your Prividium account</p>
+            <h3 class="step-title">{{ $t("auth.prividiumAuthentication") }}</h3>
+            <p class="step-description">{{ $t("auth.signInWithPrividium") }}</p>
           </div>
         </div>
 
@@ -25,8 +25,8 @@
             <span v-else>2</span>
           </div>
           <div class="step-content">
-            <h3 class="step-title">Connect Wallet</h3>
-            <p class="step-description">Connect your wallet to continue</p>
+            <h3 class="step-title">{{ $t("auth.connectWallet") }}</h3>
+            <p class="step-description">{{ $t("auth.connectWalletToContinue") }}</p>
           </div>
         </div>
       </div>
@@ -45,23 +45,23 @@
         <div v-if="authStep === 'prividium' && !isAuthenticated">
           <button :disabled="isAuthenticating" class="auth-button primary" @click="handlePrividiumAuth">
             <span v-if="isAuthenticating" class="loading-spinner" />
-            {{ isAuthenticating ? "Authenticating..." : "Sign in with Prividium" }}
+            {{ isAuthenticating ? $t("auth.authenticating") : $t("auth.signInWithPrividiumButton") }}
           </button>
         </div>
 
         <div v-else-if="authStep === 'wallet' && !isConnected">
           <button :disabled="isConnectingWallet" class="auth-button primary" @click="handleWalletConnect">
             <span v-if="isConnectingWallet" class="loading-spinner" />
-            {{ isConnectingWallet ? "Connecting..." : "Connect Wallet" }}
+            {{ isConnectingWallet ? $t("auth.connecting") : $t("auth.connectWalletButton") }}
           </button>
-          <p class="auth-info">Select your preferred wallet to continue.</p>
+          <p class="auth-info">{{ $t("auth.selectPreferredWallet") }}</p>
         </div>
 
         <div v-else-if="isAuthenticated && isConnected" class="success-state">
           <CheckCircleIcon class="h-12 w-12 text-green-500" />
-          <h3 class="success-title">Authentication Complete!</h3>
-          <p class="success-description">You can now access the application.</p>
-          <button class="auth-button primary" @click="handleComplete">Continue to Application</button>
+          <h3 class="success-title">{{ $t("auth.authenticationComplete") }}</h3>
+          <p class="success-description">{{ $t("auth.canNowAccessApp") }}</p>
+          <button class="auth-button primary" @click="handleComplete">{{ $t("auth.continueToApp") }}</button>
         </div>
       </div>
     </div>

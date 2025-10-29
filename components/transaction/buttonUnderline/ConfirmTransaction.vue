@@ -1,6 +1,6 @@
 <template>
   <CommonButtonUnderlineText :opened="opened">
-    Confirm this transaction in your {{ walletName }} wallet
+    {{ $t("transaction.confirmInWallet", { walletName }) }}
   </CommonButtonUnderlineText>
 </template>
 

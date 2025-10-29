@@ -1,5 +1,5 @@
 <template>
-  <PageTitle>Buy crypto</PageTitle>
+  <PageTitle>{{ $t("onRamp.buyCrypto") }}</PageTitle>
   <CommonHeightTransition :opened="step === 'buy' || step === 'quotes'">
     <ActiveTransactionsAlert class="mb-5" />
   </CommonHeightTransition>

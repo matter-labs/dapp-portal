@@ -1,7 +1,7 @@
 <template>
   <TransferView type="transfer">
     <template #title>
-      <PageTitle :fallback-route="{ name: 'send-methods' }">Send to another address</PageTitle>
+      <PageTitle :fallback-route="{ name: 'send-methods' }">{{ $t("common.send") }}</PageTitle>
     </template>
   </TransferView>
 </template>

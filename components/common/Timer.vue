@@ -42,10 +42,10 @@ const formatTimeDiff = (diff: number): string => {
 
   if (props.format === "human-readable") {
     let formattedString = "";
-    if (hours > 0) formattedString += `${hours} hour${hours > 1 ? "s" : ""} `;
-    if (minutes > 0) formattedString += `${minutes} minute${minutes > 1 ? "s" : ""} `;
-    if (!formattedString.length) formattedString += `${seconds} second${seconds !== 1 ? "s" : ""}`;
-    return formattedString;
+    if (hours > 0) formattedString += $t("timer.hours", { count: hours });
+    if (minutes > 0) formattedString += $t("timer.minutes", { count: minutes });
+    if (!formattedString.length) formattedString += $t("timer.seconds", { count: seconds });
+    return formattedString.trim();
   } else {
     // Default format: "00:00:00"
     return `${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}:${seconds

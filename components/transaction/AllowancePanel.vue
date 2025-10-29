@@ -6,7 +6,7 @@
       :description="`You can now proceed to deposit`"
     >
       <template #label>
-        {{ selectedToken?.symbol }} allowance approved
+        {{ $t("allowance.approved", { token: selectedToken?.symbol }) }}
         <template v-for="allowanceReceipt in setAllowanceReceipts" :key="allowanceReceipt.transactionHash">
           <a
             v-if="blockExplorerUrl"
@@ -14,7 +14,7 @@
             target="_blank"
             class="inline-flex items-center gap-1 underline underline-offset-2"
           >
-            View on Explorer
+            {{ $t("common.viewOnExplorer") }}
             <ArrowTopRightOnSquareIcon class="h-6 w-6" aria-hidden="true" />
           </a>
         </template>
@@ -27,7 +27,7 @@
     </DestinationItem>
     <DestinationItem v-else as="div">
       <template #label>
-        Approve {{ selectedToken?.symbol }} allowance
+        {{ $t("allowance.approve", { token: selectedToken?.symbol }) }}
         <template v-for="allowanceTransactionHash in setAllowanceTransactionHashes" :key="allowanceTransactionHash">
           <a
             v-if="blockExplorerUrl && allowanceTransactionHash"
@@ -35,23 +35,22 @@
             target="_blank"
             class="inline-flex items-center gap-1 underline underline-offset-2"
           >
-            View on Explorer
+            {{ $t("common.viewOnExplorer") }}
             <ArrowTopRightOnSquareIcon class="h-6 w-6" aria-hidden="true" />
           </a>
         </template>
       </template>
       <template #underline>
-        Before depositing you need to give our bridge permission to spend specified amount of
-        {{ selectedToken?.symbol }}.
+        {{ $t("allowance.beforeDepositing") }} {{ selectedToken?.symbol }}.
         <span v-if="allowance && allowance !== 0n"
-          >You can deposit up to
+          >{{ $t("allowance.youCanDepositUpTo") }}
           <CommonButtonLabel variant="light" @click="setAmountToCurrentAllowance()">
             {{ parseTokenAmount(allowance!, selectedToken!.decimals) }}
           </CommonButtonLabel>
-          {{ selectedToken!.symbol }} without approving a new allowance.
+          {{ selectedToken!.symbol }} {{ $t("allowance.withoutApproving") }}
         </span>
         <CommonButtonLabel variant="light" as="a" :href="TOKEN_ALLOWANCE" target="_blank">
-          Learn more
+          {{ $t("allowance.learnMore") }}
         </CommonButtonLabel>
       </template>
       <template #image>

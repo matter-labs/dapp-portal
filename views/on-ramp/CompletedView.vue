@@ -16,8 +16,8 @@
   >
   <template v-else>
     <CommonButton class="mt-4" variant="light" @click="goToRedirect">
-      Redirecting you back in 3 seconds.<br />
-      Click to go back to {{ redirectURL.split("/").pop() }}
+      {{ $t("onRamp.redirectingInSeconds", { seconds: 3 }) }}<br />
+      {{ $t("onRamp.clickToGoBack") }} {{ redirectURL.split("/").pop() }}
     </CommonButton>
   </template>
 </template>

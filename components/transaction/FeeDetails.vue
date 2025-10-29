@@ -9,7 +9,7 @@
         <component
           :is="canDisplayFeeAsFiat ? 'button' : 'span'"
           v-else-if="feeToken && feeAmount"
-          v-tooltip="canDisplayFeeAsFiat ? 'Click to toggle how amount is displayed' : ''"
+          v-tooltip="canDisplayFeeAsFiat ? $t('transaction.clickToToggle') : ''"
           type="button"
           class="flex items-center"
           :class="{ 'cursor-pointer': canDisplayFeeAsFiat }"
@@ -32,7 +32,7 @@
           &nbsp;
           <TokenImage class="h-5 w-5" v-bind="feeToken" />
         </component>
-        <template v-else>Unknown fee</template>
+        <template v-else>{{ $t("transaction.unknownFee") }}</template>
       </div>
       <slot />
     </div>

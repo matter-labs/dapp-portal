@@ -58,7 +58,7 @@
         >
           <template v-if="type === 'withdrawal' && account.address" #token-dropdown-bottom>
             <CommonAlert class="sticky bottom-0 mt-6" variant="neutral" :icon="InformationCircleIcon">
-              <p>Only tokens available for withdrawal are displayed</p>
+              <p>{{ $t("transaction.onlyWithdrawableTokens") }}</p>
             </CommonAlert>
           </template>
           <template v-if="type === 'withdrawal'" #dropdown>
@@ -141,11 +141,15 @@
         >
           <p v-if="withdrawalManualFinalizationRequired">
             You will be able to claim your withdrawal after an approximate 5+ hour withdrawal delay.
-            <a class="underline underline-offset-2" :href="ZKSYNC_WITHDRAWAL_DELAY" target="_blank">Learn more</a>
+            <a class="underline underline-offset-2" :href="ZKSYNC_WITHDRAWAL_DELAY" target="_blank">{{
+              $t("allowance.learnMore")
+            }}</a>
           </p>
           <p v-else>
             You will receive funds after an approximate 5+ hour withdrawal delay.
-            <a class="underline underline-offset-2" :href="ZKSYNC_WITHDRAWAL_DELAY" target="_blank">Learn more</a>
+            <a class="underline underline-offset-2" :href="ZKSYNC_WITHDRAWAL_DELAY" target="_blank">{{
+              $t("allowance.learnMore")
+            }}</a>
           </p>
         </CommonAlert>
 
@@ -213,7 +217,9 @@
               Insufficient <span class="font-medium">{{ feeToken?.symbol }}</span> balance on
               {{ destinations.era.label }} to cover the fee
             </p>
-            <NuxtLink :to="{ name: 'receive-methods' }" class="alert-link">Receive funds</NuxtLink>
+            <NuxtLink :to="{ name: 'receive-methods' }" class="alert-link">{{
+              $t("transaction.receiveFunds")
+            }}</NuxtLink>
           </CommonAlert>
         </transition>
         <CommonHeightTransition
@@ -282,9 +288,9 @@
                           ? "The fee has changed since the last estimation. "
                           : ""
                       }}Insufficient <span class="font-medium">{{ selectedToken?.symbol }}</span> balance to pay for
-                      transaction. Please go back and adjust the amount to proceed.
+                      transaction. {{ $t("transaction.goBackAndAdjustAmount") }}
                     </p>
-                    <button type="button" class="alert-link" @click="step = 'form'">Go back</button>
+                    <button type="button" class="alert-link" @click="step = 'form'">{{ $t("common.goBack") }}</button>
                   </CommonAlert>
                 </div>
               </transition>
@@ -298,7 +304,7 @@
                   <span v-if="transactionStatus === 'processing'">Processing...</span>
                   <span v-else-if="transactionStatus === 'waiting-for-signature'">Waiting for confirmation</span>
                   <span v-else>
-                    {{ type === "withdrawal" ? "Bridge now" : "Send now" }}
+                    {{ type === "withdrawal" ? $t("bridge.bridgeNow") : $t("transaction.sendNow") }}
                   </span>
                 </transition>
               </CommonButton>

@@ -1,0 +1,335 @@
+{
+  "common": {
+    "connectWallet": "지갑 연결",
+    "send": "보내기",
+    "receive": "받기",
+    "balance": "잔액",
+    "balances": "잔액",
+    "viewAll": "전체 보기",
+    "assets": "자산",
+    "transfers": "송금",
+    "bridge": "브릿지",
+    "onRamp": "입금",
+    "deposit": "입금",
+    "withdraw": "출금",
+    "confirm": "확인",
+    "cancel": "취소",
+    "save": "저장",
+    "delete": "삭제",
+    "edit": "편집",
+    "copy": "복사",
+    "copied": "복사됨",
+    "loading": "로딩 중...",
+    "error": "오류",
+    "success": "성공",
+    "warning": "경고",
+    "info": "정보",
+    "close": "닫기",
+    "back": "뒤로",
+    "next": "다음",
+    "previous": "이전",
+    "search": "검색",
+    "filter": "필터",
+    "sort": "정렬",
+    "refresh": "새로 고침",
+    "retry": "재시도",
+    "tryAgain": "다시 시도",
+    "continue": "계속",
+    "submit": "제출",
+    "reset": "초기화",
+    "clear": "지우기",
+    "add": "추가",
+    "remove": "제거",
+    "create": "생성",
+    "update": "업데이트",
+    "download": "다운로드",
+    "upload": "업로드",
+    "share": "공유",
+    "settings": "설정",
+    "help": "도움말",
+    "about": "정보",
+    "contact": "연락처",
+    "privacy": "개인정보",
+    "terms": "이용약관",
+    "faq": "자주 묻는 질문"
+  },
+  "assets": {
+    "title": "자산",
+    "noBalances": "{network}에 잔액이 없습니다",
+    "addFunds": "자금 추가",
+    "depositTokens": "ZKsync에 토큰 입금",
+    "connectToView": "지갑을 연결하여 {network} 잔액 확인",
+    "toStartUsing": "ZKsync 생태계를 시작하려면 편리한 방법으로 토큰을 입금하세요",
+    "viewYourAddress": "주소 보기",
+    "receiveTokens": "다른 {network} 계정에서 토큰 수신",
+    "bridgeFrom": "{network}에서 브릿지",
+    "receiveFromNetwork": "{network} 계정에서 토큰 수신",
+    "faucet": "페이셋",
+    "receiveTestnetFunds": "테스트넷 자금 수신",
+    "topUpWithCash": "현금으로 충전",
+    "buyTokens": "카드 또는 기타 법정화폐 방식으로 토큰 구매",
+    "bridgeFromOtherNetworks": "다른 네트워크에서 브릿지",
+    "exploreEcosystem": "제3자 브릿지 생태계 탐색"
+  },
+  "onRamp": {
+    "buyCrypto": "암호화폐 구매",
+    "activeTransactions": "활성 거래",
+    "completed": "완료됨",
+    "transactions": "거래",
+    "processing": "처리 중",
+    "fiatAmount": "법정화폐 금액",
+    "cryptoAmount": "암호화폐 금액",
+    "selectProvider": "공급자 선택",
+    "estimatedRate": "예상 환율",
+    "fee": "수수료",
+    "totalCost": "총 비용"
+  },
+  "transfers": {
+    "connectToView": "지갑을 연결하여 {network}의 최근 송금 확인",
+    "recentBridgeOperations": "최근 브릿지 작업",
+    "completedTransfers": "완료된 송금",
+    "noTransfers": "송금을 찾을 수 없습니다",
+    "allTransfers": "모든 송금"
+  },
+  "bridge": {
+    "goToAssets": "자산 페이지로 이동",
+    "deposit": "입금",
+    "withdraw": "출금",
+    "bridgeTokens": "토큰 브릿지",
+    "fromNetwork": "출발 네트워크",
+    "toNetwork": "도착 네트워크",
+    "amountToBridge": "브릿지 금액",
+    "estimatedTime": "예상 시간",
+    "bridgeFee": "브릿지 수수료",
+    "confirmBridge": "브릿지 확인",
+    "bridgeTemporarilyDisabled": "{network}로의 브릿지가 업그레이드로 인해 일시적으로 비활성화되었습니다. 완료 예정일은 6월 6일 22:00 UTC입니다. 나중에 다시 확인해 주세요.",
+    "upgradeInformation": "업그레이드 정보 페이지"
+  },
+  "wallet": {
+    "connect": "지갑 연결",
+    "disconnect": "연결 해제",
+    "copyAddress": "주소 복사",
+    "viewOnExplorer": "익스플로러에서 보기",
+    "connected": "연결됨",
+    "disconnected": "연결 해제됨",
+    "connecting": "연결 중...",
+    "walletAddress": "지갑 주소"
+  },
+  "network": {
+    "ethereum": "이더리움",
+    "zksync": "ZKsync",
+    "mainnet": "메인넷",
+    "testnet": "테스트넷",
+    "network": "네트워크",
+    "switchNetwork": "네트워크 전환"
+  },
+  "transaction": {
+    "pending": "대기 중",
+    "confirmed": "확인됨",
+    "failed": "실패",
+    "cancelled": "취소됨",
+    "hash": "거래 해시",
+    "amount": "금액",
+    "fee": "수수료",
+    "gas": "가스",
+    "status": "상태",
+    "date": "날짜",
+    "from": "보낸 사람",
+    "to": "받는 사람",
+    "type": "유형"
+  },
+  "errors": {
+    "networkError": "네트워크 오류",
+    "walletConnection": "지갑 연결 실패",
+    "transactionFailed": "거래 실패",
+    "insufficientBalance": "잔액 부족",
+    "invalidAddress": "잘못된 주소",
+    "unknownError": "알 수 없는 오류가 발생했습니다",
+    "tryAgain": "다시 시도해 주세요"
+  },
+  "success": {
+    "transactionSuccess": "거래 성공",
+    "copied": "클립보드에 복사됨",
+    "saved": "성공적으로 저장됨"
+  },
+  "validation": {
+    "required": "이 필드는 필수입니다",
+    "invalidFormat": "잘못된 형식",
+    "invalidEthereumAddress": "잘못된 이더리움 0x 주소",
+    "ensNotFound": "이 이름으로 찾은 결과가 없습니다",
+    "amountExceedsBalance": "금액이 잔액을 초과합니다",
+    "minLength": "최소 {length}자 필요",
+    "maxLength": "최대 {length}자 허용"
+  },
+  "tokenSelect": {
+    "symbolOrAddress": "기호 또는 주소",
+    "chooseToken": "토큰 선택",
+    "yourAssets": "자산",
+    "noTokensFound": "연결된 계정에서 \"{search}\" 토큰을 찾을 수 없습니다",
+    "checkNetwork": "올바른 ZKsync 네트워크를 사용하고 있는지 확인해 주세요",
+    "connectWalletToSee": "모든 사용 가능한 토큰을 보려면 지갑을 연결하세요"
+  },
+  "transaction": {
+    "confirmInWallet": "{walletName} 지갑에서 이 거래를 확인",
+    "yourAccount": "귀하의 계정",
+    "anotherAccount": "다른 계정",
+    "fromYourAccount": "귀하의 계정에서",
+    "toYourAccount": "귀하의 계정으로",
+    "toAnotherAccount": "다른 계정으로",
+    "value": "금액:",
+    "estimatedTime": "예상 시간:",
+    "fundsArriveSoon": "자금이 곧 도착할 것입니다!",
+    "left": "남음",
+    "unknownFee": "알 수 없는 수수료",
+    "clickToToggle": "금액 표시 방법을 전환하려면 클릭하세요"
+  },
+  "allowance": {
+    "approved": "{token} 승인됨",
+    "approve": "{token} 승인",
+    "beforeDepositing": "입금하기 전에 브릿지에 지정된 금액의 사용 권한을 부여해야 합니다",
+    "youCanDepositUpTo": "다음 금액까지 입금할 수 있습니다",
+    "withoutApproving": "새로운 승인 없이",
+    "learnMore": "자세히 알아보기",
+    "approvalRequired": "승인 필요",
+    "waitingForApproval": "승인 확인 대기 중"
+  },
+  "timer": {
+    "hours": "{count} 시간",
+    "minutes": "{count} 분",
+    "seconds": "{count} 초"
+  },
+  "transaction": {
+    "estimatedTimeMinutes": "약 {minutes} 분"
+  },
+  "onRamp": {
+    "redirectingInSeconds": "{seconds}초 후에 리디렉션됩니다",
+    "clickToGoBack": "클릭하여 돌아가기"
+  },
+  "deprecation": {
+    "networkShutdown": "{network}이 3월 31일에 종료됩니다. 대신",
+    "forMoreInfo": "을 사용하세요. 자세한 내용은"
+  },
+  
+  "withdrawals": {
+    "seeWithdrawals": "출금 보기"
+  },
+  "nativeBridge": {
+    "onlyNativeAllowed": "{token}만 {direction}에서 브릿지가 허용됩니다"
+  },
+  
+  
+  "auth": {
+    "authenticationRequired": "인증 필요",
+    "prividiumAuthentication": "Prividium 인증",
+    "signInWithPrividium": "Prividium 계정으로 로그인",
+    "connectWallet": "지갑 연결",
+    "connectWalletToContinue": "계속하려면 지갑을 연결하세요",
+    "authenticating": "인증 중...",
+    "signInWithPrividiumButton": "Prividium 로그인",
+    "connecting": "연결 중...",
+    "connectWalletButton": "지갑 연결",
+    "selectPreferredWallet": "계속하려면 선호하는 지갑을 선택하세요.",
+    "authenticationComplete": "인증 완료!",
+    "canNowAccessApp": "이제 애플리케이션에 액세스할 수 있습니다.",
+    "continueToApp": "애플리케이션으로 계속"
+  },
+  "legal": {
+    "bridgeBetaTitle": "ZKsync 브릿지 베타 버전 라이브",
+    "bridgeBetaText": "이 웹사이트의 어떤 내용도 투자 활동에 대한 초대, 유인 또는 권유로 해석되어서는 안 됩니다. 이 웹사이트를 통해 제공되는 브릿지, 자산 및 거래 기능은 베타 버전이며 테스트, 추가 개발 및 변경의 대상이므로 '있는 그대로' 제공되며 어떠한 보증도 제공되지 않음을 이해합니다. 이 웹사이트에서 제공되는 기능 중 어떤 것을 사용하는 것은 전적으로 귀하의 책임 하에 이루어집니다.",
+    "agreeToTerms": "다음에 동의합니다",
+    "termsOfService": "서비스 이용약관",
+    "and": "및",
+    "privacyPolicy": "개인정보처리방침",
+    "proceed": "계속"
+  },
+  "ecosystem": {
+    "exploreWonders": "ZKsync 생태계의 경이로움을 탐험하세요",
+    "exploreEcosystem": "생태계 탐험"
+  },
+  "errors": {
+    "unexpectedError": "예기치 않은 오류",
+    "networkError": "네트워크 오류",
+    "walletConnection": "지갑 연결 실패",
+    "transactionFailed": "거래 실패",
+    "insufficientBalance": "잔액 부족",
+    "invalidAddress": "잘못된 주소",
+    "unknownError": "알 수 없는 오류가 발생했습니다",
+    "tryAgain": "다시 시도해 주세요"
+  },
+  
+  
+  
+  "deprecation": {
+    "networkShutdown": "{network}은(는) 3월 31일에 종료됩니다. 다음을 사용하세요:",
+    "forMoreInfo": "자세한 정보는 다음을 참조하세요"
+  },
+  "footer": {
+    "addToWallet": "{network}을(를) 지갑에 추가"
+  },
+  "withdrawals": {
+    "availableForClaim": "{network} 네트워크에서 인출 가능한 자금이 있습니다",
+    "seeWithdrawals": "인출 보기"
+  },
+  "mobileMenu": {
+    "chooseNetwork": "네트워크 선택",
+    "theme": "테마",
+    "darkMode": "다크 모드",
+    "lightMode": "라이트 모드"
+  },
+  "ethereumTransaction": {
+    "connectWallet": "지갑 연결",
+    "networkChangeError": "네트워크 변경 오류: {message}",
+    "l1NetworkNotAvailable": "{network}에서는 L1 네트워크를 사용할 수 없습니다"
+  },
+  "nativeBridge": {
+    "onlyNativeAllowed": "{token}만 {direction}에서 브리지가 허용됩니다"
+  },
+  "bridge": {
+    "withdrawDisabled": "{network}에서의 브리지는 업그레이드 중인 이유로 일시적으로 비활성화되었습니다. 완료는 6월7일 15:00 UTC입니다. 나중에 다시 확인해 주세요. 자세한 내용은",
+    "goToAssets": "자산 페이지로 이동",
+    "bridgeTo": "{network}로 브리지",
+    "bridgeNow": "지금 브리지"
+  },
+  "transaction": {
+    "completed": "거래 완료",
+    "submitted": "거래 제출됨",
+    "fundsAvailableAfterClaim": "인출을 요청하면 {network}에서 자금을 사용할 수 있습니다",
+    "fundsAvailableAfterProcessing": "거래가 {network}에서 처리되고 {l1Network}에서 실행되면 자금을 인출할 수 있습니다",
+    "fundsAvailableAfterDelay": "{delay} 후에 {network}에서 자금을 사용할 수 있습니다",
+    "withdrawalDelay": "약 5시간 이상 지연",
+    "processedForClaiming": "인출 가능하게 됩니다",
+    "processedFinalized": "최종 완료되었습니다. 이 페이지를 닫아도 됩니다",
+    "claimNow": "지금 인출을 요청할 수 있습니다",
+    "thirdPartyBridgeClaim": "이 인출은 제3자 브리지를 통해 이루어졌습니다. 해당 브리지를 사용하여 인출을 요청해 주세요",
+    "claimRequiresFee": "처리가 완료되면 인출을 요청해야 합니다. 인출에는 {network} 네트워크에서 수수료 지불이 필요합니다",
+    "changeNetworkToClaim": "인출하려면 지갑 네트워크를 변경하세요",
+    "feeEstimationError": "수수료 추정 오류: {message}",
+    "claimingFee": "인출 수수료:",
+    "waitingForConfirmation": "확인 대기 중",
+    "claimingWithdrawal": "인출 중...",
+    "claimWithdrawal": "인출 요청",
+    "changeNetworkManuallyToClaim": "{walletName} 지갑에서 수동으로 네트워크를 변경하여 인출",
+    "makeAnotherTransaction": "다른 거래하기",
+    "useMyAccount": "내 계정 사용",
+    "addressOrEns": "주소 또는 ENS",
+    "max": "최대",
+    "maxAmountSet": "최대 금액이 설정되었습니다",
+    "yourMaxAmount": "최대 금액은 {amount}입니다",
+    "onlyWithdrawableTokens": "인출 가능한 토큰만 표시됩니다",
+    "bridged": "브리지됨",
+    "bridgedTo": "{address}로 브리지",
+    "bridgedFrom": "{address}에서 브리지",
+    "bridging": "브리지 중",
+    "feePayment": "수수료 지불",
+    "minted": "발행됨",
+    "goToClaim": "인출로 이동",
+    "lossOfFunds": "자금 손실",
+    "receiveFunds": "자금 받기",
+    "goBackAndAdjustAmount": "금액을 조정하여 진행해 주세요",
+    "sendNow": "지금 보내기",
+    "incorrectNetwork": "지갑에서 선택된 네트워크가 잘못되었습니다",
+    "changeNetworkTo": "지갑 네트워크를 {network}로 변경",
+    "changeNetworkManuallyTo": "{walletName} 지갑에서 수동으로 {network}로 변경",
+    "failed": "실패"
+  }
+}

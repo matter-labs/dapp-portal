@@ -2,22 +2,21 @@
   <ModalTransactionDepositUnavailable />
 
   <div v-if="depositsDisabled">
-    <PageTitle>Bridge</PageTitle>
+    <PageTitle>{{ $t("common.bridge") }}</PageTitle>
     <CommonAlert variant="warning" :icon="ExclamationTriangleIcon" class="mb-block-gap">
       <p>
-        Bridging to {{ eraNetwork.name }} is temporarily disabled because of undergoing upgrade, expected to be
-        completed by June 6th, 22:00 UTC. Please check back later. For more details, visit the
+        {{ $t("bridge.bridgeTemporarilyDisabled", { network: eraNetwork.name }) }}
         <a
           href="https://github.com/zkSync-Community-Hub/zksync-developers/discussions/519"
           target="_blank"
           class="underline underline-offset-2"
-          >upgrade information page</a
+          >{{ $t("bridge.upgradeInformation") }}</a
         >.
       </p>
     </CommonAlert>
 
     <div class="mt-5 flex flex-wrap items-center justify-center gap-block-gap">
-      <CommonButton as="RouterLink" :to="{ name: 'assets' }" size="xs">Go to Assets page</CommonButton>
+      <CommonButton as="RouterLink" :to="{ name: 'assets' }" size="xs">{{ $t("bridge.goToAssets") }}</CommonButton>
     </div>
   </div>
   <DepositView v-else />

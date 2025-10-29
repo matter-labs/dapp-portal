@@ -1,7 +1,7 @@
 <template>
   <div>
-    <PageTitle :fallback-route="{ name: 'receive-methods' }">Your address</PageTitle>
-    <ConnectWalletBlock v-if="!isConnected">Connect wallet to view your address</ConnectWalletBlock>
+    <PageTitle :fallback-route="{ name: 'receive-methods' }">{{ $t("wallet.walletAddress") }}</PageTitle>
+    <ConnectWalletBlock v-if="!isConnected">{{ $t("common.connectWallet") }}</ConnectWalletBlock>
     <Receive v-else :address="address" :destination="destinations.era" />
   </div>
 </template>

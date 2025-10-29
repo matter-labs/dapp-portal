@@ -16,6 +16,13 @@
 
 <script lang="ts" setup>
 const { isConnectingWallet } = storeToRefs(useOnboardStore());
+const { locale } = useI18n();
+
+// 监听语言变化，确保整个应用重新渲染
+watch(locale, (newLocale) => {
+  console.log("App language changed to:", newLocale);
+  // 不再强制刷新页面，让 Vue 的响应式系统处理国际化更新
+});
 </script>
 
 <style lang="scss" scoped>

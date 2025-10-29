@@ -1,9 +1,9 @@
 <template>
   <div>
-    <PageTitle :fallback-route="{ name: 'assets' }">Balances</PageTitle>
+    <PageTitle :fallback-route="{ name: 'assets' }">{{ $t("common.balances") }}</PageTitle>
 
     <template v-if="!isConnected">
-      <ConnectWalletBlock>Connect wallet to view your assets on {{ eraNetwork.name }}</ConnectWalletBlock>
+      <ConnectWalletBlock>{{ $t("assets.connectToView", { network: eraNetwork.name }) }}</ConnectWalletBlock>
     </template>
     <template v-else>
       <CommonCardWithLineButtons v-if="loading">
@@ -18,7 +18,7 @@
         <CommonInputSearch
           v-model.trim="search"
           class="mb-block-padding-1/4"
-          placeholder="Search by symbol or address"
+          :placeholder="$t('tokenSelect.symbolOrAddress')"
           autofocus="desktop"
         >
           <template #icon>

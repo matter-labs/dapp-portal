@@ -5,20 +5,21 @@
     <PageTitle>Bridge</PageTitle>
     <CommonAlert variant="warning" :icon="ExclamationTriangleIcon" class="mb-block-gap">
       <p>
-        Bridging from {{ eraNetwork.name }} is temporarily disabled because of undergoing upgrade, expected to be
-        completed by June 7th, 15:00 UTC. Please check back later. For more details, visit the
+        {{ $t("bridge.withdrawDisabled", { network: eraNetwork.name }) }}
         <a
           href="https://github.com/zkSync-Community-Hub/zksync-developers/discussions/519"
           target="_blank"
           class="underline underline-offset-2"
-          >upgrade information page</a
+          >{{ $t("bridge.upgradeInformation") }}</a
         >.
       </p>
     </CommonAlert>
 
     <div class="mt-5 flex flex-wrap items-center justify-center gap-block-gap">
-      <CommonButton as="RouterLink" :to="{ name: 'assets' }" size="xs">Go to Assets page</CommonButton>
-      <CommonButton size="xs" as="RouterLink" :to="{ name: 'bridge' }">Bridge to {{ eraNetwork.name }}</CommonButton>
+      <CommonButton as="RouterLink" :to="{ name: 'assets' }" size="xs">{{ $t("bridge.goToAssets") }}</CommonButton>
+      <CommonButton size="xs" as="RouterLink" :to="{ name: 'bridge' }">{{
+        $t("bridge.bridgeTo", { network: eraNetwork.name })
+      }}</CommonButton>
     </div>
   </div>
   <TransferView v-else type="withdrawal" />

@@ -2,7 +2,12 @@
   <div>
     <CommonAlert variant="warning" size="sm" :icon="ExclamationTriangleIcon" class="mb-block-gap">
       <p>
-        Only {{ eraNetwork.nativeCurrency!.symbol }} is allowed for bridging {{ type === "withdraw" ? "from" : "to" }}
+        {{
+          $t("nativeBridge.onlyNativeAllowed", {
+            token: eraNetwork.nativeCurrency!.symbol,
+            direction: type === "withdraw" ? "from" : "to",
+          })
+        }}
         {{ eraNetwork.name }}.
       </p>
     </CommonAlert>

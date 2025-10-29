@@ -78,7 +78,7 @@ const direction = computed(() => {
 
 const formatAddress = (address: string) => {
   if (address === account.value.address) {
-    return "your account";
+    return $t("transaction.yourAccount");
   }
   return shortenAddress(address);
 };
@@ -90,22 +90,22 @@ const label = computed(() => {
     return `Sent to ${formatAddress(props.transfer.to)}`;
   } else if (props.transfer.type === "withdrawal") {
     if (props.transfer.to === account.value.address) {
-      return "Bridged";
+      return $t("transaction.bridged");
     }
-    return `Bridged to ${formatAddress(props.transfer.to)}`;
+    return $t("transaction.bridgedTo", { address: formatAddress(props.transfer.to) });
   } else if (props.transfer.type === "deposit") {
     if (direction.value === "in") {
       if (props.transfer.from === account.value.address) {
         return "Bridged";
       }
-      return `Bridged from ${formatAddress(props.transfer.from)}`;
+      return $t("transaction.bridgedFrom", { address: formatAddress(props.transfer.from) });
     } else {
       return `Sent to ${formatAddress(props.transfer.to)}`;
     }
   } else if (props.transfer.type === "fee") {
-    return "Fee payment";
+    return $t("transaction.feePayment");
   } else if (props.transfer.type === "mint") {
-    return "Minted";
+    return $t("transaction.minted");
   }
   return props.transfer.type || "Unknown";
 });

@@ -14,7 +14,7 @@
             <template #left-icon>
               <DocumentDuplicateIcon aria-hidden="true" />
             </template>
-            <span>Copy address</span>
+            <span>{{ $t("common.copyAddress") }}</span>
           </CommonButtonDropdown>
         </MenuItem>
         <MenuItem v-if="selectedNetwork.blockExplorerUrl" v-slot="{ active }" as="template">
@@ -30,7 +30,7 @@
             <template #left-icon>
               <Squares2X2Icon aria-hidden="true" />
             </template>
-            <span>Explorer</span>
+            <span>{{ $t("common.explorer") }}</span>
             <template #right-icon>
               <ArrowTopRightOnSquareIcon aria-hidden="true" />
             </template>
@@ -47,7 +47,7 @@
             <template #left-icon>
               <ExclamationCircleIcon aria-hidden="true" />
             </template>
-            <span>Help</span>
+            <span>{{ $t("common.help") }}</span>
           </CommonButtonDropdown>
         </MenuItem>
         <MenuItem v-slot="{ active }" as="template">
@@ -61,7 +61,7 @@
             <template #left-icon>
               <PowerIcon aria-hidden="true" />
             </template>
-            <span>Logout</span>
+            <span>{{ $t("common.logout") }}</span>
           </CommonButtonDropdown>
         </MenuItem>
       </MenuItems>
@@ -87,7 +87,7 @@ const { selectedNetwork } = storeToRefs(useNetworkStore());
 const { copy, copied } = useCopy(computed(() => account.value.address!));
 const addressEl = ref<HTMLElement | undefined>();
 const tooltip = useTippy(addressEl, {
-  content: "Address copied!",
+  content: $t("common.addressCopied"),
   trigger: "manual",
   hideOnClick: false,
 });

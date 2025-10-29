@@ -41,7 +41,7 @@
       <div class="withdrawal-line-separator"></div>
       <div class="withdrawal-line-bottom">
         <div>Withdrawal is available for claiming on the {{ eraNetwork.l1Network?.name }} network</div>
-        <CommonButton variant="primary" class="withdrawal-claim-button">Go to claim</CommonButton>
+        <CommonButton variant="primary" class="withdrawal-claim-button">{{ $t("transaction.goToClaim") }}</CommonButton>
       </div>
     </div>
   </CommonButtonLine>
@@ -69,7 +69,7 @@ const { account } = storeToRefs(useOnboardStore());
 const { eraNetwork } = storeToRefs(useZkSyncProviderStore());
 
 const label = computed(() => {
-  const article = props.inProgress ? "Bridging" : "Bridged";
+  const article = props.inProgress ? $t("transaction.bridging") : $t("transaction.bridged");
   if (props.transfer.to === account.value.address) {
     return article;
   }

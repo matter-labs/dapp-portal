@@ -57,6 +57,7 @@ export default defineNuxtConfig({
     "@pinia/nuxt", // https://pinia.vuejs.org/ssr/nuxt.html
     "@nuxtjs/eslint-module", // https://nuxt.com/modules/eslint
     "@nuxtjs/tailwindcss", // https://nuxt.com/modules/tailwindcss
+    "@nuxtjs/i18n", // https://i18n.nuxtjs.org/
   ],
 
   css: ["@/assets/css/tailwind.css", "@/assets/css/style.scss", "web3-avatar-vue/dist/style.css"],
@@ -119,4 +120,21 @@ export default defineNuxtConfig({
     },
   },
   compatibilityDate: "2025-03-24",
+  i18n: {
+    locales: [
+      { code: "en", name: "English", file: "en.json" },
+      { code: "zh", name: "中文", file: "zh.json" },
+      { code: "ja", name: "日本語", file: "ja.json" },
+      { code: "ko", name: "한국어", file: "ko.json" },
+    ],
+    defaultLocale: "en",
+    lazy: false,
+    langDir: "locales",
+    strategy: "no_prefix",
+    detectBrowserLanguage: {
+      useCookie: true,
+      cookieKey: "i18n_redirected",
+      redirectOn: "root",
+    },
+  },
 });

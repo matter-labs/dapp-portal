@@ -124,13 +124,13 @@
         <CommonAlert variant="warning" :icon="ExclamationTriangleIcon" class="mb-block-padding-1/2 sm:mb-block-gap">
           <p>
             Make sure your wallet supports {{ eraNetwork.name }} network before adding funds to your account. Otherwise,
-            this can result in <span class="font-medium text-red-600">loss of funds</span>. See the list of supported
-            wallets on the
+            this can result in <span class="font-medium text-red-600">{{ $t("transaction.lossOfFunds") }}</span
+            >. See the list of supported wallets on the
             <a
               class="underline underline-offset-2"
               href="https://zksync.dappradar.com/ecosystem?category=non_dapps_wallets"
               target="_blank"
-              >Ecosystem</a
+              >{{ $t("common.ecosystem") }}</a
             >
             website.
           </p>
@@ -185,7 +185,9 @@
               :loading="feeLoading"
             />
           </transition>
-          <CommonButtonLabel v-if="!isCustomNode" as="span" class="ml-auto text-right">~15 minutes</CommonButtonLabel>
+          <CommonButtonLabel v-if="!isCustomNode" as="span" class="ml-auto text-right">{{
+            $t("transaction.estimatedTimeMinutes", { minutes: 15 })
+          }}</CommonButtonLabel>
         </div>
         <transition v-bind="TransitionAlertScaleInOutTransition" mode="out-in">
           <CommonAlert
@@ -207,7 +209,9 @@
               >
               on {{ eraNetwork.l1Network?.name ?? "L1" }} for deposit.
             </p>
-            <NuxtLink :to="{ name: 'receive-methods' }" class="alert-link">Receive funds</NuxtLink>
+            <NuxtLink :to="{ name: 'receive-methods' }" class="alert-link">{{
+              $t("transaction.receiveFunds")
+            }}</NuxtLink>
           </CommonAlert>
           <CommonAlert
             v-else-if="!enoughBalanceToCoverFee"
@@ -312,9 +316,9 @@
                 >
                   <transition v-bind="TransitionPrimaryButtonText" mode="out-in">
                     <span v-if="setAllowanceStatus === 'processing'">Processing...</span>
-                    <span v-else-if="setAllowanceStatus === 'waiting-for-signature'"
-                      >Waiting for allowance approval confirmation</span
-                    >
+                    <span v-else-if="setAllowanceStatus === 'waiting-for-signature'">{{
+                      $t("allowance.waitingForApproval")
+                    }}</span>
                     <span v-else-if="setAllowanceStatus === 'sending'" class="flex items-center">
                       <CommonSpinner class="mr-2 h-6 w-6" />
                       Approving allowance...
@@ -349,13 +353,13 @@
                       The inputted amount is higher than the recommended maximum amount. This means your transaction
                       might fail.
                     </p>
-                    <button type="button" class="alert-link" @click="step = 'form'">Go back</button>
+                    <button type="button" class="alert-link" @click="step = 'form'">{{ $t("common.goBack") }}</button>
                   </CommonAlert>
                   <CommonAlert v-else-if="continueButtonDisabled" variant="error" :icon="ExclamationTriangleIcon">
                     <p>
                       The fee has changed since the last estimation. Insufficient
                       <span class="font-medium">{{ selectedToken?.symbol }}</span> balance to pay for transaction.
-                      Please go back and adjust the amount to proceed.
+                      {{ $t("transaction.goBackAndAdjustAmount") }}
                     </p>
                     <button type="button" class="alert-link" @click="step = 'form'">Go back</button>
                   </CommonAlert>
@@ -370,7 +374,7 @@
                 <transition v-bind="TransitionPrimaryButtonText" mode="out-in">
                   <span v-if="transactionStatus === 'processing'">Processing...</span>
                   <span v-else-if="transactionStatus === 'waiting-for-signature'">Waiting for confirmation</span>
-                  <span v-else>Bridge now</span>
+                  <span v-else>{{ $t("bridge.bridgeNow") }}</span>
                 </transition>
               </CommonButton>
               <TransactionButtonUnderlineConfirmTransaction :opened="transactionStatus === 'waiting-for-signature'" />

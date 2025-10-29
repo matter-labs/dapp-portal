@@ -1,10 +1,10 @@
 <template>
   <div>
     <NetworkDeprecationAlert />
-    <PageTitle>Assets</PageTitle>
+    <PageTitle>{{ $t("assets.title") }}</PageTitle>
 
     <template v-if="!isConnected">
-      <ConnectWalletBlock>Connect wallet to view your balances on {{ eraNetwork.name }}</ConnectWalletBlock>
+      <ConnectWalletBlock>{{ $t("assets.connectToView", { network: eraNetwork.name }) }}</ConnectWalletBlock>
     </template>
     <template v-else>
       <TransactionWithdrawalsAvailableForClaimAlert />
@@ -27,7 +27,7 @@
               <template #icon>
                 <ArrowDownLeftIcon aria-hidden="true" />
               </template>
-              <template #default>Receive</template>
+              <template #default>{{ $t("common.receive") }}</template>
             </CommonButton>
             <CommonButton
               variant="primary"
@@ -37,7 +37,7 @@
               <template #icon>
                 <ArrowUpRightIcon aria-hidden="true" />
               </template>
-              <template #default>Send</template>
+              <template #default>{{ $t("common.send") }}</template>
             </CommonButton>
           </CommonButtonGroup>
         </div>
@@ -45,9 +45,11 @@
 
       <template v-if="!noBalances">
         <TypographyCategoryLabel>
-          <span>Balance</span>
+          <span>{{ $t("common.balance") }}</span>
           <template #right>
-            <CommonButtonLabel as="RouterLink" variant="light" :to="{ name: 'balances' }">View all</CommonButtonLabel>
+            <CommonButtonLabel as="RouterLink" variant="light" :to="{ name: 'balances' }">{{
+              $t("common.viewAll")
+            }}</CommonButtonLabel>
           </template>
         </TypographyCategoryLabel>
         <CommonCardWithLineButtons>
@@ -71,13 +73,12 @@
           <template v-else>
             <CommonEmptyBlock class="mx-3 mb-3 mt-1">
               <div class="wrap-balance">
-                You don't have any balances on
-                <span class="font-medium">{{ destinations.era.label }}</span>
+                {{ $t("assets.noBalances", { network: destinations.era.label }) }}
               </div>
               <span v-if="eraNetwork.l1Network" class="mt-1.5 inline-block">
                 Proceed to
-                <NuxtLink class="link" :to="{ name: 'receive-methods' }">Add funds</NuxtLink> page to add balance to
-                your account
+                <NuxtLink class="link" :to="{ name: 'receive-methods' }">{{ $t("assets.addFunds") }}</NuxtLink> page to
+                add balance to your account
               </span>
             </CommonEmptyBlock>
           </template>
@@ -86,7 +87,7 @@
 
       <template v-if="noBalances">
         <TypographyCategoryLabel>
-          To start using ZKsync ecosystem, deposit tokens in any convenient way
+          {{ $t("assets.toStartUsing") }}
         </TypographyCategoryLabel>
 
         <div class="flex flex-col gap-block-gap">
@@ -104,7 +105,7 @@
         </div>
       </template>
       <template v-else>
-        <TypographyCategoryLabel>Deposit more tokens to ZKsync</TypographyCategoryLabel>
+        <TypographyCategoryLabel>{{ $t("assets.depositTokens") }}</TypographyCategoryLabel>
 
         <CommonCardWithLineButtons>
           <DestinationItem v-for="(item, index) in depositMethods" :key="index" v-bind="item.props">
@@ -135,6 +136,8 @@ import useEcosystemBanner from "@/composables/zksync/deposit/useEcosystemBanner"
 
 import type { FunctionalComponent } from "vue";
 
+const { t } = useI18n();
+
 const onboardStore = useOnboardStore();
 const walletStore = useZkSyncWalletStore();
 const { isConnected } = storeToRefs(onboardStore);
@@ -163,8 +166,8 @@ const depositMethods = computed(() => {
     methods.push({
       props: {
         iconUrl: destinations.value.ethereum.iconUrl,
-        label: `Bridge from ${eraNetwork.value.l1Network?.name}`,
-        description: `Receive tokens from your ${eraNetwork.value.l1Network?.name} account`,
+        label: t("assets.bridgeFrom", { network: eraNetwork.value.l1Network?.name }),
+        description: t("assets.receiveFromNetwork", { network: eraNetwork.value.l1Network?.name }),
         as: "RouterLink",
         to: {
           name: "bridge",
@@ -179,8 +182,8 @@ const depositMethods = computed(() => {
     methods.push({
       props: {
         iconUrl: "/img/faucet.svg",
-        label: "Faucet",
-        description: "Receive testnet funds",
+        label: t("assets.faucet"),
+        description: t("assets.receiveTestnetFunds"),
         as: "a",
         href: "https://docs.zksync.io/build/tooling/network-faucets.html",
         target: "_blank",
@@ -190,8 +193,8 @@ const depositMethods = computed(() => {
   }
   methods.push({
     props: {
-      label: "View your address",
-      description: `Receive tokens from another ${eraNetwork.value.name} account`,
+      label: t("assets.viewYourAddress"),
+      description: t("assets.receiveTokens", { network: eraNetwork.value.name }),
       as: "RouterLink",
       to: {
         name: "receive",
@@ -202,8 +205,8 @@ const depositMethods = computed(() => {
   if (isMainnet && eraNetwork.value.displaySettings?.showPartnerLinks) {
     methods.push({
       props: {
-        label: "Top-up with cash",
-        description: "Buy tokens using a card or another method for fiat",
+        label: t("assets.topUpWithCash"),
+        description: t("assets.buyTokens"),
         as: "a",
         href: "https://zksync.dappradar.com/ecosystem?category=non_dapps_on_off_ramps",
         target: "_blank",
@@ -213,8 +216,8 @@ const depositMethods = computed(() => {
     });
     methods.push({
       props: {
-        label: "Bridge from other networks",
-        description: "Explore ecosystem of third party bridges",
+        label: t("assets.bridgeFromOtherNetworks"),
+        description: t("assets.exploreEcosystem"),
         as: "a",
         href: "https://zksync.dappradar.com/ecosystem?category=defi_bridge",
         target: "_blank",

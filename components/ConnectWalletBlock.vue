@@ -4,7 +4,7 @@
       <slot />
     </p>
     <CommonButton variant="primary" class="mt-block-gap w-full" @click="onboardStore.openModal()">
-      Connect wallet
+      {{ $t("common.connectWallet") }}
     </CommonButton>
   </CommonContentBlock>
 </template>
