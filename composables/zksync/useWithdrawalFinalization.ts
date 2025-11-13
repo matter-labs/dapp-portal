@@ -1,4 +1,4 @@
-import { createEthersClient, createEthersSdk } from "@dutterbutter/zksync-sdk/ethers";
+import { createEthersClient, createEthersSdk, createFinalizationServices } from "@dutterbutter/zksync-sdk/ethers";
 
 import { useSentryLogger } from "../useSentryLogger";
 
@@ -32,24 +32,24 @@ export default (transactionInfo: ComputedRef<TransactionInfo>) => {
     execute: estimateFee,
   } = usePromise(
     async () => {
+      const l2TxHash = transactionInfo.value!.transactionHash as Hash;
       tokensStore.requestTokens();
       const publicClient = onboardStore.getPublicClient();
 
-      const [price, limit] = await Promise.all([
+      const [price, estimate] = await Promise.all([
         retry(async () => BigInt((await publicClient.getGasPrice()).toString())),
         retry(async () => {
           const signer = await walletStore.getL1VoidSigner(true);
           const client = createEthersClient({ l1: signer.provider, l2: signer.providerL2, signer });
-          // eslint-disable-next-line @typescript-eslint/no-unused-vars
-          const sdk = createEthersSdk(client);
-          // const estimation = await sdk.withdrawals.finalize
-          // TODO: finish finalization gas estimation when available in SDK
-          return BigInt(200_000_000); // Placeholder value
+          const svc = createFinalizationServices(client);
+          const { params } = await svc.fetchFinalizeDepositParams(l2TxHash);
+
+          return svc.estimateFinalization(params);
         }),
       ]);
 
       gasPrice.value = price;
-      gasLimit.value = limit;
+      gasLimit.value = estimate.gasLimit;
 
       return {
         gasPrice: gasPrice.value,
