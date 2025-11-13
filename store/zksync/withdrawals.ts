@@ -1,6 +1,8 @@
+import { createEthersClient, createEthersSdk } from "@dutterbutter/zksync-sdk/ethers";
 import { $fetch } from "ofetch";
 
 import type { Api } from "@/types";
+import type { Hash } from "viem";
 
 const FETCH_TIME_LIMIT = 31 * 24 * 60 * 60 * 1000; // 31 days
 
@@ -8,6 +10,7 @@ export const useZkSyncWithdrawalsStore = defineStore("zkSyncWithdrawals", () => 
   const onboardStore = useOnboardStore();
   const providerStore = useZkSyncProviderStore();
   const transactionStatusStore = useZkSyncTransactionStatusStore();
+  const { getL1VoidSigner } = useZkSyncWalletStore();
   const { account, isConnected } = storeToRefs(onboardStore);
   const { eraNetwork } = storeToRefs(providerStore);
   const { userTransactions } = storeToRefs(transactionStatusStore);
@@ -30,9 +33,10 @@ export const useZkSyncWithdrawalsStore = defineStore("zkSyncWithdrawals", () => 
 
       if (new Date(withdrawal.timestamp).getTime() < Date.now() - FETCH_TIME_LIMIT) break;
 
-      const isFinalized = await (await useZkSyncWalletStore().getL1VoidSigner(true))
-        ?.isWithdrawalFinalized(withdrawal.transactionHash)
-        .catch(() => false);
+      const signer = await getL1VoidSigner(true);
+      const client = createEthersClient({ l1: signer.provider, l2: signer.providerL2, signer });
+      const sdk = createEthersSdk(client);
+      const status = await sdk.withdrawals.status(withdrawal.transactionHash as Hash);
 
       transactionStatusStore.saveTransaction({
         type: "withdrawal",
@@ -54,8 +58,8 @@ export const useZkSyncWithdrawalsStore = defineStore("zkSyncWithdrawals", () => 
           expectedCompleteTimestamp: new Date(
             new Date(withdrawal.timestamp).getTime() + WITHDRAWAL_DELAY
           ).toISOString(),
-          completed: isFinalized,
-          withdrawalFinalizationAvailable: isFinalized,
+          completed: status.phase === "FINALIZED",
+          withdrawalFinalizationAvailable: ["FINALIZE_FAILED", "READY_TO_FINALIZE"].includes(status.phase),
         },
       });
     }

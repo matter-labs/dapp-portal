@@ -117,11 +117,9 @@
       <template v-else-if="step === 'withdrawal-finalization-warning'">
         <CommonAlert variant="warning" :icon="ExclamationTriangleIcon" class="mb-block-padding-1/2 sm:mb-block-gap">
           <p v-if="!isCustomNode">
-            After an approximately
-            <a class="underline underline-offset-2" :href="ZKSYNC_WITHDRAWAL_DELAY" target="_blank"
-              >~5+ hour withdrawal delay</a
-            >, return to this portal to claim your funds on Ethereum. Claiming will require paying Ethereum transaction
-            fees. You may also choose to use a third-party bridge to withdraw funds, at your own risk.
+            After an approximately 5 minutes, return to this portal to claim your funds on Ethereum. Claiming will
+            require paying Ethereum transaction fees. You may also choose to use a third-party bridge to withdraw funds,
+            at your own risk.
           </p>
           <p v-else>
             After transaction is executed on {{ eraNetwork.l1Network?.name }}, you will need to claim your funds which
@@ -140,13 +138,9 @@
           class="mb-block-padding-1/2 sm:mb-block-gap"
         >
           <p v-if="withdrawalManualFinalizationRequired">
-            You will be able to claim your withdrawal after an approximate 5+ hour withdrawal delay.
-            <a class="underline underline-offset-2" :href="ZKSYNC_WITHDRAWAL_DELAY" target="_blank">Learn more</a>
+            You will be able to claim your withdrawal after an approximately 5 minutes.
           </p>
-          <p v-else>
-            You will receive funds after an approximate 5+ hour withdrawal delay.
-            <a class="underline underline-offset-2" :href="ZKSYNC_WITHDRAWAL_DELAY" target="_blank">Learn more</a>
-          </p>
+          <p v-else>You will receive funds after approximately 5 minutes.</p>
         </CommonAlert>
 
         <CommonCardWithLineButtons>
@@ -194,14 +188,8 @@
               :loading="feeLoading"
             />
           </transition>
-          <CommonButtonLabel
-            v-if="type === 'withdrawal' && !isCustomNode"
-            as="a"
-            :href="ZKSYNC_WITHDRAWAL_DELAY"
-            target="_blank"
-            class="ml-auto text-right"
-          >
-            6+ hours
+          <CommonButtonLabel v-if="type === 'withdrawal' && !isCustomNode" class="ml-auto text-right">
+            ~5 minutes
           </CommonButtonLabel>
           <CommonButtonLabel v-else-if="type === 'transfer'" as="span" class="ml-auto text-right">
             Almost instant
@@ -606,9 +594,9 @@ const estimate = async () => {
 
   await estimateFee({
     type: props.type,
-    from: transaction.value.from.address,
-    to: transaction.value.to.address,
-    tokenAddress: selectedToken.value.address,
+    from: transaction.value.from.address as Address,
+    to: transaction.value.to.address as Address,
+    tokenAddress: selectedToken.value.address as Address,
     isNativeToken: isNativeToken.value,
     assetId: assetId.value,
     amount: totalComputeAmount.value.toString(),
