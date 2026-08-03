@@ -1,8 +1,9 @@
 import { ethers } from "ethers";
 import { $fetch } from "ofetch";
-import { L1Signer, L1VoidSigner, BrowserProvider, Signer } from "zksync-ethers";
+import { L1Signer, L1VoidSigner, Signer } from "zksync-ethers";
 
 import { customBridgeTokens } from "@/data/customBridgeTokens";
+import { EraBrowserProvider } from "@/utils/era-browser-provider";
 import { getBalancesWithCustomBridgeTokens, AddressChainType } from "@/utils/helpers";
 
 import type { Api, TokenAmount } from "@/types";
@@ -25,13 +26,14 @@ export const useZkSyncWalletStore = defineStore("zkSyncWallet", () => {
       );
     }
 
-    const web3Provider = new BrowserProvider((await onboardStore.getWallet(eraNetwork.value.id)) as any, "any");
-    const rawEthersSigner = await web3Provider.getSigner();
-    const eraL2Signer = Signer.from(
-      rawEthersSigner,
-      Number(eraNetwork.value.id),
-      await providerStore.requestProvider()
+    const l2Provider = await providerStore.requestProvider();
+    const web3Provider = new EraBrowserProvider(
+      (await onboardStore.getWallet(eraNetwork.value.id)) as any,
+      "any",
+      l2Provider
     );
+    const rawEthersSigner = await web3Provider.getSigner();
+    const eraL2Signer = Signer.from(rawEthersSigner, Number(eraNetwork.value.id), l2Provider);
 
     return eraL2Signer;
   });
