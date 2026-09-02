@@ -92,7 +92,9 @@ const publicChains: ZkSyncNetwork[] = [
     blockExplorerUrl: "https://era.zksync.network",
     blockExplorerApi: "https://block-explorer-api.mainnet.zksync.io",
     displaySettings: {
-      onramp: true,
+      // On-ramp is disabled: the provider integration is broken, so the page is hidden from
+      // navigation and /on-ramp redirects to the bridge until it is fixed.
+      onramp: false,
       showPartnerLinks: true,
       isTestnet: false,
     },

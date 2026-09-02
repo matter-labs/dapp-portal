@@ -19,7 +19,8 @@
     "postinstall": "nuxt prepare",
     "prepare": "husky install",
     "lint": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs,.ts,.tsx,.cts,.mts --ignore-path .eslintignore --no-error-on-unmatched-pattern --max-warnings=2",
-    "lint:fix": "npm run lint -- --fix"
+    "lint:fix": "npm run lint -- --fix",
+    "test:unit": "vitest run"
   },
   "devDependencies": {
     "@commitlint/cli": "^17.4.2",
@@ -65,7 +66,8 @@
     "semantic-release": "^22.0.10",
     "slugify": "^1.6.6",
     "tailwindcss": "^3.2.4",
-    "ts-node": "^10.9.1"
+    "ts-node": "^10.9.1",
+    "vitest": "^1.6.1"
   },
   "prettier": "@matterlabs/prettier-config",
   "lint-staged": {
