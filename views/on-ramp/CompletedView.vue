@@ -17,7 +17,7 @@
   <template v-else>
     <CommonButton class="mt-4" variant="light" @click="goToRedirect">
       Redirecting you back in 3 seconds.<br />
-      Click to go back to {{ redirectURL.split("/").pop() }}
+      Click to go back to {{ redirectURL.hostname }}
     </CommonButton>
   </template>
 </template>
@@ -26,8 +26,14 @@
 import type { BigNumberish } from "ethers";
 import type { StepExtended } from "zksync-easy-onramp";
 
+const REDIRECT_DELAY = 3000;
+
 const route = useRoute();
-const redirectURL = route.query.redirect as string;
+// The redirect target comes from a public query parameter, so it is only used once validated
+const redirectURL = parseOnRampRedirectUrl(route.query.redirect);
+if (route.query.redirect && !redirectURL) {
+  logger.warn("Ignoring on-ramp redirect: only absolute https URLs without credentials are allowed");
+}
 
 const { order } = storeToRefs(useOrderProcessingStore());
 
@@ -53,14 +59,17 @@ const reload = () => {
 };
 
 const goToRedirect = () => {
-  window.location.href = redirectURL;
+  if (!redirectURL) return;
+  window.location.assign(redirectURL.href);
 };
 
+let redirectTimeout: ReturnType<typeof setTimeout> | undefined;
 onMounted(() => {
   if (redirectURL) {
-    setTimeout(() => {
-      window.location.href = redirectURL;
-    }, 3000);
+    redirectTimeout = setTimeout(goToRedirect, REDIRECT_DELAY);
   }
+});
+onBeforeUnmount(() => {
+  clearTimeout(redirectTimeout);
 });
 </script>

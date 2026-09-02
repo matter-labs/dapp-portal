@@ -24,6 +24,17 @@ import TransactionsView from "@/views/on-ramp/TransactionsView.vue";
 
 import type { Address } from "viem";
 
+// On-ramp is disabled while the provider integration is broken: the page is hidden from navigation
+// (`displaySettings.onramp` in data/networks.ts) and direct visits are sent to the bridge.
+definePageMeta({
+  middleware: () => {
+    const { selectedNetwork } = storeToRefs(useNetworkStore());
+    if (!selectedNetwork.value.displaySettings?.onramp) {
+      return navigateTo({ name: "bridge" }, { replace: true });
+    }
+  },
+});
+
 const route = useRoute();
 
 const DEFAULT_FIAT_AMOUNT = (route.query.amount as string) ?? "100";

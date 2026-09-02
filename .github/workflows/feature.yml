@@ -28,6 +28,10 @@ jobs:
         run: |
           npm run lint
 
+      - name: Unit tests
+        run: |
+          npm run test:unit
+
       - name: Setup .env
         run: |
           echo "WALLET_CONNECT_PROJECT_ID=${{ secrets.WALLET_CONNECT_PROJECT_ID }}" > .env
