@@ -7,7 +7,12 @@
       </div>
       <div v-if="!addressInputHidden && defaultLabel && isConnected">
         <span class="font-bold">{{ inputVisible ? "To another account" : defaultLabel }}</span>
-        <CommonButtonLabel variant="light" class="ml-1" @click="toggleCustomValue()">
+        <CommonButtonLabel
+          variant="light"
+          class="ml-1"
+          data-testid="change-account-button"
+          @click="toggleCustomValue()"
+        >
           {{ inputVisible ? "Use my account" : "Change" }}
         </CommonButtonLabel>
       </div>
