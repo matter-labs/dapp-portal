@@ -37,9 +37,9 @@ Harness the Portal's power to connect to your [local ZKsync Era node](https://do
      npm run dev:node:memory
      ```
    - For dockerized setup:
-     `bash
-npm run dev:node:docker
-`
+     ```bash
+     npm run dev:node:docker
+     ```
      Navigate to the displayed Portal URL (typically http://localhost:3000).
 
 ---

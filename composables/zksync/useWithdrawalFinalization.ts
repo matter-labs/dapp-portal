@@ -1,44 +1,22 @@
-import { useMemoize } from "@vueuse/core";
-import { Wallet, typechain } from "zksync-ethers";
-import IL1Nullifier from "zksync-ethers/abi/IL1Nullifier.json";
-
-import { L1_BRIDGE_ABI } from "@/data/abis/l1BridgeAbi";
-import { customBridgeTokens } from "@/data/customBridgeTokens";
+import { createEthersClient, createEthersSdk, createFinalizationServices } from "@dutterbutter/zksync-sdk/ethers";
 
 import { useSentryLogger } from "../useSentryLogger";
 
-import type { Hash } from "@/types";
-import type { Address } from "viem";
-import type { FinalizeWithdrawalParams } from "zksync-ethers/build/types";
+import type { Hash } from "viem";
 
 export default (transactionInfo: ComputedRef<TransactionInfo>) => {
   const status = ref<"not-started" | "processing" | "waiting-for-signature" | "sending" | "done">("not-started");
   const error = ref<Error | undefined>();
   const transactionHash = ref<Hash | undefined>();
   const onboardStore = useOnboardStore();
-  const providerStore = useZkSyncProviderStore();
   const walletStore = useZkSyncWalletStore();
   const tokensStore = useZkSyncTokensStore();
   const { isCorrectNetworkSet } = storeToRefs(onboardStore);
   const { ethToken } = storeToRefs(tokensStore);
   const { captureException } = useSentryLogger();
 
-  const retrieveBridgeAddresses = useMemoize(() =>
-    providerStore.requestProvider().then((provider) => provider.getDefaultBridgeAddresses())
-  );
-  const retrieveL1NullifierAddress = useMemoize(async () => {
-    const providerL1 = await walletStore.getL1VoidSigner();
-    return await typechain.IL1AssetRouter__factory.connect(
-      (
-        await retrieveBridgeAddresses()
-      ).sharedL1,
-      providerL1
-    ).L1_NULLIFIER();
-  });
-
   const gasLimit = ref<bigint | undefined>();
   const gasPrice = ref<bigint | undefined>();
-  const finalizeWithdrawalParams = ref<FinalizeWithdrawalParams | undefined>();
 
   const totalFee = computed(() => {
     if (!gasLimit.value || !gasPrice.value) return undefined;
@@ -48,101 +26,32 @@ export default (transactionInfo: ComputedRef<TransactionInfo>) => {
     return ethToken.value;
   });
 
-  const getFinalizationParams = async () => {
-    const provider = await providerStore.requestProvider();
-    const wallet = new Wallet(
-      // random private key cause we don't care about actual signer
-      // finalizeWithdrawalParams method only exists on Wallet class
-      "0x7726827caac94a7f9e1b160f7ea819f172f7b6f9d2a97f992c38edeab82d4110",
-      provider
-    );
-    return await wallet.getFinalizeWithdrawalParams(transactionInfo.value.transactionHash);
-  };
-
-  const getTransactionParams = async () => {
-    finalizeWithdrawalParams.value = await getFinalizationParams();
-    const provider = await providerStore.requestProvider();
-    const chainId = BigInt(await provider.getNetwork().then((n) => n.chainId));
-    const p = finalizeWithdrawalParams.value!;
-
-    // Check if this is a custom bridge withdrawal
-    // First check if the token already has the bridge address stored
-    let l1BridgeAddress = transactionInfo.value.token.l1BridgeAddress;
-
-    // If not, look it up from the custom bridge tokens configuration
-    if (!l1BridgeAddress) {
-      const { eraNetwork } = storeToRefs(providerStore);
-
-      const customBridgeToken = customBridgeTokens.find(
-        (token) =>
-          token.l2Address.toLowerCase() === transactionInfo.value.token.address.toLowerCase() &&
-          token.chainId === eraNetwork.value.l1Network?.id
-      );
-
-      l1BridgeAddress = customBridgeToken?.l1BridgeAddress;
-    }
-
-    const isCustomBridge = !!l1BridgeAddress;
-
-    if (isCustomBridge) {
-      // Use custom bridge finalization
-      return {
-        address: l1BridgeAddress as Address,
-        abi: L1_BRIDGE_ABI,
-        account: onboardStore.account.address!,
-        functionName: "finalizeWithdrawal",
-        args: [
-          BigInt(p.l1BatchNumber ?? 0n),
-          BigInt(p.l2MessageIndex),
-          Number(p.l2TxNumberInBlock) as number,
-          p.message as Hash,
-          p.proof as Hash[],
-        ],
-      } as const;
-    } else {
-      // Use standard bridge finalization through L1Nullifier
-      const finalizeDepositParams = {
-        chainId: BigInt(chainId),
-        l2BatchNumber: BigInt(p.l1BatchNumber ?? 0n),
-        l2MessageIndex: BigInt(p.l2MessageIndex),
-        l2Sender: p.sender as Address,
-        l2TxNumberInBatch: Number(p.l2TxNumberInBlock),
-        message: p.message as Hash,
-        merkleProof: p.proof as Hash[],
-      };
-
-      return {
-        address: (await retrieveL1NullifierAddress()) as Hash,
-        abi: IL1Nullifier,
-        account: onboardStore.account.address!,
-        functionName: "finalizeDeposit",
-        args: [finalizeDepositParams],
-      } as const;
-    }
-  };
-
   const {
     inProgress: estimationInProgress,
     error: estimationError,
     execute: estimateFee,
   } = usePromise(
     async () => {
+      const l2TxHash = transactionInfo.value!.transactionHash as Hash;
       tokensStore.requestTokens();
       const publicClient = onboardStore.getPublicClient();
 
-      const transactionParams = await getTransactionParams();
-      const [price, limit] = await Promise.all([
+      const [price, estimate] = await Promise.all([
         retry(async () => BigInt((await publicClient.getGasPrice()).toString())),
         retry(async () => {
-          return BigInt((await publicClient.estimateContractGas(transactionParams as any)).toString());
+          const signer = await walletStore.getL1VoidSigner(true);
+          const client = createEthersClient({ l1: signer.provider, l2: signer.providerL2, signer });
+          const svc = createFinalizationServices(client);
+          const { params } = await svc.fetchFinalizeDepositParams(l2TxHash);
+
+          return svc.estimateFinalization(params);
         }),
       ]);
 
       gasPrice.value = price;
-      gasLimit.value = limit;
+      gasLimit.value = estimate.gasLimit;
 
       return {
-        transactionParams,
         gasPrice: gasPrice.value,
         gasLimit: gasLimit.value,
       };
@@ -158,14 +67,15 @@ export default (transactionInfo: ComputedRef<TransactionInfo>) => {
       if (!isCorrectNetworkSet.value) {
         await onboardStore.setCorrectNetwork();
       }
-      const wallet = await onboardStore.getWallet();
-      const { transactionParams, gasLimit, gasPrice } = (await estimateFee())!;
       status.value = "waiting-for-signature";
-      transactionHash.value = await wallet.writeContract({
-        ...(transactionParams as any),
-        gasPrice: BigInt(gasPrice.toString()),
-        gas: BigInt(gasLimit.toString()),
-      });
+      const signer = (await walletStore.getL1Signer())!;
+      const client = createEthersClient({ l1: signer.provider, l2: signer.providerL2, signer });
+      const sdk = createEthersSdk(client);
+      const transaction = await sdk.withdrawals.finalize(transactionInfo.value!.transactionHash as Hash);
+      if (!transaction.receipt) {
+        throw new Error("Finalization transaction failed");
+      }
+      transactionHash.value = transaction.receipt?.hash as Hash;
 
       status.value = "sending";
       const receipt = await retry(() =>
@@ -186,6 +96,8 @@ export default (transactionInfo: ComputedRef<TransactionInfo>) => {
       status.value = "done";
       return receipt;
     } catch (err) {
+      // eslint-disable-next-line no-console
+      console.error(err);
       error.value = formatError(err as Error);
       status.value = "not-started";
       captureException({

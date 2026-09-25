@@ -17,9 +17,7 @@
         </template>
         <template v-else>
           Your funds will be available on <span class="font-medium">{{ transaction.to.destination.label }}</span> after
-          the
-          <a class="underline underline-offset-2" :href="ZKSYNC_WITHDRAWAL_DELAY" target="_blank">~5+ hour delay</a>.
-          During this time, the transaction will be processed
+          approximately 5 minutes. During this time, the transaction will be processed
           {{
             withdrawalManualFinalizationRequired
               ? "and become available for claiming."
