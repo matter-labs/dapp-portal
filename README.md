@@ -77,7 +77,7 @@ In the .env file, add the Sentry variables:
 SENTRY_DSN=your_sentry_dsn_url_here
 SENTRY_ENV=localhost # 'localhost' | 'production'
 ```
-SENTRY_ENV variable is used in order to filter the issues by environment. 
+`SENTRY_ENV` is used to filter issues by environment.
 
 ### 🔧 Setup
 
