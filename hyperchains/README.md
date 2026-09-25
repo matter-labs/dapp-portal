@@ -1,6 +1,6 @@
-# 🚀 Hyperchain Portal Setup
+# 🚀 ZK Chain Portal Setup
 
-Portal supports custom ZK Stack Hyperchain nodes.
+Portal supports custom ZK Stack chain nodes.
 
 ---
 
@@ -34,7 +34,7 @@ There are a few different ways to configure the application:
 
 <details>
 
-<summary><b>Hyperchain config.json structure</b></summary>
+<summary><b>ZK Chain config.json structure</b></summary>
 
 ```ts
 Array<{
