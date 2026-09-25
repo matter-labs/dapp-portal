@@ -2,7 +2,7 @@
 
 # ZKsync Portal 🚀
 
-**ZKsync Portal** is a state-of-the-art dapp, merging the power of bridge, tokens manager and transaction history into one user-friendly interface. Designed with a stress on effortless user experience, it simplifies token management, making it your premier interface for interacting with both ZKsync versions - every interaction smooth and efficient.
+**ZKsync Portal** is a state-of-the-art dapp, merging the power of bridge, tokens manager and transaction history into one user-friendly interface. Designed with an emphasis on an effortless user experience, it simplifies token management, making it your premier interface for interacting with both ZKsync versions - every interaction smooth and efficient.
 
 ## ✨ Features
 
