@@ -7,20 +7,28 @@ Feature: Transfer
   @id1321
   Scenario: Make a transfer in ETH
     Given I am on the Main page
-    When I go to page "/transaction/zksync/era/send?network=era-goerli&address=0x9CC8DC9c4d73fC5647A4eE78A2e8EC49D447AeB8"
+    When I go to page "/send?address=0xF649f392289F80752B0aDdD90058a8248b5026fE"
+    When I confirm the network switching
+    Then Element with "testId" "token-dropDown" should be "clickable"
     When I choose "ETH" as token and insert "0.0000000001" as amount
-    When I "confirm" transaction after clicking "Send to ZKsync Era Testnet" button
+    Then I click by "text" with " Continue " value
+    When I "confirm" transaction after clicking "Send now" button
     Then Message "Transaction submitted" should be visible
     Then Message "Transaction completed" should be visible
-    Then Element with "text" "Send" should be "visible"
+    Then Element with "text" " Go to Assets page " should be "visible"
+    Then Element with "text" " Go to Assets page " should be "clickable"
+    Then Element with "text" " Make another transaction " should be "visible"
+    Then Element with "text" " Make another transaction " should be "clickable"
     Then Arrow element for "Transfer" external link should be "visible"
     Then Arrow element for "Transfer" external link should be "clickable"
 
-  @id1276
+  @id1276 @groupthree
   Scenario: Reject a transfer transaction
     Given I am on the Main page
-    When I go to page "/transaction/zksync/era/send?network=era-goerli&address=0x9CC8DC9c4d73fC5647A4eE78A2e8EC49D447AeB8"
+    When I go to page "/send?address=0xF649f392289F80752B0aDdD90058a8248b5026fE"
+    When I confirm the network switching
     When I choose "ETH" as token and insert "0.0000000001" as amount
-    When I "reject" transaction after clicking "Send to ZKsync Era Testnet" button
-    Then Element with "text" "Confirm transaction" should be "visible"
+    Then I click by "text" with " Continue " value
+    When I "reject" transaction after clicking "Send now" button
+    Then Element with "text" "Send now" should be "visible"
 

@@ -3,8 +3,8 @@
   "description": "zksync-portal test solution is based on BDD/Playwright and focused on the e2e scenarios",
   "private": true,
   "scripts": {
-    "metamask:install": "METAMASK_VERSION=10.14.1 node utils/metamaskDownloader.mjs",
+    "metamask:install": "METAMASK_VERSION=11.14.1 node utils/metamaskDownloader.mjs",
     "postinstall": "npm run metamask:install",
-    "test:e2e": "cucumber-js --tags \"@artifacts and not @emptyWallet\""
+    "test:e2e": "cucumber-js --tags \"@transactions and not @emptyWallet\""
   }
 }

@@ -2,7 +2,7 @@
   <label class="checkbox-with-text" tabindex="0" @keyup.enter="checked = !checked">
     <div class="relative">
       <input v-model="checked" type="checkbox" class="sr-only" tabindex="-1" />
-      <div class="checkbox-input" :class="{ checked }">
+      <div class="checkbox-input" :class="{ checked }" :data-testid="dataTestid">
         <svg v-if="checked" class="checkbox-icon" viewBox="0 0 20 20" fill="currentColor">
           <path
             fill-rule="evenodd"
@@ -23,6 +23,10 @@ const props = defineProps({
   modelValue: {
     type: Boolean,
     required: true,
+  },
+  dataTestid: {
+    type: String,
+    default: "",
   },
 });
 const emit = defineEmits<{

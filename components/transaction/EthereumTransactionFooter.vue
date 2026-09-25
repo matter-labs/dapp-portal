@@ -25,6 +25,7 @@
           :disabled="switchingNetworkInProgress"
           variant="primary"
           class="w-full"
+          data-testid="change-l1-network-button"
           @click="onboardStore.setCorrectNetwork"
         >
           <slot v-bind="{ l1Network, walletName }" name="change-network-auto">

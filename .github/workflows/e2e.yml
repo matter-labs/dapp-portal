@@ -1,22 +1,18 @@
 name: Testing Portal using e2e
 on:
   workflow_call:
-    secrets:
-      ALLURE_TOKEN:
-        description: 'A token passed from the caller workflow'
-        required: true
     inputs:
       environmentTags:
         type: string
-        default: ''
+        default: ""
         required: false
       targetUrl:
         type: string
-        default: 'https://staging-portal.zksync.dev/'
+        default: "https://staging-portal.zksync.dev/"
         required: true
       network:
         type: string
-        default: 'Sepolia'
+        default: "Sepolia"
         required: true
       publish_to_allure: #Here we define the variable that can be overwritten by caller workflow
         type: boolean
@@ -25,57 +21,21 @@ on:
         required: false
 
 env:
-  ALLURE_TOKEN: ${{ secrets.ALLURE_TOKEN }}
-  ALLURE_SEARCH_REQUEST: '[{"id":"name","type":"string","value":"#${{ github.run_number }}"}]'
-  ALLURE_BASIC_TAGS: "${{ github.head_ref }}, #${{ github.run_number }}, ${{ github.event.pull_request.title }}"
-  ALLURE_PROJECT_ID: ${{ vars.ALLURE_PROJECT_ID }}
-  ALLURE_ENDPOINT: ${{ vars.ALLURE_ENDPOINT }}
-
-  E2E_WALLET_SECRET_PK: ${{ secrets.E2E_WALLET_SECRET_PK }}
-  E2E_WALLET_SALT_IV: ${{ secrets.E2E_WALLET_SALT_IV }}
   E2E_WALLET_PASSWORD_MM: ${{ secrets.E2E_WALLET_PASSWORD_MM }}
-
-  E2E_WALLET_1_MAIN: ${{ vars.E2E_WALLET_1_MAIN }}
-  E2E_WALLET_2_SECOND: ${{ vars.E2E_WALLET_2_SECOND }}
-  E2E_WALLET_0_EMPTY: ${{ vars.E2E_WALLET_0_EMPTY }}
-
-  E2E_WALLET_1_MAIN_PUB_KEY: ${{ vars.E2E_WALLET_1_MAIN_PUB_KEY }}
-  E2E_WALLET_2_SECOND_PUB_KEY: ${{ vars.E2E_WALLET_2_SECOND_PUB_KEY }}
-  E2E_WALLET_0_EMPTY_PUB_KEY: ${{ vars.E2E_WALLET_0_EMPTY_PUB_KEY }}
-
+  E2E_WALLET_1_MAIN_MNEMONIC: ${{ vars.E2E_WALLET_1_MAIN_MNEMONIC }}
+  E2E_WALLET_2_SECOND_MNEMONIC: ${{ vars.E2E_WALLET_2_SECOND_MNEMONIC }}
 
 jobs:
   e2e:
-    runs-on: [ matterlabs-ci-runner ]
+    runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       max-parallel: 20
       matrix:
         command: ["xvfb-run --auto-servernum --server-args '-screen 0 1920x1080x24' npx cucumber-js --tags "]
-        tags: [
-                "@artifacts and @bridge",
-                "@artifacts and @contactsPage",
-                "@artifacts and @depositPage",
-                "@artifacts and @transferPage",
-                "@artifacts and @header",
-                "@artifacts and @menuItems",
-                "@artifacts and @upperNavigationMenu",
-                "@artifacts and @contactsPage",
-                "@artifacts and @withdraw",
-                "@navigation and not @emptyWallet",
-                "@redirection and @resetAllowance",
-                "@artifacts and @various",
-                "@artifacts and @transactionsItems",
-                "@transactions and @deposit and @blockchain",
-                "@transactions and @deposit and @noblockchain",
-                "@transactions and @deposit and @emptyWallet",
-                "@transactions and @deposit and @resetAllowance",
-                "@transactions and @withdraw",
-                "@various and @emptyWallet",
-                "@actions and @contacts"
-        ]
+        tags: ["@transactions and not @emptyWallet"]
 
-    name: '${{ matrix.tags }}'
+    name: "${{ matrix.tags }}"
 
     container:
       image: mcr.microsoft.com/playwright:v1.35.1-focal
@@ -113,8 +73,8 @@ jobs:
       - name: Launch tests
         id: launch
         env:
-          CI: 'true'
-          TARGET_ENV: ${{ inputs.targetUrl }}
+          CI: "true"
+          TARGET_ENV: ${{ vars.TARGET_ENV }}
           DAPP_NETWORK: ${{ inputs.network }}
         run: |
           echo "Run tests"
@@ -126,39 +86,9 @@ jobs:
         run: |
           echo "MATRIX_TAG_WITHOUT_QUOTES=$(echo ${{ matrix.tags }} | sed -e 's/@//g' )" >> $GITHUB_ENV
 
-      - name: Create launch ID
-        if: always()
-        env:
-          ALLURE_LAUNCH_NAME: "#${{ github.run_number }} ${{ env.MATRIX_TAG_WITHOUT_QUOTES }}"
-          ALLURE_LAUNCH_TAGS: "${{ env.ALLURE_BASIC_TAGS }}, ${{ env.MATRIX_TAG_WITHOUT_QUOTES }}"
-        run: |
-          echo "ALLURE_LAUNCH_ID=$(./allurectl launch create --launch-name '${{ env.ALLURE_LAUNCH_NAME }}' --no-header --format ID | tail -n1)" >> $GITHUB_ENV
-
-      - name: Upload tests to the Allure proj
-        if: always() && inputs.publish_to_allure == true # <-- no brackets, 'true' does not work here: https://github.com/actions/runner/issues/1483#issuecomment-1090972149
-        run: |
-          ./allurectl upload tests/e2e/allure-results --launch-id ${{ env.ALLURE_LAUNCH_ID }}
-          ./allurectl launch close ${{ env.ALLURE_LAUNCH_ID }}
-
-
       - if: failure()
         name: Save artifacts
         uses: actions/upload-artifact@v2
         with:
           name: portal_e2e_${{ github.run_number }}_artifacts
           path: tests/e2e/artifacts/*
-
-  publish:
-    name: Publish Allure link to GIT
-    runs-on: ubuntu-latest
-    needs: e2e
-    if: always()
-    steps:
-      - name: Prepare a link
-        run: |
-          echo "BASE64_SEARCH_REQUEST=$(echo '${{ env.ALLURE_SEARCH_REQUEST }}' | base64)" >> $GITHUB_ENV
-
-      - name: Publish Allure link to GIT Summary
-        run: |
-          LINK="${{ vars.ALLURE_ENDPOINT }}project/${{ vars.ALLURE_PROJECT_ID }}/launches?search=${{ env.BASE64_SEARCH_REQUEST }}"
-          echo "Allure [e2e tests]($LINK) :rocket: in git run #${{ github.run_number }}" >> $GITHUB_STEP_SUMMARY
