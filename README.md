@@ -72,7 +72,7 @@ WALLET_CONNECT_PROJECT_ID=your_project_id_here
 
 #### Error logging with [Sentry](https://sentry.io/)
 
-In the .env file, add the Sentry variables:
+In the `.env` file, add the Sentry variables:
 ```bash
 SENTRY_DSN=your_sentry_dsn_url_here
 SENTRY_ENV=localhost # 'localhost' | 'production'
