@@ -8,7 +8,7 @@
 
 - 🖥️ Intuitive interface for managing, sending, and bridging ZKsync Era.
 - 📇 Ability to add contacts for quick and easy access.
-- 🔧 Effortless setup and connection to local ZKsync nodes or ZK Stack Hyperchains.
+- 🔧 Effortless setup and connection to local ZKsync nodes or ZK Stack chains.
 
 ## 🎉 Try it out!
 
@@ -44,9 +44,9 @@ npm run dev:node:docker
 
 ---
 
-## 🔗 Connecting to Hyperchain
+## 🔗 Connecting to ZK Chain
 
-To use Portal with your ZK Stack Hyperchain, see the guide [here](./hyperchains/README.md).
+To use Portal with your ZK Stack chain, see the guide [here](./hyperchains/README.md).
 
 ---
 
