@@ -611,6 +611,7 @@ watch(
     () => tokenBalance.value?.toString(),
     amountToTransferIsApproved,
     totalComputeAmount,
+    () => transaction.value?.to.address,
   ],
   () => {
     resetFee();

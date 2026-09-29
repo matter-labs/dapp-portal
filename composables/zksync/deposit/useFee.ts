@@ -24,6 +24,8 @@ export default (tokens: Ref<Token[]>, balances: Ref<TokenAmount[] | undefined>) 
   let params = {
     to: undefined as string | undefined,
     tokenAddress: undefined as string | undefined,
+    // The fee is estimated with the signer of the sender, so estimates are cached per sender
+    from: undefined as string | undefined,
   };
 
   const fee = ref<DepositFeeValues | undefined>();
@@ -145,10 +147,11 @@ export default (tokens: Ref<Token[]>, balances: Ref<TokenAmount[] | undefined>) 
     inProgress,
     error,
     recommendedBalance,
-    estimateFee: async (to: string, tokenAddress: string) => {
+    estimateFee: async (to: string, tokenAddress: string, from: string) => {
       params = {
         to,
         tokenAddress,
+        from,
       };
       await cacheEstimateFee(params);
     },

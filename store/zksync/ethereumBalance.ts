@@ -23,9 +23,12 @@ export const useZkSyncEthereumBalanceStore = defineStore("zkSyncEthereumBalances
 
     if (!ethereumBalance.value) throw new Error("Ethereum balances are not available");
 
+    // Tokens on the chain's token list are not flagged as unverified
+    const knownL1Addresses = new Set(Object.keys(l1Tokens.value ?? {}).map((address) => address.toLowerCase()));
+
     // Get balances from Ankr API and merge them with tokens data from explorer
     return [
-      ...ethereumBalance.value.map((e) => {
+      ...ethereumBalance.value.map(({ isUnverified, ...e }) => {
         const tokenFromExplorer = l1Tokens.value?.[e.address];
         return {
           ...e,
@@ -33,6 +36,7 @@ export const useZkSyncEthereumBalanceStore = defineStore("zkSyncEthereumBalances
           name: tokenFromExplorer?.name ?? e.name,
           iconUrl: tokenFromExplorer?.iconUrl ?? e.iconUrl,
           price: tokenFromExplorer?.price ?? e.price,
+          ...(isUnverified && !knownL1Addresses.has(e.address.toLowerCase()) ? { isUnverified } : {}),
         };
       }),
       ...Object.values(l1Tokens.value ?? []) // Add tokens that are not in Ankr API

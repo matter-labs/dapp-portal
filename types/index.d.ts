@@ -15,6 +15,7 @@ export type Token = {
   iconUrl?: string;
   price?: TokenPrice;
   isETH?: boolean;
+  isUnverified?: boolean; // Name, symbol and icon are not verified by the Portal and can imitate another token
   l1BridgeAddress?: string;
   l2BridgeAddress?: string;
 };

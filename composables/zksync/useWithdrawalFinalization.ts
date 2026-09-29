@@ -9,6 +9,7 @@ import { customBridgeTokens } from "@/data/customBridgeTokens";
 import { useSentryLogger } from "../useSentryLogger";
 
 import type { Hash } from "@/types";
+import type { ReplacementReason } from "viem";
 import type { FinalizeWithdrawalParams } from "zksync-ethers/build/types";
 
 export default (transactionInfo: ComputedRef<TransactionInfo>) => {
@@ -163,14 +164,29 @@ export default (transactionInfo: ComputedRef<TransactionInfo>) => {
       });
 
       status.value = "sending";
+      let replacementReason: ReplacementReason | undefined;
       const receipt = await retry(() =>
         onboardStore.getPublicClient().waitForTransactionReceipt({
           hash: transactionHash.value!,
           onReplaced: (replacement) => {
+            replacementReason = replacement.reason;
             transactionHash.value = replacement.transaction.hash;
           },
         })
       );
+
+      // A sped-up ("repriced") transaction has the same target, value and calldata, so it is still the claim.
+      // A cancelled or otherwise replaced transaction does not claim the withdrawal, even if it succeeded.
+      if (replacementReason && replacementReason !== "repriced") {
+        transactionHash.value = undefined;
+        throw new Error(
+          "The claim transaction was cancelled or replaced in your wallet and did not claim your withdrawal."
+        );
+      }
+      if (receipt.status !== "success") {
+        transactionHash.value = undefined;
+        throw new Error("The claim transaction failed and did not claim your withdrawal.");
+      }
 
       trackEvent("withdrawal-finalized", {
         token: transactionInfo.value!.token.symbol,

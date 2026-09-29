@@ -5,6 +5,7 @@
     :address="address"
     :decimals="decimals"
     :icon-url="iconUrl"
+    :is-unverified="isUnverified"
     :as="sendRouteName ? 'RouterLink' : as"
     :to="sendRouteName ? { name: sendRouteName, query: { token: address } } : undefined"
     class="token-balance"
@@ -65,6 +66,10 @@ const props = defineProps({
   },
   price: {
     type: [String, Number] as PropType<TokenPrice>,
+  },
+  isUnverified: {
+    type: Boolean,
+    default: false,
   },
   sendRouteName: {
     type: String,

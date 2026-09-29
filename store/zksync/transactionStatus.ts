@@ -17,6 +17,8 @@ export type TransactionInfo = {
     expectedCompleteTimestamp?: string;
     withdrawalFinalizationAvailable?: boolean;
     failed?: boolean;
+    // Deposit only: the L1 transaction succeeded but the L2 transaction reverted
+    l2Failed?: boolean;
     completed: boolean;
   };
 };
@@ -94,6 +96,11 @@ export const useZkSyncTransactionStatusStore = defineStore("zkSyncTransactionSta
       if (!l2TransactionReceipt) return updatedTransaction;
 
       updatedTransaction.info.toTransactionHash = l2TransactionHash;
+      // The L2 transaction was executed but reverted, so the funds were not delivered to the recipient
+      if (l2TransactionReceipt.status === 0) {
+        updatedTransaction.info.failed = true;
+        updatedTransaction.info.l2Failed = true;
+      }
       updatedTransaction.info.completed = true;
       return updatedTransaction;
     } catch (err) {
@@ -141,7 +148,7 @@ export const useZkSyncTransactionStatusStore = defineStore("zkSyncTransactionSta
     const transactionReceipt = await provider.getTransactionReceipt(transaction.transactionHash);
     if (!transactionReceipt) return transaction;
     const transactionDetails = await provider.getTransactionDetails(transaction.transactionHash);
-    if (transactionDetails.status === "failed") {
+    if (transactionDetails.status === "failed" || transactionReceipt.status === 0) {
       transaction.info.failed = true;
     }
     transaction.info.completed = true;

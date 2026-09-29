@@ -78,6 +78,11 @@
             <LockClosedIcon class="mt-4 h-6 w-6 text-warning-400" aria-hidden="true" />
           </div>
         </transition>
+        <transition v-bind="TransitionOpacity(300)">
+          <div v-if="selectedToken?.isUnverified" v-tooltip="'Unverified token'">
+            <ExclamationTriangleIcon class="mt-4 h-6 w-6 text-warning-400" aria-hidden="true" />
+          </div>
+        </transition>
         <CommonButtonDropdown
           class="h-max"
           :toggled="selectTokenModalOpened"
@@ -98,7 +103,7 @@
 </template>
 
 <script lang="ts" setup>
-import { LockClosedIcon } from "@heroicons/vue/24/outline";
+import { ExclamationTriangleIcon, LockClosedIcon } from "@heroicons/vue/24/outline";
 
 import { useSentryLogger } from "@/composables/useSentryLogger";
 

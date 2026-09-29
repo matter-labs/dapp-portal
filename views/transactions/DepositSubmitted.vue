@@ -6,9 +6,41 @@
     </h1>
     <CommonHeightTransition :opened="!transaction.info.completed || transaction.info.failed">
       <p class="mb-4 text-center">
-        <template v-if="transaction.info.failed">
-          The deposit transaction failed on <span class="font-medium">{{ transaction.from.destination.label }}</span>
-          . Your funds remain in your wallet and were not bridged.
+        <template v-if="transaction.info.l2Failed">
+          The deposit transaction succeeded on
+          <span class="font-medium">{{ transaction.from.destination.label }}</span> but failed on
+          <span class="font-medium">{{ transaction.to.destination.label }}</span
+          >, so your funds were not delivered to the recipient.
+          <template v-if="isBaseTokenDeposit">
+            The deposited amount, minus fees, was refunded to the sender's address on
+            <span class="font-medium">{{ transaction.to.destination.label }}</span
+            >.
+          </template>
+          <template v-else-if="isBaseTokenDeposit === false">
+            The funds have to be recovered on
+            <span class="font-medium">{{ transaction.from.destination.label }}</span> by
+            <a
+              class="underline underline-offset-2"
+              href="https://docs.zksync.io/zksync-protocol/contracts/l1-contracts/l1-ecosystem-contracts#claiming-failed-deposits"
+              target="_blank"
+              >claiming the failed deposit</a
+            >.
+          </template>
+          <template v-else>
+            Depending on the token, the funds are refunded to the sender's address on
+            <span class="font-medium">{{ transaction.to.destination.label }}</span> or have to be recovered on
+            <span class="font-medium">{{ transaction.from.destination.label }}</span> by
+            <a
+              class="underline underline-offset-2"
+              href="https://docs.zksync.io/zksync-protocol/contracts/l1-contracts/l1-ecosystem-contracts#claiming-failed-deposits"
+              target="_blank"
+              >claiming the failed deposit</a
+            >.
+          </template>
+        </template>
+        <template v-else-if="transaction.info.failed">
+          The deposit transaction failed on <span class="font-medium">{{ transaction.from.destination.label }}</span
+          >. Your funds remain in your wallet and were not bridged.
         </template>
         <template v-else>
           Your funds will be available after the transaction is committed on
@@ -47,7 +79,7 @@
 </template>
 
 <script lang="ts" setup>
-defineProps({
+const props = defineProps({
   transaction: {
     type: Object as PropType<TransactionInfo>,
     required: true,
@@ -60,4 +92,11 @@ defineProps({
 
 const { l1BlockExplorerUrl } = storeToRefs(useNetworkStore());
 const { eraNetwork, blockExplorerUrl } = storeToRefs(useZkSyncProviderStore());
+const { baseToken } = storeToRefs(useZkSyncTokensStore());
+
+// Deposits keep the token's L1 address. Undefined until the tokens are loaded.
+const isBaseTokenDeposit = computed(() => {
+  if (!baseToken.value?.l1Address) return undefined;
+  return props.transaction.token.address.toLowerCase() === baseToken.value.l1Address.toLowerCase();
+});
 </script>

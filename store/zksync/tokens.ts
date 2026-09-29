@@ -2,6 +2,7 @@ import { $fetch } from "ofetch";
 import { utils } from "zksync-ethers";
 
 import { customBridgeTokens } from "@/data/customBridgeTokens";
+import { findTokensWithUnverifiedL1Link, sanitizeUnverifiedToken } from "@/utils/tokenTrust";
 
 import type { Api, Token } from "@/types";
 
@@ -80,15 +81,21 @@ export const useZkSyncTokensStore = defineStore("zkSyncTokens", () => {
     }));
   });
 
+  // Lowercased addresses of held tokens whose L1 address belongs to another token on this chain
+  const unverifiedTokenAddresses = ref(new Set<string>());
+  const isUnverifiedToken = (token: Token) => unverifiedTokenAddresses.value.has(token.address.toLowerCase());
+
   const tokens = computed<{ [tokenAddress: string]: Token } | undefined>(() => {
     if (!tokensRaw.value) return undefined;
-    return Object.fromEntries(tokensRaw.value.map((token) => [token.address, token]));
+    return Object.fromEntries(
+      tokensRaw.value.map((token) => [token.address, isUnverifiedToken(token) ? sanitizeUnverifiedToken(token) : token])
+    );
   });
   const l1Tokens = computed<{ [tokenAddress: string]: Token } | undefined>(() => {
     if (!tokensRaw.value) return undefined;
     return Object.fromEntries(
       tokensRaw.value
-        .filter((e) => e.l1Address)
+        .filter((e) => e.l1Address && !isUnverifiedToken(e))
         .map((token) => {
           const customBridgeToken = customBridgeTokens.find(
             (e) => eraNetwork.value.l1Network?.id === e.chainId && token.l1Address === e.l1Address
@@ -108,14 +115,34 @@ export const useZkSyncTokensStore = defineStore("zkSyncTokens", () => {
     return tokensRaw.value.find((token) => token.isETH);
   });
 
+  const l1LinkChecks = new Map<string, Promise<boolean>>();
+  const verifyHeldTokens = async (heldTokens: Token[]) => {
+    const provider = await providerStore.requestProvider();
+    const addresses = await findTokensWithUnverifiedL1Link(
+      provider,
+      heldTokens,
+      {
+        chainId: eraNetwork.value.id,
+        l1ChainId: eraNetwork.value.l1Network?.id,
+        ethTokenAddress: ethToken.value?.address,
+      },
+      l1LinkChecks
+    );
+    if (addresses.some((address) => !unverifiedTokenAddresses.value.has(address))) {
+      unverifiedTokenAddresses.value = new Set([...unverifiedTokenAddresses.value, ...addresses]);
+    }
+  };
+
   return {
     l1Tokens,
     tokens,
     baseToken,
     ethToken,
+    unverifiedTokenAddresses: computed(() => unverifiedTokenAddresses.value),
     tokensRequestInProgress: computed(() => tokensRequestInProgress.value),
     tokensRequestError: computed(() => tokensRequestError.value),
     requestTokens,
     resetTokens,
+    verifyHeldTokens,
   };
 });
