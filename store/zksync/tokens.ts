@@ -3,8 +3,10 @@ import { utils } from "zksync-ethers";
 
 import { customBridgeTokens } from "@/data/customBridgeTokens";
 import {
+  FAILED_L1_LINK_CHECK_RETRY_DELAY,
   findTokensWithSharedL1Address,
   findTokensWithUnverifiedL1Link,
+  l1LinkCheckKey,
   sanitizeUnverifiedToken,
 } from "@/utils/tokenTrust";
 
@@ -146,12 +148,25 @@ export const useZkSyncTokensStore = defineStore("zkSyncTokens", () => {
   // Held tokens are checked by the wallet store when balances are loaded.
   // Listed tokens that claim the same L1 address are checked when the list is loaded, so that a token that is not
   // held cannot take the place of the bridged token of that L1 address, e.g. on the Deposit page.
-  // The check runs in the background and its result is applied when it arrives
-  watch(tokensRaw, (listedTokens) => {
-    if (!listedTokens) return;
-    const tokensWithSharedL1Address = findTokensWithSharedL1Address(listedTokens);
-    if (tokensWithSharedL1Address.length) verifyTokens(tokensWithSharedL1Address).catch(() => undefined);
-  });
+  // The check runs in the background and its result is applied when it arrives. Nothing else repeats it, so a check
+  // that could not be completed is repeated here after the retry delay
+  const verifyListedTokens = async () => {
+    if (!tokensRaw.value) return;
+    const listedTokens = findTokensWithSharedL1Address(tokensRaw.value);
+    if (!listedTokens.length) return;
+    const retryLater = () => setTimeout(verifyListedTokens, FAILED_L1_LINK_CHECK_RETRY_DELAY);
+    try {
+      await verifyTokens(listedTokens);
+    } catch {
+      retryLater();
+      return;
+    }
+    const checks = await Promise.allSettled(
+      listedTokens.map((token) => l1LinkChecks.get(l1LinkCheckKey(token, eraNetwork.value.id)))
+    );
+    if (checks.some((check) => check.status === "rejected")) retryLater();
+  };
+  watch(tokensRaw, verifyListedTokens);
 
   return {
     l1Tokens,

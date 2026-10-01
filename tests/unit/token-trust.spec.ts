@@ -333,6 +333,32 @@ describe("Held tokens with an unverified L1 address", () => {
     expect(tokens.value![DAI_L2]).not.toHaveProperty("isUnverified");
   });
 
+  it("checks the token list again after a delay when its check fails", async () => {
+    vi.useFakeTimers();
+    const cloneDai = token("0x000000000000000000000000000000000000DA1C", DAI_L1, "DAI", { decimals: 6 });
+    explorerTokens.value = [eth, cloneDai, dai];
+    // The first check of DAI's L1 address fails
+    const l2TokenAddress = storeProvider.l2TokenAddress.getMockImplementation()!;
+    let daiChecks = 0;
+    storeProvider.l2TokenAddress.mockImplementation((l1Address: string) =>
+      l1Address === DAI_L1 && daiChecks++ === 0 ? Promise.reject(new Error("network error")) : l2TokenAddress(l1Address)
+    );
+
+    const { l1Tokens, tokens, requestTokens } = await createStores();
+    await requestTokens();
+    await vi.advanceTimersByTimeAsync(0);
+    // The check failed, so the first listed token is used meanwhile
+    expect(l1Tokens.value![DAI_L1]).toMatchObject({ decimals: 6 });
+    expect(tokens.value![cloneDai.address]).not.toHaveProperty("isUnverified");
+
+    await vi.advanceTimersByTimeAsync(FAILED_L1_LINK_CHECK_RETRY_DELAY);
+
+    expect(l1Tokens.value![DAI_L1]).toMatchObject({ decimals: 18, iconUrl: dai.iconUrl });
+    expect(tokens.value![cloneDai.address]).toMatchObject({ isUnverified: true });
+    // Both listed tokens with DAI's L1 address are checked, then only the failed check is repeated
+    expect(storeProvider.l2TokenAddress.mock.calls.filter(([l1Address]) => l1Address === DAI_L1)).toHaveLength(3);
+  });
+
   it("returns balances without waiting for a slow check and applies its result when it arrives", async () => {
     vi.useFakeTimers();
     let finishCheck!: () => void;

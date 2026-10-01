@@ -28,6 +28,10 @@ export const isTokenL1LinkTrusted = (token: Token, context: TokenL1LinkCheckCont
 // A token whose check failed is shown as it is and checked again on a call made after this delay
 export const FAILED_L1_LINK_CHECK_RETRY_DELAY = 60_000;
 
+// Key of a token's check in the cache passed to findTokensWithUnverifiedL1Link
+export const l1LinkCheckKey = (token: Token, chainId: number) =>
+  `${chainId}:${token.address}:${token.l1Address}`.toLowerCase();
+
 /**
  * Returns the lowercased addresses of tokens whose L1 address belongs to another token on this chain:
  * the bridged token of that L1 address exists and has a different address.
@@ -39,7 +43,7 @@ export const findTokensWithUnverifiedL1Link = async (
   context: TokenL1LinkCheckContext,
   cache: Map<string, Promise<boolean>>
 ): Promise<string[]> => {
-  const cacheKey = (token: Token) => `${context.chainId}:${token.address}:${token.l1Address}`.toLowerCase();
+  const cacheKey = (token: Token) => l1LinkCheckKey(token, context.chainId);
   const unchecked = new Map(
     tokens
       .filter((token) => !isTokenL1LinkTrusted(token, context))
