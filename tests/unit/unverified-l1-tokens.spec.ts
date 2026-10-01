@@ -19,6 +19,8 @@ import { utils } from "zksync-ethers";
 import usePromise from "@/composables/usePromise";
 import { checksumAddress, formatError, shortenAddress } from "@/utils/formatters";
 
+import { toText as htmlToText } from "./helpers/render-template";
+
 import type { Token, TokenAmount } from "@/types";
 
 const { getAccountBalance, getBalance } = vi.hoisted(() => ({ getAccountBalance: vi.fn(), getBalance: vi.fn() }));
@@ -208,13 +210,8 @@ const slotsStub = (tag: string) =>
       Object.values(slots).flatMap((slot) => slot?.() ?? [])
     )
   );
-const toText = (value: string) =>
-  value
-    .replace(/<!--[\s\S]*?-->/g, "")
-    .replace(/<[^>]+>/g, " ")
-    .replace(/&#39;/g, "'")
-    .replace(/\s+/g, " ")
-    .trim();
+// Texts of different elements stay apart, e.g. "USDC Unverified"
+const toText = (html: string) => htmlToText(html, " ");
 const render = async (
   file: string,
   props: Record<string, unknown>,

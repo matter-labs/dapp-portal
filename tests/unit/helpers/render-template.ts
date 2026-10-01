@@ -1,3 +1,4 @@
+import { NodeTypes, parse as parseHtml, type TemplateChildNode } from "@vue/compiler-dom";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import {
@@ -35,13 +36,19 @@ export const slotStub = (tag: string, attrs: Record<string, string> = {}) =>
 // A closed CommonHeightTransition is collapsed and transparent, so its content is not visible
 export const heightTransitionStub = stub((props, slots) => h("div", props.opened ? slots.default?.() : []), ["opened"]);
 
-export const toText = (html: string) =>
-  html
-    .replace(/<!--[\s\S]*?-->/g, "")
-    .replace(/<[^>]+>/g, "")
-    .replace(/&#39;/g, "'")
-    .replace(/\s+/g, " ")
-    .trim();
+// The text of rendered HTML as a reader sees it, parsed by Vue's HTML parser: comments and tags are left out and
+// entities are decoded. A separator keeps the texts of different elements apart, e.g. a label and its badge.
+// Markup errors are recovered from like in a browser, since some tests pass a part of the rendered HTML
+export const toText = (html: string, separator = "") => {
+  const texts: string[] = [];
+  const collect = (nodes: TemplateChildNode[]) =>
+    nodes.forEach((node) => {
+      if (node.type === NodeTypes.TEXT) texts.push(node.content);
+      else if (node.type === NodeTypes.ELEMENT) collect(node.children);
+    });
+  collect(parseHtml(html, { whitespace: "preserve", onError: () => undefined }).children);
+  return texts.join(separator).replace(/\s+/g, " ").trim();
+};
 
 // Any Vue warning, for example about a binding that the template uses but the test does not provide, fails the render
 export const renderTemplate = async <Props extends Record<string, unknown>>(
