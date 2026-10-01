@@ -1,5 +1,13 @@
-import { encodeAbiParameters, encodeEventTopics, getAbiItem, type Abi, type AbiEvent, type Hash } from "viem";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import {
+  encodeAbiParameters,
+  encodeEventTopics,
+  getAbiItem,
+  WaitForTransactionReceiptTimeoutError,
+  type Abi,
+  type AbiEvent,
+  type Hash,
+} from "viem";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { computed, h, ref } from "vue";
 import IZkSyncHyperchain from "zksync-ethers/abi/IZkSyncHyperchain.json";
 
@@ -112,6 +120,67 @@ describe("transaction status", () => {
     expect(result.info).toStrictEqual({
       ...pendingInfo(),
       toTransactionHash: L2_TRANSACTION_HASH,
+      completed: true,
+    });
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it("keeps the deposit pending while its L1 transaction is not mined and checks it again", async () => {
+    vi.useFakeTimers();
+    waitForTransactionReceipt.mockRejectedValueOnce(
+      new WaitForTransactionReceiptTimeoutError({ hash: L1_TRANSACTION_HASH })
+    );
+    getTransactionReceipt.mockResolvedValue({ hash: L2_TRANSACTION_HASH, status: 1 });
+
+    const result = waitForCompletion(makeTransaction("deposit", pendingInfo()));
+    await vi.advanceTimersByTimeAsync(15_000);
+
+    expect(await result).toMatchObject({ info: { completed: true, toTransactionHash: L2_TRANSACTION_HASH } });
+    expect((await result).info).not.toHaveProperty("failed");
+    expect(waitForTransactionReceipt).toHaveBeenCalledTimes(2);
+  });
+
+  // An RPC error is not a deposit failure, whatever its message says
+  it.each([
+    ["the L1 receipt", () => waitForTransactionReceipt.mockRejectedValue(new Error("HTTP request failed."))],
+    [
+      "the L2 receipt",
+      () => getTransactionReceipt.mockRejectedValue(new Error("could not coalesce error: transaction lookup failed")),
+    ],
+  ])("does not mark the deposit failed when reading %s fails", async (_, failRequest) => {
+    failRequest();
+    const deposit = makeTransaction("deposit", pendingInfo());
+
+    await expect(waitForCompletion(deposit)).rejects.toThrow();
+    expect(deposit.info).toStrictEqual(pendingInfo());
+  });
+
+  it("marks the deposit failed when its L1 transaction made no deposit request", async () => {
+    // e.g. the deposit was cancelled in the wallet and the receipt is of the cancelling transaction
+    waitForTransactionReceipt.mockResolvedValue({ status: "success", logs: [] });
+
+    const result = await waitForCompletion(makeTransaction("deposit", pendingInfo()));
+
+    expect(result.info).toStrictEqual({ ...pendingInfo(), failed: true, completed: true });
+    expect(getTransactionReceipt).not.toHaveBeenCalled();
+  });
+
+  // Some nodes do not report "failed" in the transaction details of a reverted transaction
+  it("marks the withdrawal failed when its receipt has a failed status", async () => {
+    getTransactionReceipt.mockResolvedValue({ hash: L2_TRANSACTION_HASH, status: 0 });
+    getTransactionDetails.mockResolvedValue({ status: "verified" });
+    const withdrawal = { ...makeTransaction("withdrawal", pendingInfo()), transactionHash: L2_TRANSACTION_HASH };
+
+    const result = await waitForCompletion(withdrawal);
+
+    expect(getTransactionReceipt).toHaveBeenCalledWith(L2_TRANSACTION_HASH);
+    expect(result.info).toStrictEqual({
+      ...pendingInfo(),
+      withdrawalFinalizationAvailable: false,
+      failed: true,
       completed: true,
     });
   });

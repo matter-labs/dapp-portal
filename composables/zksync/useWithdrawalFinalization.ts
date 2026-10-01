@@ -4,7 +4,7 @@ import IL1Nullifier from "zksync-ethers/abi/IL1Nullifier.json";
 import { IL1AssetRouter__factory as IL1AssetRouterFactory } from "zksync-ethers/build/typechain";
 
 import { L1_BRIDGE_ABI } from "@/data/abis/l1BridgeAbi";
-import { customBridgeTokens } from "@/data/customBridgeTokens";
+import { findCustomBridgeTokenForChain } from "@/utils/helpers";
 
 import { useSentryLogger } from "../useSentryLogger";
 
@@ -21,6 +21,7 @@ export default (transactionInfo: ComputedRef<TransactionInfo>) => {
   const walletStore = useZkSyncWalletStore();
   const tokensStore = useZkSyncTokensStore();
   const { isCorrectNetworkSet } = storeToRefs(onboardStore);
+  const { eraNetwork } = storeToRefs(providerStore);
   const { ethToken } = storeToRefs(tokensStore);
   const { captureException } = useSentryLogger();
 
@@ -61,21 +62,14 @@ export default (transactionInfo: ComputedRef<TransactionInfo>) => {
     const chainId = BigInt(await provider.getNetwork().then((n) => n.chainId));
     const p = finalizeWithdrawalParams.value!;
 
-    // Check if this is a custom bridge withdrawal
-    // First check if the token already has the bridge address stored
-    let l1BridgeAddress = transactionInfo.value.token.l1BridgeAddress;
-
-    // If not, look it up from the custom bridge tokens configuration
-    if (!l1BridgeAddress) {
-      const { eraNetwork } = storeToRefs(providerStore);
-
-      const customBridgeToken = customBridgeTokens.find(
-        (token) =>
-          token.l2Address.toLowerCase() === transactionInfo.value.token.address.toLowerCase() &&
-          token.chainId === eraNetwork.value.l1Network?.id
+    // A custom bridge withdrawal is claimed only through a bridge from the custom bridge tokens config for this chain.
+    // A bridge address saved with the token, e.g. from a withdrawal imported from the block explorer, is not trusted
+    const { token } = transactionInfo.value;
+    const l1BridgeAddress = findCustomBridgeTokenForChain(token.address, eraNetwork.value)?.l1BridgeAddress;
+    if (token.l1BridgeAddress && token.l1BridgeAddress.toLowerCase() !== l1BridgeAddress?.toLowerCase()) {
+      throw new Error(
+        `Claiming withdrawals of ${token.symbol} through its custom bridge is not supported on ${eraNetwork.value.name}`
       );
-
-      l1BridgeAddress = customBridgeToken?.l1BridgeAddress;
     }
 
     const isCustomBridge = !!l1BridgeAddress;

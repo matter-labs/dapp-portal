@@ -30,6 +30,9 @@ export default (tokens: Ref<Token[]>, balances: Ref<TokenAmount[] | undefined>) 
 
   const fee = ref<DepositFeeValues | undefined>();
   const recommendedBalance = ref<BigNumberish | undefined>();
+  // Only the latest estimate is applied. An estimate started for previous inputs, e.g. another token, is discarded
+  let latestEstimateId = 0;
+  const inProgress = ref(false);
 
   const totalFee = computed(() => {
     if (!fee.value) return undefined;
@@ -57,18 +60,18 @@ export default (tokens: Ref<Token[]>, balances: Ref<TokenAmount[] | undefined>) 
     return true;
   });
 
-  const getEthTransactionFee = async () => {
+  const getEthTransactionFee = async (to: string | undefined) => {
     const signer = await getL1VoidSigner();
     if (!signer) throw new Error("Signer is not available");
 
     return await retry(() =>
       signer.getFullRequiredDepositFee({
         token: utils.ETH_ADDRESS,
-        to: params.to,
+        to,
       })
     );
   };
-  const getERC20TransactionFee = () => {
+  const getERC20TransactionFee = (): DepositFeeValues => {
     return {
       l1GasLimit: BigInt(utils.L1_RECOMMENDED_MIN_ERC20_DEPOSIT_GAS_LIMIT),
     };
@@ -76,62 +79,83 @@ export default (tokens: Ref<Token[]>, balances: Ref<TokenAmount[] | undefined>) 
   const getGasPrice = async () => {
     return (BigInt(await retry(() => getPublicClient().getGasPrice())) * 130n) / 100n;
   };
+  // Returns either the fee or, when the balance is too low to estimate it, the recommended balance
+  const getDepositFee = async (
+    to: string | undefined,
+    tokenAddress: string | undefined
+  ): Promise<{ fee?: DepositFeeValues; recommendedBalance?: BigNumberish }> => {
+    if (!feeToken.value) throw new Error("Fee tokens is not available");
+
+    const provider = await requestProvider();
+    const isEthBasedChain = await provider.isEthBasedChain();
+
+    let depositFee: DepositFeeValues;
+    try {
+      if (isEthBasedChain && tokenAddress === feeToken.value?.address) {
+        depositFee = await getEthTransactionFee(to);
+      } else {
+        depositFee = getERC20TransactionFee();
+      }
+    } catch (err) {
+      const message = (err as any)?.message;
+      if (message?.startsWith("Not enough balance for deposit!")) {
+        const match = message.match(/([\d\\.]+) ETH/);
+        if (feeToken.value && match?.length) {
+          const ethAmount = match[1].split(" ")?.[0];
+          return { recommendedBalance: parseEther(ethAmount) };
+        }
+      } else if (message?.includes("insufficient funds for gas * price + value")) {
+        throw new Error("Insufficient funds to cover deposit fee! Please, top up your account with ETH.");
+      }
+      captureException({
+        error: err as Error,
+        parentFunctionName: "executeEstimateFee",
+        parentFunctionParams: [],
+        filePath: "composables/zksync/deposit/useFee.ts",
+      });
+      throw err;
+    }
+    /* It can be either maxFeePerGas or gasPrice */
+    if (!depositFee.maxFeePerGas) {
+      depositFee.gasPrice = await getGasPrice();
+    } else {
+      // Apply 130% buffer to EIP-1559 parameters
+      depositFee.maxFeePerGas = (depositFee.maxFeePerGas * 130n) / 100n;
+      if (depositFee.maxPriorityFeePerGas) {
+        depositFee.maxPriorityFeePerGas = (depositFee.maxPriorityFeePerGas * 130n) / 100n;
+      }
+      if (depositFee.l1GasLimit) {
+        depositFee.l1GasLimit = (depositFee.l1GasLimit * 130n) / 100n;
+      }
+    }
+
+    // Apply 130% buffer to baseCost to prevent MsgValueTooLow errors
+    if (depositFee.baseCost) {
+      depositFee.baseCost = (depositFee.baseCost * 130n) / 100n;
+    }
+    return { fee: depositFee };
+  };
   const {
-    inProgress,
     error,
     execute: executeEstimateFee,
     reset: resetEstimateFee,
   } = usePromise(
     async () => {
+      const estimateId = ++latestEstimateId;
+      const isLatestEstimate = () => estimateId === latestEstimateId;
+      const { to, tokenAddress } = params;
+      inProgress.value = true;
       recommendedBalance.value = undefined;
-      if (!feeToken.value) throw new Error("Fee tokens is not available");
-
-      const provider = await requestProvider();
-      const isEthBasedChain = await provider.isEthBasedChain();
-
       try {
-        if (isEthBasedChain && params.tokenAddress === feeToken.value?.address) {
-          fee.value = await getEthTransactionFee();
-        } else {
-          fee.value = getERC20TransactionFee();
-        }
+        const result = await getDepositFee(to, tokenAddress);
+        if (!isLatestEstimate()) return;
+        recommendedBalance.value = result.recommendedBalance;
+        if (result.fee) fee.value = result.fee;
       } catch (err) {
-        const message = (err as any)?.message;
-        if (message?.startsWith("Not enough balance for deposit!")) {
-          const match = message.match(/([\d\\.]+) ETH/);
-          if (feeToken.value && match?.length) {
-            const ethAmount = match[1].split(" ")?.[0];
-            recommendedBalance.value = parseEther(ethAmount);
-            return;
-          }
-        } else if (message?.includes("insufficient funds for gas * price + value")) {
-          throw new Error("Insufficient funds to cover deposit fee! Please, top up your account with ETH.");
-        }
-        captureException({
-          error: err as Error,
-          parentFunctionName: "executeEstimateFee",
-          parentFunctionParams: [],
-          filePath: "composables/zksync/deposit/useFee.ts",
-        });
-        throw err;
-      }
-      /* It can be either maxFeePerGas or gasPrice */
-      if (fee.value && !fee.value?.maxFeePerGas) {
-        fee.value.gasPrice = await getGasPrice();
-      } else if (fee.value?.maxFeePerGas) {
-        // Apply 130% buffer to EIP-1559 parameters
-        fee.value.maxFeePerGas = (fee.value.maxFeePerGas * 130n) / 100n;
-        if (fee.value.maxPriorityFeePerGas) {
-          fee.value.maxPriorityFeePerGas = (fee.value.maxPriorityFeePerGas * 130n) / 100n;
-        }
-        if (fee.value.l1GasLimit) {
-          fee.value.l1GasLimit = (fee.value.l1GasLimit * 130n) / 100n;
-        }
-      }
-
-      // Apply 130% buffer to baseCost to prevent MsgValueTooLow errors
-      if (fee.value?.baseCost) {
-        fee.value.baseCost = (fee.value.baseCost * 130n) / 100n;
+        // A failed estimate for previous inputs does not replace the state of the latest one
+        if (isLatestEstimate()) throw err;
+      } finally {
+        if (isLatestEstimate()) inProgress.value = false;
       }
     },
     { cache: false }
@@ -144,7 +168,7 @@ export default (tokens: Ref<Token[]>, balances: Ref<TokenAmount[] | undefined>) 
   return {
     fee,
     result: totalFee,
-    inProgress,
+    inProgress: computed(() => inProgress.value),
     error,
     recommendedBalance,
     estimateFee: async (to: string, tokenAddress: string, from: string) => {

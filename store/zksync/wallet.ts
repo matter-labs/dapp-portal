@@ -99,7 +99,7 @@ export const useZkSyncWalletStore = defineStore("zkSyncWallet", () => {
     // The check only changes how tokens are displayed, so balances don't wait for it.
     // Its result is applied to the tokens and balances when it arrives
     const heldTokens = balances.filter((balance) => balance.amount !== "0");
-    tokensStore.verifyHeldTokens(heldTokens).catch(() => undefined);
+    tokensStore.verifyTokens(heldTokens).catch(() => undefined);
     return balances;
   };
   const getBalancesFromRPC = async (): Promise<TokenAmount[]> => {

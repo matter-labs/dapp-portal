@@ -171,7 +171,6 @@
 import { ExclamationTriangleIcon } from "@heroicons/vue/24/outline";
 
 import useWithdrawalFinalization from "@/composables/zksync/useWithdrawalFinalization";
-import { customBridgeTokens } from "@/data/customBridgeTokens";
 import { isCustomNode } from "@/data/networks";
 
 const props = defineProps({
@@ -191,22 +190,10 @@ const { eraNetwork, blockExplorerUrl } = storeToRefs(useZkSyncProviderStore());
 const { l1BlockExplorerUrl } = storeToRefs(useNetworkStore());
 const { connectorName, isCorrectNetworkSet } = storeToRefs(onboardStore);
 
-const isCustomBridgeToken = computed(() => {
-  // Check if this is a custom bridge token by looking for l1BridgeAddress
-  // For existing withdrawals, we need to look it up from the custom bridge tokens config
-  if (props.transaction.token.l1BridgeAddress) {
-    return true;
-  }
-
-  // Fallback: lookup from custom bridge tokens configuration
-  const customBridgeToken = customBridgeTokens.find(
-    (token) =>
-      token.l2Address.toLowerCase() === props.transaction.token.address.toLowerCase() &&
-      token.chainId === eraNetwork.value.l1Network?.id
-  );
-
-  return !!customBridgeToken?.l1BridgeAddress;
-});
+// Only a custom bridge from the custom bridge tokens config for this chain is claimed through
+const isCustomBridgeToken = computed(
+  () => !!findCustomBridgeTokenForChain(props.transaction.token.address, eraNetwork.value)
+);
 const withdrawalManualFinalizationRequired = computed(() => {
   return !props.transaction.info.completed;
 });

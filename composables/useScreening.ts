@@ -2,6 +2,7 @@ import { useMemoize } from "@vueuse/core";
 import { $fetch } from "ofetch";
 
 const SCREENING_REQUEST_TIMEOUT = 15_000;
+const SCREENING_UNAVAILABLE_MESSAGE = "Address screening is temporarily unavailable. Please try again later.";
 
 /* Returns void if address screening was successful */
 /* Fails if address screening was unsuccessful or could not be completed */
@@ -16,10 +17,14 @@ const screenAddress = useMemoize(async (address: string) => {
   const timer = setTimeout(() => controller.abort(), SCREENING_REQUEST_TIMEOUT);
   const response = await $fetch(url.toString(), { signal: controller.signal })
     .catch((error) => {
-      throw new Error("Address screening is temporarily unavailable. Please try again later.", { cause: error });
+      throw new Error(SCREENING_UNAVAILABLE_MESSAGE, { cause: error });
     })
     .finally(() => clearTimeout(timer));
-  if (!response?.result) {
+  /* A response without a result, e.g. an HTML page from a proxy, is not a screening answer */
+  if (!response || typeof response !== "object" || !("result" in response)) {
+    throw new Error(SCREENING_UNAVAILABLE_MESSAGE);
+  }
+  if (!response.result) {
     throw new Error("We were unable to process this transaction...");
   }
 });

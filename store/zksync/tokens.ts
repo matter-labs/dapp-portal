@@ -2,7 +2,11 @@ import { $fetch } from "ofetch";
 import { utils } from "zksync-ethers";
 
 import { customBridgeTokens } from "@/data/customBridgeTokens";
-import { findTokensWithUnverifiedL1Link, sanitizeUnverifiedToken } from "@/utils/tokenTrust";
+import {
+  findTokensWithSharedL1Address,
+  findTokensWithUnverifiedL1Link,
+  sanitizeUnverifiedToken,
+} from "@/utils/tokenTrust";
 
 import type { Api, Token } from "@/types";
 
@@ -81,7 +85,7 @@ export const useZkSyncTokensStore = defineStore("zkSyncTokens", () => {
     }));
   });
 
-  // Lowercased addresses of held tokens whose L1 address belongs to another token on this chain
+  // Lowercased addresses of held or listed tokens whose L1 address belongs to another token on this chain
   const unverifiedTokenAddresses = ref(new Set<string>());
   const isUnverifiedToken = (token: Token) => unverifiedTokenAddresses.value.has(token.address.toLowerCase());
 
@@ -93,9 +97,16 @@ export const useZkSyncTokensStore = defineStore("zkSyncTokens", () => {
   });
   const l1Tokens = computed<{ [tokenAddress: string]: Token } | undefined>(() => {
     if (!tokensRaw.value) return undefined;
+    // When several tokens claim one L1 address, the first one on the list is used until the check of the list
+    // removes the tokens that are not bridged from it. The list starts with the base token and ETH
+    const usedL1Addresses = new Set<string>();
     return Object.fromEntries(
       tokensRaw.value
-        .filter((e) => e.l1Address && !isUnverifiedToken(e))
+        .filter((e) => {
+          if (!e.l1Address || isUnverifiedToken(e) || usedL1Addresses.has(e.l1Address.toLowerCase())) return false;
+          usedL1Addresses.add(e.l1Address.toLowerCase());
+          return true;
+        })
         .map((token) => {
           const customBridgeToken = customBridgeTokens.find(
             (e) => eraNetwork.value.l1Network?.id === e.chainId && token.l1Address === e.l1Address
@@ -116,11 +127,11 @@ export const useZkSyncTokensStore = defineStore("zkSyncTokens", () => {
   });
 
   const l1LinkChecks = new Map<string, Promise<boolean>>();
-  const verifyHeldTokens = async (heldTokens: Token[]) => {
+  const verifyTokens = async (tokensToVerify: Token[]) => {
     const provider = await providerStore.requestProvider();
     const addresses = await findTokensWithUnverifiedL1Link(
       provider,
-      heldTokens,
+      tokensToVerify,
       {
         chainId: eraNetwork.value.id,
         l1ChainId: eraNetwork.value.l1Network?.id,
@@ -132,6 +143,15 @@ export const useZkSyncTokensStore = defineStore("zkSyncTokens", () => {
       unverifiedTokenAddresses.value = new Set([...unverifiedTokenAddresses.value, ...addresses]);
     }
   };
+  // Held tokens are checked by the wallet store when balances are loaded.
+  // Listed tokens that claim the same L1 address are checked when the list is loaded, so that a token that is not
+  // held cannot take the place of the bridged token of that L1 address, e.g. on the Deposit page.
+  // The check runs in the background and its result is applied when it arrives
+  watch(tokensRaw, (listedTokens) => {
+    if (!listedTokens) return;
+    const tokensWithSharedL1Address = findTokensWithSharedL1Address(listedTokens);
+    if (tokensWithSharedL1Address.length) verifyTokens(tokensWithSharedL1Address).catch(() => undefined);
+  });
 
   return {
     l1Tokens,
@@ -143,6 +163,6 @@ export const useZkSyncTokensStore = defineStore("zkSyncTokens", () => {
     tokensRequestError: computed(() => tokensRequestError.value),
     requestTokens,
     resetTokens,
-    verifyHeldTokens,
+    verifyTokens,
   };
 });

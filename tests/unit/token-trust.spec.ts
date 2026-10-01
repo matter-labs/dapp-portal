@@ -8,6 +8,7 @@ import { calculateTotalTokensPrice } from "@/utils/helpers";
 import { mapApiToken } from "@/utils/mappers";
 import {
   FAILED_L1_LINK_CHECK_RETRY_DELAY,
+  findTokensWithSharedL1Address,
   findTokensWithUnverifiedL1Link,
   type TokenL1LinkCheckContext,
 } from "@/utils/tokenTrust";
@@ -131,6 +132,12 @@ describe("findTokensWithUnverifiedL1Link", () => {
     expect(provider.l2TokenAddress).not.toHaveBeenCalled();
   });
 
+  it("flags a token without a price or an icon", async () => {
+    const plainUsdc = { ...unlistedUsdc, price: undefined, iconUrl: undefined };
+
+    expect(await find([plainUsdc])).toStrictEqual([UNLISTED_USDC.toLowerCase()]);
+  });
+
   it("does not flag a token when its check fails and checks it again after a delay", async () => {
     vi.useFakeTimers();
     provider.l2TokenAddress.mockRejectedValueOnce(new Error("network error"));
@@ -143,6 +150,15 @@ describe("findTokensWithUnverifiedL1Link", () => {
 
     expect(await find([unlistedUsdc])).toStrictEqual([UNLISTED_USDC.toLowerCase()]);
     expect(provider.l2TokenAddress).toHaveBeenCalledTimes(2);
+  });
+});
+
+describe("findTokensWithSharedL1Address", () => {
+  it("returns the tokens that claim the same L1 address", () => {
+    const otherCaseUsdc = { ...unlistedUsdc, l1Address: USDC_L1.toLowerCase() };
+
+    expect(findTokensWithSharedL1Address([eth, usdcE, dai, zk, otherCaseUsdc])).toStrictEqual([usdcE, otherCaseUsdc]);
+    expect(findTokensWithSharedL1Address([eth, usdcE, dai, token(NATIVE_USDC, undefined, "USDC")])).toEqual([]);
   });
 });
 
@@ -219,7 +235,12 @@ const createStores = async () => {
   vi.stubGlobal("useZkSyncTokensStore", () => tokensStore);
   const { useZkSyncWalletStore } = await import("@/store/zksync/wallet");
   const walletStore = useZkSyncWalletStore();
-  return { ...storeToRefs(tokensStore), ...storeToRefs(walletStore), requestBalance: walletStore.requestBalance };
+  return {
+    ...storeToRefs(tokensStore),
+    ...storeToRefs(walletStore),
+    requestTokens: tokensStore.requestTokens,
+    requestBalance: walletStore.requestBalance,
+  };
 };
 const byAddress = (balances: Token[], address: string) => balances.find((e) => e.address === address);
 
@@ -289,8 +310,27 @@ describe("Held tokens with an unverified L1 address", () => {
       expect(tokens.value![listedToken.address]).not.toHaveProperty("isUnverified");
     }
     expect(balance.value.filter((e) => e.isUnverified).map((e) => e.address)).toStrictEqual([UNLISTED_USDC]);
-    // ETH is trusted without a check, the other held tokens are checked once
-    expect(storeProvider.l2TokenAddress.mock.calls).toStrictEqual([[utils.ETH_ADDRESS], [DAI_L1], [ZK_L1], [USDC_L1]]);
+    // ETH is trusted without a check. USDC is checked when the list is loaded, since two listed tokens claim it,
+    // and the other held tokens are checked once with the balances
+    expect(storeProvider.l2TokenAddress.mock.calls).toStrictEqual([[utils.ETH_ADDRESS], [USDC_L1], [DAI_L1], [ZK_L1]]);
+  });
+
+  it("keeps the bridged token in l1Tokens when a token that is not held claims its L1 address", async () => {
+    // Listed before DAI, so it would take DAI's place without the check of the list
+    const cloneDai = token("0x000000000000000000000000000000000000DA1C", DAI_L1, "DAI", {
+      decimals: 6,
+      iconUrl: "https://icons.test/clone.png",
+    });
+    explorerTokens.value = [eth, cloneDai, dai];
+    heldBalances.value = [{ token: eth, balance: ETH_AMOUNT }];
+
+    const { l1Tokens, tokens, requestTokens } = await createStores();
+    await requestTokens();
+    await new Promise((resolve) => setTimeout(resolve));
+
+    expect(l1Tokens.value![DAI_L1]).toMatchObject({ decimals: 18, iconUrl: dai.iconUrl, name: dai.name });
+    expect(tokens.value![cloneDai.address]).toMatchObject({ price: undefined, iconUrl: undefined, isUnverified: true });
+    expect(tokens.value![DAI_L2]).not.toHaveProperty("isUnverified");
   });
 
   it("returns balances without waiting for a slow check and applies its result when it arrives", async () => {
@@ -311,7 +351,8 @@ describe("Held tokens with an unverified L1 address", () => {
       expect(loaded).toBe(true);
     }
     expect(byAddress(balance.value, UNLISTED_USDC)).toMatchObject({ price: 1.002, iconUrl: USDC_ICON });
-    expect(l1Tokens.value![USDC_L1]).toMatchObject({ price: 1.002 });
+    // Until the check finishes, the first listed token with the L1 address is used, here USDC.e
+    expect(l1Tokens.value![USDC_L1]).toMatchObject({ price: 1 });
     expect(storeProvider.l2TokenAddress.mock.calls.filter(([l1Address]) => l1Address === USDC_L1)).toHaveLength(1);
 
     // Another account holding 2 ETH is connected before the check finishes

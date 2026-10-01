@@ -8,9 +8,11 @@ import usePromise from "@/composables/usePromise";
 import { formatError } from "@/utils/formatters";
 import {
   AddressChainType,
+  findCustomBridgeTokenForChain,
   getBalancesWithCustomBridgeTokens,
   getDepositAllowanceSpender,
   isCustomBridgeDepositSupported,
+  isCustomBridgeWithdrawalSupported,
   retry,
 } from "@/utils/helpers";
 
@@ -87,6 +89,55 @@ describe("getDepositAllowanceSpender", () => {
       expect(() => getDepositAllowanceSpender(token, SHARED_L1_BRIDGE, network)).toThrow(
         `Deposits of wstETH through its custom bridge are not supported on ${network.name}`
       );
+    }
+  );
+});
+
+describe("custom bridge withdrawals", () => {
+  let era: ZkSyncNetwork;
+  let networks: Record<string, ZkSyncNetwork>;
+
+  beforeAll(async () => {
+    vi.stubGlobal("usePortalRuntimeConfig", () => ({}));
+    const { chainList } = await import("@/data/networks");
+    era = chainList.find((network) => network.key === "mainnet")!;
+    networks = {
+      "ZKsync Gateway": chainList.find((network) => network.key === "gateway")!,
+      "ZKsync Era Sepolia": chainList.find((network) => network.key === "sepolia")!,
+      "another chain on Ethereum": { ...era, id: 12345, key: "custom-chain", name: "Custom chain" },
+    };
+  });
+
+  // L2 rows of the Withdraw page, where custom bridge tokens take their bridges from the config
+  const l2Balances = getBalancesWithCustomBridgeTokens(
+    [{ address: WSTETH_NATIVE_L2, l1Address: WSTETH_L1, symbol: "wstETH", decimals: 18, amount: "1" }],
+    AddressChainType.L2
+  );
+  const nativeWstEth = () => l2Balances.find((token) => token.address === WSTETH_NATIVE_L2)!;
+
+  it("uses the Lido bridges for native wstETH on ZKsync Era", () => {
+    expect(findCustomBridgeTokenForChain(WSTETH_NATIVE_L2, era)?.l1BridgeAddress).toBe(LIDO_L1_BRIDGE);
+    expect(findCustomBridgeTokenForChain(WSTETH_NATIVE_L2.toLowerCase(), era)?.l1BridgeAddress).toBe(LIDO_L1_BRIDGE);
+    expect(isCustomBridgeWithdrawalSupported(nativeWstEth(), era)).toBe(true);
+  });
+
+  it("does not use a custom bridge for a token without one in the config", () => {
+    expect(findCustomBridgeTokenForChain(WSTETH_BRIDGED_L2, era)).toBeUndefined();
+    expect(findCustomBridgeTokenForChain(undefined, era)).toBeUndefined();
+  });
+
+  it("rejects a custom L2 bridge that is not in the config", () => {
+    const token = { ...nativeWstEth(), l2BridgeAddress: OTHER_SPENDER };
+    expect(isCustomBridgeWithdrawalSupported(token, era)).toBe(false);
+    const unlistedToken = { address: OTHER_TOKEN, symbol: "TKN", decimals: 18, l2BridgeAddress: OTHER_SPENDER };
+    expect(isCustomBridgeWithdrawalSupported(unlistedToken, era)).toBe(false);
+  });
+
+  it.each(["ZKsync Gateway", "ZKsync Era Sepolia", "another chain on Ethereum"])(
+    "does not use the Lido bridges on %s",
+    (key) => {
+      expect(findCustomBridgeTokenForChain(WSTETH_NATIVE_L2, networks[key])).toBeUndefined();
+      expect(isCustomBridgeWithdrawalSupported(nativeWstEth(), networks[key])).toBe(false);
     }
   );
 });
@@ -180,15 +231,100 @@ describe("useAllowance", () => {
     expect(decodeApprovals()[0]).toEqual({ token: USDC_L1, spender: SHARED_L1_BRIDGE, amount: 5n });
   });
 
-  it("sends every approval to the resolved spender when a deposit needs two approvals", async () => {
+  // The shared bridge collects the base token of a non-ETH-based chain, the deposited token goes to its bridge
+  it("approves the base token for the shared bridge when a deposit needs two approvals", async () => {
     baseToken = BASE_TOKEN;
     const { setAllowance } = await setup(OTHER_TOKEN, OTHER_SPENDER);
     await setAllowance(5n, {} as DepositFeeValues);
 
     expect(decodeApprovals()).toEqual([
-      { token: BASE_TOKEN, spender: OTHER_SPENDER, amount: 7n },
+      { token: BASE_TOKEN, spender: SHARED_L1_BRIDGE, amount: 7n },
       { token: OTHER_TOKEN, spender: OTHER_SPENDER, amount: 5n },
     ]);
+  });
+
+  type PendingRead = { token: string; account: string; spender: string; resolve: (allowance: bigint) => void };
+  const deferReads = () => {
+    const reads: PendingRead[] = [];
+    readContract.mockImplementation(
+      ({ address, args }: { address: string; args: string[] }) =>
+        new Promise((resolve) => reads.push({ token: address, account: args[0], spender: args[1], resolve }))
+    );
+    return reads;
+  };
+
+  it.each(["previous", "new"])(
+    "shows the allowance of the new token when the token changes during a read and the %s read settles first",
+    async (settlesFirst) => {
+      const reads = deferReads();
+      const token = ref(USDC_L1);
+      const { default: useAllowance } = await import("@/composables/transaction/useAllowance");
+      const { result, inProgress } = useAllowance(
+        ref(USER),
+        token,
+        () => Promise.resolve(SHARED_L1_BRIDGE),
+        () => Promise.resolve(l1Signer)
+      );
+      await flush();
+      token.value = OTHER_TOKEN;
+      await flush();
+      expect(reads.map((read) => read.token)).toEqual([USDC_L1, OTHER_TOKEN]);
+      expect(result.value).toBeUndefined();
+
+      const [previousRead, newRead] = reads;
+      for (const read of settlesFirst === "previous" ? [previousRead, newRead] : [newRead, previousRead]) {
+        read.resolve(read === previousRead ? 1n : 2n);
+        await flush();
+        // The allowance of USDC is never shown for the other token
+        expect(result.value).not.toBe(1n);
+      }
+      expect(result.value).toBe(2n);
+      expect(inProgress.value).toBe(false);
+    }
+  );
+
+  it("shows the allowance of the new account when the account changes during a read", async () => {
+    const reads = deferReads();
+    const account = ref(USER);
+    const { default: useAllowance } = await import("@/composables/transaction/useAllowance");
+    const { result } = useAllowance(
+      account,
+      ref(USDC_L1),
+      () => Promise.resolve(SHARED_L1_BRIDGE),
+      () => Promise.resolve(l1Signer)
+    );
+    await flush();
+    account.value = OTHER_SPENDER;
+    await flush();
+    expect(reads.map((read) => read.account)).toEqual([USER, OTHER_SPENDER]);
+
+    reads[0].resolve(1n);
+    await flush();
+    expect(result.value).toBeUndefined();
+    reads[1].resolve(2n);
+    await flush();
+    expect(result.value).toBe(2n);
+  });
+
+  it("shows no allowance after switching to ETH during a read", async () => {
+    const reads = deferReads();
+    const token = ref(USDC_L1);
+    const { default: useAllowance } = await import("@/composables/transaction/useAllowance");
+    const { result, inProgress } = useAllowance(
+      ref(USER),
+      token,
+      () => Promise.resolve(SHARED_L1_BRIDGE),
+      () => Promise.resolve(l1Signer)
+    );
+    await flush();
+    token.value = utils.ETH_ADDRESS;
+    await flush();
+
+    reads[0].resolve(1n);
+    await flush();
+    expect(reads).toHaveLength(1);
+    expect(result.value).toBeUndefined();
+    expect(inProgress.value).toBe(false);
   });
 
   it.each(["previous", "new"])(

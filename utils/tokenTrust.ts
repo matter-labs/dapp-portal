@@ -31,8 +31,7 @@ export const FAILED_L1_LINK_CHECK_RETRY_DELAY = 60_000;
 /**
  * Returns the lowercased addresses of tokens whose L1 address belongs to another token on this chain:
  * the bridged token of that L1 address exists and has a different address.
- * Tokens without a price or an icon are not checked. A check in progress is shared by overlapping calls.
- * Tokens that could not be checked are not returned.
+ * A check in progress is shared by overlapping calls. Tokens that could not be checked are not returned.
  */
 export const findTokensWithUnverifiedL1Link = async (
   provider: TokenL1LinkProvider,
@@ -43,13 +42,14 @@ export const findTokensWithUnverifiedL1Link = async (
   const cacheKey = (token: Token) => `${context.chainId}:${token.address}:${token.l1Address}`.toLowerCase();
   const unchecked = new Map(
     tokens
-      .filter((token) => (token.price || token.iconUrl) && !isTokenL1LinkTrusted(token, context))
+      .filter((token) => !isTokenL1LinkTrusted(token, context))
       .map((token) => [cacheKey(token), token] as const)
       .filter(([key]) => !cache.has(key))
   );
 
   if (unchecked.size) {
-    // Loaded once and reused by every l2TokenAddress call below
+    // Loaded once before the checks start. The provider caches the bridge addresses, so the l2TokenAddress calls
+    // below reuse them instead of each loading them again
     const bridgeAddresses = provider.getDefaultBridgeAddresses();
     unchecked.forEach((token, key) => {
       const check = bridgeAddresses.then(async () => {
@@ -67,6 +67,16 @@ export const findTokensWithUnverifiedL1Link = async (
 
   const results = await Promise.all(tokens.map((token) => cache.get(cacheKey(token))?.catch(() => false)));
   return [...new Set(tokens.filter((_, index) => results[index]).map((token) => token.address.toLowerCase()))];
+};
+
+// Tokens whose L1 address is claimed by more than one token on the list. At most one of them is the bridged token
+export const findTokensWithSharedL1Address = (tokens: Token[]) => {
+  const tokensPerL1Address = new Map<string, number>();
+  tokens.forEach((token) => {
+    const l1Address = token.l1Address?.toLowerCase();
+    if (l1Address) tokensPerL1Address.set(l1Address, (tokensPerL1Address.get(l1Address) ?? 0) + 1);
+  });
+  return tokens.filter((token) => (tokensPerL1Address.get(token.l1Address?.toLowerCase() ?? "") ?? 0) > 1);
 };
 
 // Price and icon are removed, the fields used to build transactions are kept

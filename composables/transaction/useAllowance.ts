@@ -30,9 +30,10 @@ export default (
     })) as bigint;
     return BigInt(allowance);
   };
-  // A read replaced by a forced one while in progress (e.g. after a spender change) settles with the latest read
-  let latestRead: Promise<bigint> | undefined;
-  const settleWithLatestRead = async (read: Promise<bigint>): Promise<bigint> => {
+  // A read replaced by a forced one while in progress (e.g. after a token or spender change) settles with the latest
+  // read. A reset settles a read in progress with no allowance
+  let latestRead: Promise<bigint | undefined> | undefined;
+  const settleWithLatestRead = async (read: Promise<bigint | undefined>): Promise<bigint | undefined> => {
     await read.catch(() => undefined);
     return read === latestRead ? read : settleWithLatestRead(latestRead!);
   };
@@ -52,10 +53,11 @@ export default (
 
   const requestAllowance = async (options?: { force?: boolean }) => {
     if (accountAddress.value && tokenAddress.value && tokenAddress.value !== utils.ETH_ADDRESS) {
-      // A forced read is for another spender, so the previous allowance no longer applies
+      // A forced read is for another token, account or spender, so the previous allowance no longer applies
       if (options?.force) result.value = undefined;
       await getAllowance(options);
     } else {
+      latestRead = Promise.resolve(undefined);
       reset();
     }
   };
@@ -87,10 +89,16 @@ export default (
         const receipts = [];
 
         for (let i = 0; i < approvalAmounts.length; i++) {
+          const { token, allowance } = approvalAmounts[i];
+          // The deposited token is approved for the contract that receives the deposit. Other approvals, such as the
+          // base token of a non-ETH-based chain, are for the shared bridge, which the SDK uses without a bridge address.
           // A new overrides object for every approval, since the SDK removes bridgeAddress from the one it receives
-          const txResponse = await wallet?.approveERC20(approvalAmounts[i].token, approvalAmounts[i].allowance, {
-            bridgeAddress: contractAddress,
-          });
+          const isDepositedToken = token.toLowerCase() === tokenAddress.value?.toLowerCase();
+          const txResponse = await wallet?.approveERC20(
+            token,
+            allowance,
+            isDepositedToken ? { bridgeAddress: contractAddress } : undefined
+          );
 
           setAllowanceTransactionHashes.value.push(txResponse?.hash as Hash);
 
@@ -169,8 +177,9 @@ export default (
   watch(
     [accountAddress, tokenAddress],
     () => {
+      // A new read, since a read in progress is for the previous token or account.
       // A failed request is shown through the returned error
-      requestAllowance().catch(() => undefined);
+      requestAllowance({ force: true }).catch(() => undefined);
       resetSetAllowance();
     },
     { immediate: true }

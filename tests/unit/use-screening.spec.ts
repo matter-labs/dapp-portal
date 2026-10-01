@@ -95,8 +95,23 @@ describe("useScreening", () => {
     expect(await settled()).toMatch(UNAVAILABLE_MESSAGE);
   });
 
+  // e.g. a maintenance or challenge page that a proxy serves with HTTP 200
+  it.each([
+    [
+      "an HTML page",
+      () => Promise.resolve(new Response("<html>Maintenance</html>", { headers: { "content-type": "text/html" } })),
+    ],
+    ["JSON without a result", () => jsonResponse({ status: "ok" })],
+    ["an empty body", () => Promise.resolve(new Response(""))],
+  ])("reports %s as unavailable, not as a rejected address", async (_, response) => {
+    fetchMock.mockImplementation(response);
+
+    await expect(validateAddress(ADDRESS)).rejects.toThrow(UNAVAILABLE_MESSAGE);
+  });
+
   it.each([
     ["a failed request", networkError, UNAVAILABLE_MESSAGE],
+    ["a response without a result", () => jsonResponse({}), UNAVAILABLE_MESSAGE],
     ["a rejection", () => jsonResponse({ result: false }), BLOCKED_MESSAGE],
   ])("screens again after %s", async (_, firstResponse, message) => {
     fetchMock.mockImplementation(firstResponse);
