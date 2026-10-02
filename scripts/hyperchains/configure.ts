@@ -19,7 +19,7 @@ if (!rootPath) {
   process.exit(1);
 }
 
-const envsDirectory = pathJoin(rootPath, "/etc/env");
+const envsDirectory = pathJoin(rootPath, "/etc/env/target");
 const tokensDirectory = pathJoin(rootPath, "/etc/tokens");
 
 const configureHyperchainInfo = async () => {
