@@ -1,22 +1,29 @@
 <template>
   <div>
     <h1 class="h1 mt-block-gap-1/2 text-center">
-      {{ transaction.info.completed ? "Transaction completed" : "Transaction submitted" }}
+      <template v-if="transaction.info.failed">Transaction failed</template>
+      <template v-else>{{ transaction.info.completed ? "Transaction completed" : "Transaction submitted" }}</template>
     </h1>
-    <CommonHeightTransition :opened="!transaction.info.completed">
+    <CommonHeightTransition :opened="!transaction.info.completed || transaction.info.failed">
       <p class="mb-4 text-center">
-        Your funds will be available at the
-        <a
-          v-if="blockExplorerUrl"
-          :href="`${blockExplorerUrl}/address/${transaction!.to.address}`"
-          target="_blank"
-          class="font-medium underline underline-offset-2"
-          >destination address</a
-        >
-        <span v-else>destination address</span>
-        after the transaction is committed on the
-        <span class="font-medium">{{ transaction.from.destination.label }}</span
-        >. You are free to close this page.
+        <template v-if="transaction.info.failed">
+          The transaction failed on <span class="font-medium">{{ transaction.from.destination.label }}</span
+          >. Your funds were not sent.
+        </template>
+        <template v-else>
+          Your funds will be available at the
+          <a
+            v-if="blockExplorerUrl"
+            :href="`${blockExplorerUrl}/address/${transaction!.to.address}`"
+            target="_blank"
+            class="font-medium underline underline-offset-2"
+            >destination address</a
+          >
+          <span v-else>destination address</span>
+          after the transaction is committed on the
+          <span class="font-medium">{{ transaction.from.destination.label }}</span
+          >. You are free to close this page.
+        </template>
       </p>
     </CommonHeightTransition>
     <TransactionProgress

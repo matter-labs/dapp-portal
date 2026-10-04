@@ -168,3 +168,56 @@ export function getTokensWithCustomBridgeTokens(
 
   return sortedTokens;
 }
+
+// Whether the token's custom L1 bridge is in the custom bridge tokens config for the chain that it deposits to.
+// Returns false for tokens without a custom L1 bridge.
+export function isCustomBridgeDepositSupported(token: Token, network: ZkSyncNetwork): boolean {
+  const { address, l2Address, l1BridgeAddress } = token;
+  if (!l1BridgeAddress) return false;
+
+  return customBridgeTokens.some(
+    (customToken) =>
+      customToken.chainId === network.l1Network?.id &&
+      customToken.l2ChainId === network.id &&
+      customToken.l1Address.toLowerCase() === address.toLowerCase() &&
+      customToken.l2Address.toLowerCase() === l2Address?.toLowerCase() &&
+      customToken.l1BridgeAddress?.toLowerCase() === l1BridgeAddress.toLowerCase()
+  );
+}
+
+// The custom bridge tokens config entry of the L2 token, when its custom bridge serves this chain.
+// Bridge addresses from other sources, such as the block explorer API, are not trusted.
+export function findCustomBridgeTokenForChain(l2Address: string | undefined, network: ZkSyncNetwork) {
+  if (!l2Address) return undefined;
+  return customBridgeTokens.find(
+    (customToken) =>
+      !!customToken.l1BridgeAddress &&
+      customToken.chainId === network.l1Network?.id &&
+      customToken.l2ChainId === network.id &&
+      customToken.l2Address.toLowerCase() === l2Address.toLowerCase()
+  );
+}
+
+// Whether the L2 token's custom L2 bridge is in the custom bridge tokens config for this chain.
+// Returns false for tokens without a custom L2 bridge.
+export function isCustomBridgeWithdrawalSupported(token: Token, network: ZkSyncNetwork): boolean {
+  if (!token.l2BridgeAddress) return false;
+  const customToken = findCustomBridgeTokenForChain(token.address, network);
+  return customToken?.l2BridgeAddress?.toLowerCase() === token.l2BridgeAddress.toLowerCase();
+}
+
+// Returns the L1 contract that the token is deposited through, which is the spender of the deposit allowance.
+// A custom L1 bridge from the custom bridge tokens config is used only on the chain it deposits to.
+export function getDepositAllowanceSpender(
+  token: Token | undefined,
+  sharedBridgeAddress: string,
+  network: ZkSyncNetwork
+): string {
+  const l1BridgeAddress = token?.l1BridgeAddress;
+  if (!token || !l1BridgeAddress) return sharedBridgeAddress;
+
+  if (!isCustomBridgeDepositSupported(token, network)) {
+    throw new Error(`Deposits of ${token.symbol} through its custom bridge are not supported on ${network.name}`);
+  }
+  return l1BridgeAddress;
+}

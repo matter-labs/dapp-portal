@@ -1,19 +1,40 @@
 import { useMemoize } from "@vueuse/core";
 import { $fetch } from "ofetch";
 
+const SCREENING_REQUEST_TIMEOUT = 15_000;
+const SCREENING_UNAVAILABLE_MESSAGE = "Address screening is temporarily unavailable. Please try again later.";
+
 /* Returns void if address screening was successful */
-/* Fails if address screening was unsuccessful */
-const validateAddress = useMemoize(async (address: string) => {
+/* Fails if address screening was unsuccessful or could not be completed */
+const screenAddress = useMemoize(async (address: string) => {
   const portalRuntimeConfig = usePortalRuntimeConfig();
   if (!portalRuntimeConfig.screeningApiUrl) return;
 
   const url = new URL(portalRuntimeConfig.screeningApiUrl);
   url.searchParams.append("address", address);
-  const response = await $fetch(url.toString()).catch(() => ({ result: true }));
+  /* The time limit covers the whole request, including the automatic retry and reading the response body */
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), SCREENING_REQUEST_TIMEOUT);
+  const response = await $fetch(url.toString(), { signal: controller.signal })
+    .catch((error) => {
+      throw new Error(SCREENING_UNAVAILABLE_MESSAGE, { cause: error });
+    })
+    .finally(() => clearTimeout(timer));
+  /* A response without a result, e.g. an HTML page from a proxy, is not a screening answer */
+  if (!response || typeof response !== "object" || !("result" in response)) {
+    throw new Error(SCREENING_UNAVAILABLE_MESSAGE);
+  }
   if (!response.result) {
     throw new Error("We were unable to process this transaction...");
   }
 });
+
+/* Only successful screenings stay cached, a failed check is repeated on the next attempt */
+const validateAddress = (address: string) =>
+  screenAddress(address).catch((error) => {
+    screenAddress.delete(address);
+    throw error;
+  });
 
 export default () => {
   return {

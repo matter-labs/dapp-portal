@@ -5,6 +5,7 @@ import { L1Signer, L1VoidSigner, Signer } from "zksync-ethers";
 import { customBridgeTokens } from "@/data/customBridgeTokens";
 import { EraBrowserProvider } from "@/utils/era-browser-provider";
 import { getBalancesWithCustomBridgeTokens, AddressChainType } from "@/utils/helpers";
+import { sanitizeUnverifiedToken } from "@/utils/tokenTrust";
 
 import type { Api, TokenAmount } from "@/types";
 import type { BigNumberish } from "ethers";
@@ -14,7 +15,7 @@ export const useZkSyncWalletStore = defineStore("zkSyncWallet", () => {
   const providerStore = useZkSyncProviderStore();
   const tokensStore = useZkSyncTokensStore();
   const { eraNetwork } = storeToRefs(providerStore);
-  const { tokens } = storeToRefs(tokensStore);
+  const { tokens, unverifiedTokenAddresses } = storeToRefs(tokensStore);
   const { account } = storeToRefs(onboardStore);
   const { validateAddress } = useScreening();
 
@@ -78,7 +79,7 @@ export const useZkSyncWalletStore = defineStore("zkSyncWallet", () => {
     await Promise.all([requestAccountState({ force: true }), tokensStore.requestTokens()]);
     if (!accountState.value) throw new Error("Account state is not available");
     if (!tokens.value) throw new Error("Tokens are not available");
-    return Object.entries(accountState.value.balances)
+    const balances = Object.entries(accountState.value.balances)
       .filter(([tokenAddress, { token }]) => token || tokens.value?.[tokenAddress])
       .map(([tokenAddress, { balance, token }]) => {
         const tokenInfo = token ? mapApiToken(token) : tokens.value?.[tokenAddress];
@@ -95,6 +96,11 @@ export const useZkSyncWalletStore = defineStore("zkSyncWallet", () => {
           l2BridgeAddress: tokenInfo?.l2BridgeAddress,
         };
       });
+    // The check only changes how tokens are displayed, so balances don't wait for it.
+    // Its result is applied to the tokens and balances when it arrives
+    const heldTokens = balances.filter((balance) => balance.amount !== "0");
+    tokensStore.verifyTokens(heldTokens).catch(() => undefined);
+    return balances;
   };
   const getBalancesFromRPC = async (): Promise<TokenAmount[]> => {
     await tokensStore.requestTokens();
@@ -160,6 +166,9 @@ export const useZkSyncWalletStore = defineStore("zkSyncWallet", () => {
     // Filter out the tokens in `balancesResult` that are not in `tokens`
     const otherTokens = balancesResult.value
       .filter((token) => !knownTokenAddresses.has(token.address))
+      .map((token) =>
+        unverifiedTokenAddresses.value.has(token.address.toLowerCase()) ? sanitizeUnverifiedToken(token) : token
+      )
       .sort((a, b) => a.symbol.localeCompare(b.symbol));
 
     const sortedTokens = [...knownTokens, ...otherTokens].sort((a, b) => {

@@ -33,6 +33,7 @@ export const useEthereumBalanceStore = defineStore("ethereumBalance", () => {
       const configTokensMapped = Object.fromEntries(
         configTokens.filter((token) => token.l1Address).map((token) => [token.l1Address, token])
       );
+      const configL1Addresses = new Set(configTokens.map((token) => token.l1Address?.toLowerCase()));
 
       const ankrProvider = new AnkrProvider(`https://rpc.ankr.com/multichain/${portalRuntimeConfig.ankrToken}`);
       const networkIdToAnkr = new Map<number, AnkrSupportedChains | "eth_sepolia">([
@@ -52,6 +53,8 @@ export const useEthereumBalanceStore = defineStore("ethereumBalance", () => {
         .map((e) => {
           const address = e.tokenType === "NATIVE" ? utils.ETH_ADDRESS : checksumAddress(e.contractAddress!);
           const mappedConfigToken = configTokensMapped[address];
+          // Tokens missing from the config show the name, symbol and icon declared by the token contract
+          const isUnverified = e.tokenType !== "NATIVE" && !configL1Addresses.has(address.toLowerCase());
           return {
             address,
             symbol: mappedConfigToken?.symbol ?? e.tokenSymbol,
@@ -60,6 +63,7 @@ export const useEthereumBalanceStore = defineStore("ethereumBalance", () => {
             iconUrl: mappedConfigToken?.iconUrl ?? e.thumbnail,
             price: e.tokenPrice === "0" ? undefined : parseFloat(e.tokenPrice),
             amount: e.balanceRawInteger,
+            ...(isUnverified ? { isUnverified } : {}),
           } as TokenAmount;
         });
     },

@@ -101,6 +101,17 @@
           </template>
         </CommonInputTransactionAddress>
         <CommonInputTransactionAddress v-else v-model="address" class="mt-6" />
+        <CommonAlert
+          v-if="customBridgeWithdrawalUnsupported"
+          variant="error"
+          :icon="ExclamationTriangleIcon"
+          class="mt-6"
+        >
+          <p>
+            Withdrawals of {{ selectedToken?.symbol }} through its custom bridge are not supported on
+            {{ eraNetwork.name }}.
+          </p>
+        </CommonAlert>
         <TransactionCustomBridge
           v-if="tokenCustomBridge"
           type="withdraw"
@@ -418,6 +429,13 @@ const tokenCustomBridge = computed(() => {
   }
   return customBridgeToken;
 });
+// A custom bridge withdrawal is allowed only through a bridge from the custom bridge tokens config for this chain
+const customBridgeWithdrawalUnsupported = computed(
+  () =>
+    props.type === "withdrawal" &&
+    !!selectedToken.value?.l2BridgeAddress &&
+    !isCustomBridgeWithdrawalSupported(selectedToken.value, eraNetwork.value)
+);
 const amountInputTokenAddress = computed({
   get: () => selectedToken.value?.address,
   set: (address) => {
@@ -611,6 +629,7 @@ watch(
     () => tokenBalance.value?.toString(),
     amountToTransferIsApproved,
     totalComputeAmount,
+    () => transaction.value?.to.address,
   ],
   () => {
     resetFee();
@@ -659,6 +678,7 @@ const continueButtonDisabled = computed(() => {
   ) {
     return true;
   }
+  if (customBridgeWithdrawalUnsupported.value) return true;
   if (feeLoading.value || !fee.value) return true;
   if (allowanceCheckInProgress.value) return true;
   if (isNativeToken.value && !amountToTransferIsApproved.value) {

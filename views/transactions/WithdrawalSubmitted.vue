@@ -1,11 +1,17 @@
 <template>
   <div>
     <h1 class="h1 mt-block-gap-1/2 text-center">
-      {{ transaction.info.completed ? "Transaction completed" : "Transaction submitted" }}
+      <template v-if="transaction.info.failed">Transaction failed</template>
+      <template v-else>{{ transaction.info.completed ? "Transaction completed" : "Transaction submitted" }}</template>
     </h1>
-    <CommonHeightTransition :opened="!transaction.info.completed">
+    <CommonHeightTransition :opened="!transaction.info.completed || transaction.info.failed">
       <p class="mb-4 text-center">
-        <template v-if="withdrawalManualFinalizationRequired && transaction.info.withdrawalFinalizationAvailable">
+        <template v-if="transaction.info.failed">
+          The withdrawal transaction failed on
+          <span class="font-medium">{{ transaction.from.destination.label }}</span
+          >. Your funds were not withdrawn.
+        </template>
+        <template v-else-if="withdrawalManualFinalizationRequired && transaction.info.withdrawalFinalizationAvailable">
           Your funds will be available on <span class="font-medium">{{ transaction.to.destination.label }}</span> after
           you claim the withdrawal.
         </template>
@@ -100,7 +106,7 @@
     </TransactionProgress>
     <CommonHeightTransition :opened="withdrawalFinalizationAvailable">
       <div>
-        <CommonErrorBlock v-if="feeError" class="mt-2" @try-again="estimate">
+        <CommonErrorBlock v-if="feeError" class="mt-2" @try-again="retryFeeEstimate">
           Fee estimation error: {{ feeError.message }}
         </CommonErrorBlock>
         <TransactionFeeDetails
@@ -111,6 +117,9 @@
           :loading="feeLoading"
           class="mt-4"
         />
+        <CommonErrorBlock v-if="finalizeError && !feeError" :retry-button="false" class="mt-4">
+          {{ finalizeError.message }}
+        </CommonErrorBlock>
 
         <TransactionEthereumTransactionFooter>
           <template #after-checks>
@@ -162,7 +171,6 @@
 import { ExclamationTriangleIcon } from "@heroicons/vue/24/outline";
 
 import useWithdrawalFinalization from "@/composables/zksync/useWithdrawalFinalization";
-import { customBridgeTokens } from "@/data/customBridgeTokens";
 import { isCustomNode } from "@/data/networks";
 
 const props = defineProps({
@@ -182,22 +190,10 @@ const { eraNetwork, blockExplorerUrl } = storeToRefs(useZkSyncProviderStore());
 const { l1BlockExplorerUrl } = storeToRefs(useNetworkStore());
 const { connectorName, isCorrectNetworkSet } = storeToRefs(onboardStore);
 
-const isCustomBridgeToken = computed(() => {
-  // Check if this is a custom bridge token by looking for l1BridgeAddress
-  // For existing withdrawals, we need to look it up from the custom bridge tokens config
-  if (props.transaction.token.l1BridgeAddress) {
-    return true;
-  }
-
-  // Fallback: lookup from custom bridge tokens configuration
-  const customBridgeToken = customBridgeTokens.find(
-    (token) =>
-      token.l2Address.toLowerCase() === props.transaction.token.address.toLowerCase() &&
-      token.chainId === eraNetwork.value.l1Network?.id
-  );
-
-  return !!customBridgeToken?.l1BridgeAddress;
-});
+// Only a custom bridge from the custom bridge tokens config for this chain is claimed through
+const isCustomBridgeToken = computed(
+  () => !!findCustomBridgeTokenForChain(props.transaction.token.address, eraNetwork.value)
+);
 const withdrawalManualFinalizationRequired = computed(() => {
   return !props.transaction.info.completed;
 });
@@ -213,6 +209,7 @@ const {
   estimateFee: estimate,
 
   status: finalizeTransactionStatus,
+  error: finalizeError,
   transactionHash: finalizeTransactionHash,
   commitTransaction,
 } = useWithdrawalFinalization(computed(() => props.transaction));
@@ -225,6 +222,11 @@ watch(
   },
   { immediate: true }
 );
+// A fee estimate that failed at claim time also set the claim error, so a new estimate clears it
+const retryFeeEstimate = () => {
+  finalizeError.value = undefined;
+  return estimate();
+};
 
 const continueButtonDisabled = computed(() => {
   if (finalizeTransactionStatus.value !== "not-started") return true;

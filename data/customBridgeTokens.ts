@@ -11,6 +11,7 @@ export type CustomBridgeToken = {
   learnMoreUrl?: string;
   l1BridgeAddress?: string;
   l2BridgeAddress?: string;
+  l2ChainId?: number; // L2 chain that l1BridgeAddress deposits to, the custom bridge is used only on this chain
   bridges: {
     label: string;
     iconUrl: string;
@@ -30,6 +31,7 @@ export const customBridgeTokens: CustomBridgeToken[] = [
     name: "Wrapped liquid staked Ether 2.0 - Native Lido Bridge",
     l1BridgeAddress: "0x41527B2d03844dB6b0945f25702cB958b6d55989",
     l2BridgeAddress: "0xE1D6A50E7101c8f8db77352897Ee3f1AC53f782B",
+    l2ChainId: 324,
     hideAlertMessage: true,
     decimals: 18,
   },

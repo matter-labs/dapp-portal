@@ -87,6 +87,24 @@
             </CommonAlert>
           </div>
         </CommonHeightTransition>
+        <CommonHeightTransition :opened="!!selectedToken?.isUnverified">
+          <div class="mb-block-padding-1/2 sm:mb-block-gap">
+            <CommonAlert variant="warning" size="sm" :icon="ExclamationTriangleIcon">
+              <p>
+                This token is not on the Portal's token list, so its name, symbol and icon are not verified and can
+                imitate another token. Check the token contract address before bridging:
+                <a
+                  v-if="l1BlockExplorerUrl"
+                  class="break-all underline underline-offset-2"
+                  target="_blank"
+                  :href="`${l1BlockExplorerUrl}/address/${selectedToken?.address}`"
+                  >{{ selectedToken?.address }}</a
+                >
+                <span v-else class="break-all">{{ selectedToken?.address }}</span>
+              </p>
+            </CommonAlert>
+          </div>
+        </CommonHeightTransition>
         <CommonInputTransactionAddress
           v-model="address"
           label="To"
@@ -515,8 +533,21 @@ const {
 } = useAllowance(
   computed(() => account.value.address),
   computed(() => selectedToken.value?.address),
-  async () => (await providerStore.requestProvider().then((provider) => provider.getDefaultBridgeAddresses())).sharedL1,
+  async () => {
+    const { sharedL1 } = await providerStore.requestProvider().then((provider) => provider.getDefaultBridgeAddresses());
+    return getDepositAllowanceSpender(selectedToken.value, sharedL1, eraNetwork.value);
+  },
   eraWalletStore.getL1Signer
+);
+// Token variants with the same L1 address can be deposited through different bridges
+watch(
+  () => selectedToken.value?.l1BridgeAddress,
+  () => {
+    // A new read, since a read in progress can be for the spender of the previous variant.
+    // A failed request is shown through allowanceRequestError
+    requestAllowance({ force: true }).catch(() => undefined);
+    resetSetAllowance();
+  }
 );
 const enoughAllowance = computedAsync(async () => {
   if (allowance?.value === undefined || !selectedToken.value) {
@@ -641,10 +672,10 @@ const estimate = async () => {
   if (!transaction.value?.from.address || !transaction.value?.to.address || !selectedToken.value) {
     return;
   }
-  await estimateFee(transaction.value.to.address, selectedToken.value.address);
+  await estimateFee(transaction.value.to.address, selectedToken.value.address, transaction.value.from.address);
 };
 watch(
-  [() => selectedToken.value?.address, () => transaction.value?.from.address],
+  [() => selectedToken.value?.address, () => transaction.value?.from.address, () => transaction.value?.to.address],
   () => {
     resetFee();
     estimate();
@@ -688,6 +719,9 @@ const continueButtonDisabled = computed(() => {
     !(!amountError.value || amountError.value === "exceeds_max_amount") ||
     BigInt(transaction.value.token.amount) === 0n
   )
+    return true;
+  // A custom bridge deposit is allowed only through a bridge from the custom bridge tokens config for this chain
+  if (selectedToken.value?.l1BridgeAddress && !isCustomBridgeDepositSupported(selectedToken.value, eraNetwork.value))
     return true;
   if ((allowanceRequestInProgress.value && !allowance.value) || allowanceRequestError.value) return true;
   if (!enoughAllowance.value) return false; // When allowance approval is required we can proceed to approve stage even if deposit fee is not loaded
