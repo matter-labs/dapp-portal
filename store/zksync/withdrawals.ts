@@ -74,10 +74,20 @@ export const useZkSyncWithdrawalsStore = defineStore("zkSyncWithdrawals", () => 
     )
   );
 
-  const updateWithdrawalsIfPossible = async () => {
-    if (!isConnected.value || !eraNetwork.value.blockExplorerApi) {
-      return;
+  // Claims saved as completed before claim receipts were checked are confirmed on chain, see verifyClaimedWithdrawal
+  const verifyClaimedWithdrawals = async () => {
+    const claimedWithdrawals = userTransactions.value.filter(
+      (tx) => tx.type === "withdrawal" && tx.info.completed && tx.info.toTransactionHash && !tx.info.claimVerified
+    );
+    for (const withdrawal of claimedWithdrawals) {
+      await transactionStatusStore.verifyClaimedWithdrawal(withdrawal);
     }
+  };
+
+  const updateWithdrawalsIfPossible = async () => {
+    if (!isConnected.value) return;
+    await verifyClaimedWithdrawals();
+    if (!eraNetwork.value.blockExplorerApi) return;
     await updateWithdrawals();
   };
   const { reset: resetAutoUpdate, stop: stopAutoUpdate } = useInterval(() => {
