@@ -39,6 +39,11 @@ vi.stubGlobal("useZkSyncProviderStore", () => ({
   requestProvider: () => Promise.resolve({ getTransactionReceipt, getTransactionDetails }),
 }));
 
+const isWithdrawalFinalized = vi.fn();
+vi.stubGlobal("useZkSyncWalletStore", () => ({
+  getL1VoidSigner: () => Promise.resolve({ isWithdrawalFinalized }),
+}));
+
 const { useZkSyncTransactionStatusStore } = await import("@/store/zksync/transactionStatus");
 
 // The NewPriorityRequest log that the chain contract emits on L1 for the deposit
@@ -195,6 +200,103 @@ describe("transaction status", () => {
 
     expect(getTransactionReceipt).toHaveBeenCalledWith(L2_TRANSACTION_HASH);
     expect(result.info).toStrictEqual({ ...pendingInfo(), failed: true, completed: true });
+  });
+});
+
+// A claim made before claim receipts were checked could be saved as completed although it reverted or was cancelled
+describe("withdrawal claimed in this browser", () => {
+  const CLAIM_HASH = `0x${"d".repeat(64)}`;
+  const WITHDRAWAL_HASH = `0x${"e".repeat(64)}`;
+  const claimedWithdrawal = (info: Partial<TransactionInfo["info"]> = {}, token = {}): TransactionInfo => ({
+    ...makeTransaction("withdrawal", {
+      completed: true,
+      withdrawalFinalizationAvailable: true,
+      toTransactionHash: CLAIM_HASH,
+      ...info,
+    }),
+    token: { ...makeTransaction("withdrawal", pendingInfo()).token, ...token },
+    transactionHash: WITHDRAWAL_HASH,
+  });
+
+  let store: ReturnType<typeof useZkSyncTransactionStatusStore>;
+  beforeEach(() => {
+    isWithdrawalFinalized.mockReset();
+    getTransactionDetails.mockReset();
+    getTransactionReceipt.mockReset();
+    store = useZkSyncTransactionStatusStore();
+  });
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+  const saved = () => store.getTransaction(WITHDRAWAL_HASH)!.info;
+
+  it("becomes claimable again when the withdrawal is not finalized", async () => {
+    isWithdrawalFinalized.mockResolvedValue(false);
+    store.saveTransaction(claimedWithdrawal());
+
+    const result = await store.verifyClaimedWithdrawal(claimedWithdrawal());
+
+    const claimable = { completed: false, withdrawalFinalizationAvailable: true, toTransactionHash: undefined };
+    expect(result.info).toMatchObject(claimable);
+    expect(saved()).toMatchObject(claimable);
+    expect(isWithdrawalFinalized).toHaveBeenCalledWith(WITHDRAWAL_HASH);
+  });
+
+  it("stays completed when the withdrawal is finalized and is not checked again", async () => {
+    isWithdrawalFinalized.mockResolvedValue(true);
+    store.saveTransaction(claimedWithdrawal());
+
+    await store.verifyClaimedWithdrawal(claimedWithdrawal());
+    expect(saved()).toMatchObject({ completed: true, toTransactionHash: CLAIM_HASH, claimVerified: true });
+
+    await store.verifyClaimedWithdrawal(store.getTransaction(WITHDRAWAL_HASH)!);
+    expect(isWithdrawalFinalized).toHaveBeenCalledTimes(1);
+  });
+
+  it("is left as it is when the check fails and is checked again next time", async () => {
+    isWithdrawalFinalized.mockRejectedValueOnce(new Error("network error")).mockResolvedValueOnce(true);
+    store.saveTransaction(claimedWithdrawal());
+
+    await store.verifyClaimedWithdrawal(claimedWithdrawal());
+    expect(saved()).toStrictEqual(claimedWithdrawal().info);
+
+    await store.verifyClaimedWithdrawal(claimedWithdrawal());
+    expect(saved()).toMatchObject({ completed: true, claimVerified: true });
+  });
+
+  it.each<[string, TransactionInfo]>([
+    ["completed without a claim from this browser", claimedWithdrawal({ toTransactionHash: undefined })],
+    ["already verified", claimedWithdrawal({ claimVerified: true })],
+    ["claimed through a custom bridge", claimedWithdrawal({}, { l1BridgeAddress: `0x${"4".repeat(40)}` })],
+  ])("is not checked when %s", async (_, withdrawal) => {
+    store.saveTransaction(withdrawal);
+
+    expect(await store.verifyClaimedWithdrawal(withdrawal)).toBe(withdrawal);
+    expect(isWithdrawalFinalized).not.toHaveBeenCalled();
+  });
+
+  it("is shown as claimable on its transaction page when it is not finalized", async () => {
+    vi.useFakeTimers();
+    isWithdrawalFinalized.mockResolvedValue(false);
+    store.saveTransaction(claimedWithdrawal());
+
+    // The page keeps waiting until the withdrawal is claimed
+    store.waitForCompletion(store.getTransaction(WITHDRAWAL_HASH)!);
+    await vi.advanceTimersByTimeAsync(0);
+
+    expect(saved()).toMatchObject({
+      completed: false,
+      withdrawalFinalizationAvailable: true,
+      toTransactionHash: undefined,
+    });
+  });
+
+  it("returns a verified claim from waitForCompletion without an RPC call", async () => {
+    const withdrawal = claimedWithdrawal({ claimVerified: true });
+
+    expect(await store.waitForCompletion(withdrawal)).toBe(withdrawal);
+    expect(isWithdrawalFinalized).not.toHaveBeenCalled();
+    expect(getTransactionDetails).not.toHaveBeenCalled();
   });
 });
 

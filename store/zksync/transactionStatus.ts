@@ -2,6 +2,8 @@ import { useStorage } from "@vueuse/core";
 import { decodeEventLog, WaitForTransactionReceiptTimeoutError } from "viem";
 import IZkSyncHyperchain from "zksync-ethers/abi/IZkSyncHyperchain.json";
 
+import { findCustomBridgeTokenForChain } from "@/utils/helpers";
+
 import type { FeeEstimationParams } from "@/composables/zksync/useFee";
 import type { TokenAmount, Hash } from "@/types";
 
@@ -19,6 +21,8 @@ export type TransactionInfo = {
     failed?: boolean;
     // Deposit only: the L1 transaction succeeded but the L2 transaction reverted
     l2Failed?: boolean;
+    // Withdrawal only: the claim is confirmed, by its successful receipt or by an on-chain check
+    claimVerified?: boolean;
     completed: boolean;
   };
 };
@@ -155,7 +159,36 @@ export const useZkSyncTransactionStatusStore = defineStore("zkSyncTransactionSta
     transaction.info.completed = true;
     return transaction;
   };
+  // Before claim receipts were checked, a claim that reverted or was cancelled in the wallet was saved as completed.
+  // A withdrawal claimed in this browser is checked on chain once, and becomes claimable again if it is not finalized.
+  // The SDK checks finalization on the shared bridge only, so a claim through a custom bridge is left as it is
+  const verifyClaimedWithdrawal = async (transaction: TransactionInfo) => {
+    const { info, token } = transaction;
+    if (transaction.type !== "withdrawal" || !info.completed || !info.toTransactionHash || info.claimVerified) {
+      return transaction;
+    }
+    if (token.l1BridgeAddress || findCustomBridgeTokenForChain(token.address, eraNetwork.value)) return transaction;
+    let isFinalized: boolean;
+    try {
+      const signer = await useZkSyncWalletStore().getL1VoidSigner(true);
+      isFinalized = await signer.isWithdrawalFinalized(transaction.transactionHash);
+    } catch {
+      // The withdrawal is left as it is and checked again next time
+      return transaction;
+    }
+    const verifiedTransaction: TransactionInfo = isFinalized
+      ? { ...transaction, info: { ...info, claimVerified: true } }
+      : {
+          ...transaction,
+          info: { ...info, completed: false, withdrawalFinalizationAvailable: true, toTransactionHash: undefined },
+        };
+    const savedTransaction = getTransaction(transaction.transactionHash);
+    if (savedTransaction) updateTransactionData(savedTransaction.transactionHash, verifiedTransaction);
+    return verifiedTransaction;
+  };
+
   const waitForCompletion = async (transaction: TransactionInfo) => {
+    transaction = await verifyClaimedWithdrawal(transaction);
     if (transaction.info.completed) return transaction;
     if (transaction.type === "deposit") {
       transaction = await getDepositStatus(transaction);
@@ -205,6 +238,7 @@ export const useZkSyncTransactionStatusStore = defineStore("zkSyncTransactionSta
     savedTransactions,
     userTransactions,
     waitForCompletion,
+    verifyClaimedWithdrawal,
     saveTransaction,
     updateTransactionData,
     getTransaction,

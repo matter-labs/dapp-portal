@@ -245,6 +245,8 @@ const buttonContinue = async () => {
         ...props.transaction.info,
         completed: true,
         toTransactionHash: finalizeTransactionHash.value! as string,
+        // The claim receipt succeeded, so the claim does not need an on-chain check later
+        claimVerified: true,
       },
     });
   }
