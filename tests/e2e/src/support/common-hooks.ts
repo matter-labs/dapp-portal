@@ -2,7 +2,7 @@ import path from "path";
 import { After, AfterAll, Before, BeforeAll, setDefaultTimeout } from "@cucumber/cucumber";
 import { chromium } from "@playwright/test";
 
-import type { ITestCaseHookParameter } from "@cucumber/cucumber/lib/support_code_library_builder/types";
+import type { ITestCaseHookParameter } from "@cucumber/cucumber";
 import { Helper } from "../helpers/helper";
 import { BasePage } from "../pages/base.page";
 import { MetamaskPage } from "../pages/metamask.page";
@@ -34,11 +34,18 @@ BeforeAll(async function (this: ICustomWorld) {
     });
   }
   await browser;
-  console.log("-------- Base Url: ", config.BASE_URL + config.DAPP_NETWORK);
 });
 
 Before({ tags: "@ignore" }, async function () {
   return "skipped" as any;
+});
+
+Before(async function (this: ICustomWorld) {
+  await this.page?.reload(); // Reloads the page before each test
+});
+
+Before(async function (this: ICustomWorld) {
+  await new Promise((r) => setTimeout(r, 2000)); // 2-second delay to not limit the network requests
 });
 
 Before(async function (this: ICustomWorld, { pickle }: ITestCaseHookParameter) {
@@ -52,6 +59,10 @@ Before(async function (this: ICustomWorld, { pickle }: ITestCaseHookParameter) {
 
   await helper.metamaskAuthorization(metamaskPage, basePage, pickle);
   this.feature = pickle;
+});
+
+After(async function (this: ICustomWorld) {
+  await this.page?.close(); // Close page if necessary
 });
 
 After(async function (this: ICustomWorld, { result }: ITestCaseHookParameter) {
