@@ -1,4 +1,5 @@
-import { createEthersClient, createEthersSdk } from "@dutterbutter/zksync-sdk/ethers";
+import { isETH } from "@matterlabs/zksync-js";
+import { createEthersSdk } from "@matterlabs/zksync-js/ethers";
 import { zeroAddress, type Address } from "viem";
 
 import { useSentryLogger } from "@/composables/useSentryLogger";
@@ -12,10 +13,12 @@ export type DepositFeeValues = {
   baseCost: bigint;
   l1GasLimit: bigint;
   l2GasLimit: bigint;
+  // On chains with a non-ETH base token, baseCost is paid in the base token, not ETH
+  baseCostInEth: boolean;
 };
 
 export default (tokens: Ref<Token[]>, balances: Ref<TokenAmount[] | undefined>) => {
-  const { getL1VoidSigner } = useZkSyncWalletStore();
+  const { getReadOnlyZkSyncClient } = useZkSyncWalletStore();
   const { captureException } = useSentryLogger();
 
   let params = {
@@ -26,7 +29,12 @@ export default (tokens: Ref<Token[]>, balances: Ref<TokenAmount[] | undefined>) 
   const fee = ref<DepositFeeValues | undefined>();
   const totalFee = computed(() => {
     if (!fee.value) return undefined;
-    return (fee.value.l1GasLimit * fee.value.maxFeePerGas + fee.value.baseCost).toString();
+    const l1Fee = fee.value.l1GasLimit * fee.value.maxFeePerGas;
+    return (fee.value.baseCostInEth ? l1Fee + fee.value.baseCost : l1Fee).toString();
+  });
+  const baseTokenFee = computed(() => {
+    if (!fee.value || fee.value.baseCostInEth) return undefined;
+    return fee.value.baseCost.toString();
   });
   const feeToken = computed(() => tokens.value.find((e) => e.address === zeroAddress));
   const feeTokenBalance = computed(() => balances.value?.find((e) => e.address === feeToken.value?.address)?.amount);
@@ -51,31 +59,31 @@ export default (tokens: Ref<Token[]>, balances: Ref<TokenAmount[] | undefined>) 
         return;
       }
 
-      const signer = await getL1VoidSigner(true);
-
       try {
-        const client = createEthersClient({ l1: signer.provider, l2: signer.providerL2, signer });
-        const sdk = createEthersSdk(client);
-
-        const quote = await sdk.deposits.quote({
-          to: (params.to || signer.address) as Address,
+        const client = await getReadOnlyZkSyncClient();
+        const sender = (await client.signer.getAddress()) as Address;
+        const quote = await createEthersSdk(client).deposits.quote({
+          to: (params.to || sender) as Address,
           token: params.tokenAddress as Address,
-          amount: BigInt(0n),
+          amount: 0n,
         });
+        const { l1, l2 } = quote.fees;
 
-        if (!quote.fees.gasLimit) {
+        // Until approvals land the SDK can't estimate the bridge tx and quotes a fixed 3M gas limit instead
+        if (!l1?.gasLimit || !l2 || quote.approvalsNeeded.length) {
           // Failed to estimate fee (e.g. 0 ETH balance)
           fee.value = undefined;
           return;
         }
 
         fee.value = {
-          maxFeePerGas: quote.fees.maxFeePerGas,
-          maxPriorityFeePerGas: quote.fees.maxPriorityFeePerGas,
-          gasPerPubdata: quote.gasPerPubdata,
-          baseCost: quote.baseCost,
-          l1GasLimit: quote.fees.gasLimit,
-          l2GasLimit: quote.suggestedL2GasLimit,
+          maxFeePerGas: l1.maxFeePerGas,
+          maxPriorityFeePerGas: l1.maxPriorityFeePerGas ?? 0n,
+          gasPerPubdata: l2.gasPerPubdata,
+          baseCost: l2.total,
+          l1GasLimit: l1.gasLimit,
+          l2GasLimit: l2.gasLimit,
+          baseCostInEth: isETH(quote.fees.token),
         };
       } catch (err) {
         captureException({
@@ -111,6 +119,7 @@ export default (tokens: Ref<Token[]>, balances: Ref<TokenAmount[] | undefined>) 
   return {
     fee,
     result: totalFee,
+    baseTokenFee,
     inProgress,
     error,
     estimateFee: async (to: string, tokenAddress: string) => {

@@ -493,7 +493,7 @@ const {
 } = useAllowance(
   computed(() => account.value.address),
   computed(() => selectedToken.value?.address),
-  async () => (await providerStore.requestProvider().then((provider) => provider.getDefaultBridgeAddresses())).sharedL1,
+  async () => (await (await eraWalletStore.getReadOnlyZkSyncClient()).ensureAddresses()).l1NativeTokenVault,
   eraWalletStore.getL1Signer
 );
 const enoughAllowance = computedAsync(async () => {
@@ -501,9 +501,8 @@ const enoughAllowance = computedAsync(async () => {
     return true;
   }
 
-  const approvalAmounts = await getApprovalAmounts(totalComputeAmount.value, feeValues.value!);
-  const approvalAllowance = approvalAmounts.length ? approvalAmounts[0]?.allowance : 0;
-  return allowance.value !== 0n && allowance?.value >= BigInt(approvalAllowance);
+  const approvalAmounts = await getApprovalAmounts(totalComputeAmount.value);
+  return approvalAmounts.length === 0;
 }, false);
 const setAmountToCurrentAllowance = () => {
   if (!allowance.value || !selectedToken.value) {
@@ -512,7 +511,7 @@ const setAmountToCurrentAllowance = () => {
   amount.value = parseTokenAmount(allowance.value, selectedToken.value.decimals);
 };
 const setTokenAllowance = async () => {
-  await setAllowance(totalComputeAmount.value, feeValues.value!);
+  await setAllowance(totalComputeAmount.value);
   await new Promise((resolve) => setTimeout(resolve, 2000)); // Wait for balances to be updated on API side
   await fetchBalances(true);
 };
@@ -524,6 +523,7 @@ const unsubscribe = onboardStore.subscribeOnAccountChange(() => {
 const {
   fee: feeValues,
   result: fee,
+  baseTokenFee,
   inProgress: feeInProgress,
   error: feeError,
   feeToken,
@@ -565,6 +565,12 @@ const maxAmount = computed(() => {
       return "0";
     }
     return String(BigInt(tokenBalance.value) - BigInt(fee.value));
+  }
+  if (baseToken.value?.l1Address === selectedToken.value.address && baseTokenFee.value) {
+    if (BigInt(baseTokenFee.value) > BigInt(tokenBalance.value)) {
+      return "0";
+    }
+    return String(BigInt(tokenBalance.value) - BigInt(baseTokenFee.value));
   }
   return tokenBalance.value.toString();
 });

@@ -1,9 +1,9 @@
-import { useMemoize } from "@vueuse/core";
 import { getWalletClient, getPublicClient, prepareTransactionRequest, custom } from "@wagmi/core";
-import { ethers, type BigNumberish, type ContractTransaction } from "ethers";
+import { ethers, type BigNumberish, type ContractTransaction, type TransactionRequest } from "ethers";
 import { createWalletClient, type Hash, type Address } from "viem";
 import { eip712WalletActions } from "viem/zksync";
 
+import { prepareWithdrawalSteps } from "@/composables/zksync/withdrawalSteps";
 import { isCustomNode } from "@/data/networks";
 import { wagmiConfig } from "~/data/wagmi";
 
@@ -34,9 +34,6 @@ export default (getSigner: () => Promise<Signer | undefined>, getProvider: () =>
   const { captureException } = useSentryLogger();
   const { selectedNetwork } = storeToRefs(useNetworkStore());
 
-  const retrieveBridgeAddresses = useMemoize(() =>
-    getProvider().then((provider) => provider.getDefaultBridgeAddresses())
-  );
   const { validateAddress } = useScreening();
 
   // We need to calculate gas limit with custom function since the new version of the SDK fails
@@ -63,6 +60,50 @@ export default (getSigner: () => Promise<Signer | undefined>, getProvider: () =>
     return populatedTx;
   };
 
+  const sendTransaction = async (signer: Signer, txRequest: TransactionRequest): Promise<{ hash: string }> => {
+    if (!selectedNetwork.value.isPrividium) {
+      return await signer.sendTransaction(txRequest);
+    }
+
+    const wagmiClient = await getWalletClient(wagmiConfig);
+    if (!wagmiClient) throw new Error("Wagmi client is not available");
+    const { getPrividiumInstance } = usePrividiumStore();
+
+    const prividiumInstance = getPrividiumInstance();
+    if (!prividiumInstance) throw new Error("Prividium instance is not available");
+    const wagmiPublicClient = getPublicClient(wagmiConfig, {
+      chainId: prividiumInstance.chain.id,
+    });
+    if (!wagmiPublicClient) throw new Error("Wagmi public client is not available");
+
+    const prepared = await prepareTransactionRequest(wagmiConfig, {
+      chainId: wagmiClient.chain.id,
+      account: wagmiClient.account,
+      to: txRequest.to as Address,
+      data: txRequest.data as Hash,
+      value: BigInt(txRequest.value || 0) as bigint,
+    });
+
+    const client = createWalletClient({
+      account: wagmiClient.account,
+      chain: prividiumInstance.chain,
+      transport: custom({
+        async request({ method, params }) {
+          const response = await wagmiClient.transport.request({ method, params });
+          return response;
+        },
+      }),
+    }).extend(eip712WalletActions());
+    const signature = await client.signTransaction({
+      ...prepared,
+      type: "eip712" as any,
+    });
+
+    return {
+      hash: await wagmiPublicClient.sendRawTransaction({ serializedTransaction: signature }),
+    };
+  };
+
   const commitTransaction = async (
     transaction: TransactionParams,
     fee: { gasPrice: BigNumberish; gasLimit: BigNumberish }
@@ -79,14 +120,6 @@ export default (getSigner: () => Promise<Signer | undefined>, getProvider: () =>
 
       const provider = await getProvider();
 
-      const getRequiredBridgeAddress = async () => {
-        if (transaction.bridgeAddress) return transaction.bridgeAddress;
-        if (transaction.tokenAddress === L2_BASE_TOKEN_ADDRESS) return undefined;
-        const bridgeAddresses = await retrieveBridgeAddresses();
-        return bridgeAddresses.sharedL2 as Address;
-      };
-      const bridgeAddress = transaction.type === "withdrawal" ? await getRequiredBridgeAddress() : undefined;
-
       await eraWalletStore.walletAddressValidate();
       await validateAddress(transaction.to);
 
@@ -98,7 +131,7 @@ export default (getSigner: () => Promise<Signer | undefined>, getProvider: () =>
           to: transaction.to,
           token: transaction.tokenAddress,
           amount: transaction.amount,
-          bridgeAddress,
+          bridgeAddress: transaction.bridgeAddress,
           overrides: {
             gasPrice: fee.gasPrice,
             gasLimit: fee.gasLimit,
@@ -113,66 +146,38 @@ export default (getSigner: () => Promise<Signer | undefined>, getProvider: () =>
         return txResponse;
       }
 
-      const txRequest = await provider[transaction.type === "transfer" ? "getTransferTx" : "getWithdrawTx"]({
+      if (transaction.type === "withdrawal") {
+        const steps = await prepareWithdrawalSteps({
+          token: transaction.tokenAddress,
+          amount: BigInt(transaction.amount.toString()),
+          to: transaction.to,
+        });
+        let txResponse: { hash: string } | undefined;
+        for (const [index, step] of steps.entries()) {
+          txResponse = await sendTransaction(signer, step);
+          // An approval has to be mined before the withdrawal spends it
+          if (index < steps.length - 1) await provider.waitForTransaction(txResponse.hash);
+        }
+        transactionHash.value = txResponse!.hash;
+        status.value = "done";
+        return txResponse;
+      }
+
+      const txRequest = await provider.getTransferTx({
         from: accountAddress,
         to: transaction.to,
         token: transaction.tokenAddress,
         amount: transaction.amount,
-        bridgeAddress,
         overrides: {
           gasPrice: fee.gasPrice,
           gasLimit: fee.gasLimit,
         },
       });
 
-      if (selectedNetwork.value.isPrividium) {
-        const wagmiClient = await getWalletClient(wagmiConfig);
-        if (!wagmiClient) throw new Error("Wagmi client is not available");
-        const { getPrividiumInstance } = usePrividiumStore();
-
-        const prividiumInstance = getPrividiumInstance();
-        if (!prividiumInstance) throw new Error("Prividium instance is not available");
-        const wagmiPublicClient = getPublicClient(wagmiConfig, {
-          chainId: prividiumInstance.chain.id,
-        });
-        if (!wagmiPublicClient) throw new Error("Wagmi public client is not available");
-
-        const prepared = await prepareTransactionRequest(wagmiConfig, {
-          chainId: wagmiClient.chain.id,
-          account: wagmiClient.account,
-          to: txRequest.to as Address,
-          data: txRequest.data as Hash,
-          value: BigInt(txRequest.value || 0) as bigint,
-        });
-
-        const client = createWalletClient({
-          account: wagmiClient.account,
-          chain: prividiumInstance.chain,
-          transport: custom({
-            async request({ method, params }) {
-              const response = await wagmiClient.transport.request({ method, params });
-              return response;
-            },
-          }),
-        }).extend(eip712WalletActions());
-        const signature = await client.signTransaction({
-          ...prepared,
-          type: "eip712" as any,
-        });
-
-        const txResponse = {
-          hash: await wagmiPublicClient.sendRawTransaction({ serializedTransaction: signature }),
-        };
-
-        transactionHash.value = txResponse.hash;
-        status.value = "done";
-        return txResponse;
-      } else {
-        const txResponse = await signer.sendTransaction(txRequest);
-        transactionHash.value = txResponse.hash;
-        status.value = "done";
-        return txResponse;
-      }
+      const txResponse = await sendTransaction(signer, txRequest);
+      transactionHash.value = txResponse.hash;
+      status.value = "done";
+      return txResponse;
     } catch (err) {
       error.value = formatError(err as Error);
       status.value = "not-started";

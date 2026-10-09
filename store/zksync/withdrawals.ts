@@ -1,6 +1,7 @@
+import { createEthersSdk } from "@matterlabs/zksync-js/ethers";
 import { $fetch } from "ofetch";
 
-import type { Api } from "@/types";
+import type { Api, Hash } from "@/types";
 
 const FETCH_TIME_LIMIT = 31 * 24 * 60 * 60 * 1000; // 31 days
 
@@ -22,6 +23,7 @@ export const useZkSyncWithdrawalsStore = defineStore("zkSyncWithdrawals", () => 
       `${eraNetwork.value.blockExplorerApi}/address/${account.value.address}/transfers?type=withdrawal`
     );
 
+    const sdk = createEthersSdk(await useZkSyncWalletStore().getReadOnlyZkSyncClient());
     for (const withdrawal of response.items.map(mapApiTransfer)) {
       if (!withdrawal.transactionHash) continue;
 
@@ -30,9 +32,10 @@ export const useZkSyncWithdrawalsStore = defineStore("zkSyncWithdrawals", () => 
 
       if (new Date(withdrawal.timestamp).getTime() < Date.now() - FETCH_TIME_LIMIT) break;
 
-      const isFinalized = await (await useZkSyncWalletStore().getL1VoidSigner(true))
-        ?.isWithdrawalFinalized(withdrawal.transactionHash)
-        .catch(() => false);
+      const phase = await sdk.withdrawals
+        .status(withdrawal.transactionHash as Hash)
+        .then((status) => status.phase)
+        .catch(() => "UNKNOWN");
 
       transactionStatusStore.saveTransaction({
         type: "withdrawal",
@@ -54,8 +57,8 @@ export const useZkSyncWithdrawalsStore = defineStore("zkSyncWithdrawals", () => 
           expectedCompleteTimestamp: new Date(
             new Date(withdrawal.timestamp).getTime() + WITHDRAWAL_DELAY
           ).toISOString(),
-          completed: isFinalized,
-          withdrawalFinalizationAvailable: isFinalized,
+          completed: phase === "FINALIZED",
+          withdrawalFinalizationAvailable: phase === "READY_TO_FINALIZE" || phase === "FINALIZED",
         },
       });
     }

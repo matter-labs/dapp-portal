@@ -1,11 +1,12 @@
+import { createEthersSdk } from "@matterlabs/zksync-js/ethers";
+import { Contract, type BigNumberish } from "ethers";
 import { L1Signer, utils } from "zksync-ethers";
 import IERC20 from "zksync-ethers/abi/IERC20.json";
 
 import { useSentryLogger } from "../useSentryLogger";
 
-import type { DepositFeeValues } from "../zksync/deposit/useFee";
 import type { Hash, TokenAllowance } from "@/types";
-import type { BigNumberish } from "ethers";
+import type { Address } from "viem";
 
 export default (
   accountAddress: Ref<string | undefined>,
@@ -14,6 +15,7 @@ export default (
   getL1Signer: () => Promise<L1Signer | undefined>
 ) => {
   const { getPublicClient } = useOnboardStore();
+  const { getReadOnlyZkSyncClient } = useZkSyncWalletStore();
   const { captureException } = useSentryLogger();
   const {
     result,
@@ -75,12 +77,14 @@ export default (
         if (!contractAddress) throw new Error("Contract address is not available");
 
         const wallet = await getL1Signer();
+        if (!wallet) throw new Error("Wallet is not available");
         setAllowanceStatus.value = "waiting-for-signature";
 
         const receipts = [];
 
         for (let i = 0; i < approvalAmounts.length; i++) {
-          const txResponse = await wallet?.approveERC20(approvalAmounts[i].token, approvalAmounts[i].allowance);
+          const { token, spender, allowance } = approvalAmounts[i];
+          const txResponse = await new Contract(token, IERC20, wallet).approve(spender, allowance);
 
           setAllowanceTransactionHashes.value.push(txResponse?.hash as Hash);
 
@@ -120,32 +124,24 @@ export default (
     },
     { cache: false }
   );
-  const getApprovalAmounts = async (amount: BigNumberish, fee: DepositFeeValues) => {
-    const wallet = await getL1Signer();
-    if (!wallet) throw new Error("Wallet is not available");
+  // Only the approvals still missing for this deposit, including the base token for mintValue on non-ETH chains
+  const getApprovalAmounts = async (amount: BigNumberish) => {
+    const quote = await createEthersSdk(await getReadOnlyZkSyncClient()).deposits.quote({
+      token: tokenAddress.value as Address,
+      amount: BigInt(amount.toString()),
+    });
 
-    // We need to pass the overrides in order to get the correct deposits allowance params
-    const overrides = {
-      gasPrice: fee.gasPrice,
-      gasLimit: fee.l1GasLimit,
-      maxFeePerGas: fee.maxFeePerGas,
-      maxPriorityFeePerGas: fee.maxPriorityFeePerGas,
-    };
-    if (overrides.gasPrice && overrides.maxFeePerGas) {
-      overrides.gasPrice = undefined;
-    }
-
-    approvalAmounts = (await wallet.getDepositAllowanceParams(
-      tokenAddress.value!,
-      amount,
-      overrides
-    )) as TokenAllowance[];
+    approvalAmounts = quote.approvalsNeeded.map(({ token, spender, amount }) => ({
+      token,
+      spender,
+      allowance: amount,
+    }));
 
     return approvalAmounts;
   };
 
-  const setAllowance = async (amount: BigNumberish, fee: DepositFeeValues) => {
-    await getApprovalAmounts(amount, fee);
+  const setAllowance = async (amount: BigNumberish) => {
+    await getApprovalAmounts(amount);
     await executeSetAllowance();
   };
 

@@ -610,7 +610,6 @@ const estimate = async () => {
     to: transaction.value.to.address,
     tokenAddress: selectedToken.value.address,
     isNativeToken: isNativeToken.value,
-    assetId: assetId.value,
     amount: totalComputeAmount.value.toString(),
   });
 };

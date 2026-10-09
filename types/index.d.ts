@@ -20,7 +20,7 @@ export type Token = {
 };
 export type TokenAmount = Token & { amount: BigNumberish; l1BridgeAddress?: string; l2BridgeAddress?: string };
 
-export type TokenAllowance = { token: Address; allowance: bigint };
+export type TokenAllowance = { token: Address; spender: Address; allowance: bigint };
 
 export declare namespace Api {
   namespace Response {

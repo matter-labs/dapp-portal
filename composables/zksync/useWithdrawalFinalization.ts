@@ -1,6 +1,5 @@
-import { useMemoize } from "@vueuse/core";
-import { Wallet, typechain } from "zksync-ethers";
-import IL1Nullifier from "zksync-ethers/abi/IL1Nullifier.json";
+import { abi } from "@matterlabs/zksync-js";
+import { createFinalizationServices } from "@matterlabs/zksync-js/ethers";
 
 import { L1_BRIDGE_ABI } from "@/data/abis/l1BridgeAbi";
 import { customBridgeTokens } from "@/data/customBridgeTokens";
@@ -9,7 +8,6 @@ import { useSentryLogger } from "../useSentryLogger";
 
 import type { Hash } from "@/types";
 import type { Address } from "viem";
-import type { FinalizeWithdrawalParams } from "zksync-ethers/build/types";
 
 export default (transactionInfo: ComputedRef<TransactionInfo>) => {
   const status = ref<"not-started" | "processing" | "waiting-for-signature" | "sending" | "done">("not-started");
@@ -23,22 +21,8 @@ export default (transactionInfo: ComputedRef<TransactionInfo>) => {
   const { ethToken } = storeToRefs(tokensStore);
   const { captureException } = useSentryLogger();
 
-  const retrieveBridgeAddresses = useMemoize(() =>
-    providerStore.requestProvider().then((provider) => provider.getDefaultBridgeAddresses())
-  );
-  const retrieveL1NullifierAddress = useMemoize(async () => {
-    const providerL1 = await walletStore.getL1VoidSigner();
-    return await typechain.IL1AssetRouter__factory.connect(
-      (
-        await retrieveBridgeAddresses()
-      ).sharedL1,
-      providerL1
-    ).L1_NULLIFIER();
-  });
-
   const gasLimit = ref<bigint | undefined>();
   const gasPrice = ref<bigint | undefined>();
-  const finalizeWithdrawalParams = ref<FinalizeWithdrawalParams | undefined>();
 
   const totalFee = computed(() => {
     if (!gasLimit.value || !gasPrice.value) return undefined;
@@ -48,22 +32,11 @@ export default (transactionInfo: ComputedRef<TransactionInfo>) => {
     return ethToken.value;
   });
 
-  const getFinalizationParams = async () => {
-    const provider = await providerStore.requestProvider();
-    const wallet = new Wallet(
-      // random private key cause we don't care about actual signer
-      // finalizeWithdrawalParams method only exists on Wallet class
-      "0x7726827caac94a7f9e1b160f7ea819f172f7b6f9d2a97f992c38edeab82d4110",
-      provider
-    );
-    return await wallet.getFinalizeWithdrawalParams(transactionInfo.value.transactionHash);
-  };
-
   const getTransactionParams = async () => {
-    finalizeWithdrawalParams.value = await getFinalizationParams();
-    const provider = await providerStore.requestProvider();
-    const chainId = BigInt(await provider.getNetwork().then((n) => n.chainId));
-    const p = finalizeWithdrawalParams.value!;
+    const client = await walletStore.getReadOnlyZkSyncClient();
+    const { target, finalization } = await createFinalizationServices(client).fetchFinalization(
+      transactionInfo.value.transactionHash as Hash
+    );
 
     // Check if this is a custom bridge withdrawal
     // First check if the token already has the bridge address stored
@@ -84,6 +57,18 @@ export default (transactionInfo: ComputedRef<TransactionInfo>) => {
 
     const isCustomBridge = !!l1BridgeAddress;
 
+    if (finalization.protocol === "interop-bundle") {
+      if (isCustomBridge) throw new Error("Custom bridge withdrawals are not supported on this protocol version");
+      return {
+        address: target,
+        abi: abi.IInteropHandlerABI,
+        account: onboardStore.account.address!,
+        functionName: "executeBundle",
+        args: [finalization.params.bundle, finalization.params.proof],
+      } as const;
+    }
+
+    const p = finalization.params;
     if (isCustomBridge) {
       // Use custom bridge finalization
       return {
@@ -91,32 +76,16 @@ export default (transactionInfo: ComputedRef<TransactionInfo>) => {
         abi: L1_BRIDGE_ABI,
         account: onboardStore.account.address!,
         functionName: "finalizeWithdrawal",
-        args: [
-          BigInt(p.l1BatchNumber ?? 0n),
-          BigInt(p.l2MessageIndex),
-          Number(p.l2TxNumberInBlock) as number,
-          p.message as Hash,
-          p.proof as Hash[],
-        ],
+        args: [p.l2BatchNumber, p.l2MessageIndex, p.l2TxNumberInBatch, p.message, p.merkleProof],
       } as const;
     } else {
       // Use standard bridge finalization through L1Nullifier
-      const finalizeDepositParams = {
-        chainId: BigInt(chainId),
-        l2BatchNumber: BigInt(p.l1BatchNumber ?? 0n),
-        l2MessageIndex: BigInt(p.l2MessageIndex),
-        l2Sender: p.sender as Address,
-        l2TxNumberInBatch: Number(p.l2TxNumberInBlock),
-        message: p.message as Hash,
-        merkleProof: p.proof as Hash[],
-      };
-
       return {
-        address: (await retrieveL1NullifierAddress()) as Hash,
-        abi: IL1Nullifier,
+        address: target,
+        abi: abi.IL1NullifierABI,
         account: onboardStore.account.address!,
         functionName: "finalizeDeposit",
-        args: [finalizeDepositParams],
+        args: [p],
       } as const;
     }
   };

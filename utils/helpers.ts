@@ -174,30 +174,3 @@ export function getTokensWithCustomBridgeTokens(
 
   return sortedTokens;
 }
-
-// @zksyncos
-// Helpers for identifying withdrawal (L2-L1) transaction status
-
-export function selectL2ToL1LogIndex(logs: any[]): number | null {
-  if (!Array.isArray(logs) || logs.length === 0) return null;
-  const i = logs.findIndex((l) => l?.is_service === true);
-  return i >= 0 ? i : 0;
-}
-
-function extractRevertData(err: any): `0x${string}` | null {
-  const hex = err?.data ?? err?.cause?.data ?? err?.cause?.cause?.data ?? err?.details;
-  if (typeof hex === "string" && hex.startsWith("0x")) return hex as `0x${string}`;
-  const meta: string[] | undefined = err?.metaMessages;
-  if (Array.isArray(meta)) {
-    const line = meta.find((l) => l.includes("0x"));
-    const m = line?.match(/0x[0-9a-fA-F]+/);
-    if (m) return m[0] as `0x${string}`;
-  }
-  return null;
-}
-
-// 0xa969e486 === LocalRootIsZero()
-const LOCAL_ROOT_IS_ZERO_SELECTOR = "0xa969e486" as const;
-
-export const isLocalRootIsZero = (err: any) =>
-  extractRevertData(err)?.slice(0, 10).toLowerCase() === LOCAL_ROOT_IS_ZERO_SELECTOR;
