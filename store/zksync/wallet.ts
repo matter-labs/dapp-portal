@@ -1,3 +1,5 @@
+import { createEthersClient } from "@matterlabs/zksync-js/ethers";
+import { VoidSigner } from "ethers";
 import { $fetch } from "ofetch";
 import { L1Signer, L1VoidSigner, BrowserProvider, Signer } from "zksync-ethers";
 
@@ -54,6 +56,12 @@ export const useZkSyncWalletStore = defineStore("zkSyncWallet", () => {
       web3Provider,
       await providerStore.requestProvider()
     ) as unknown as L1Signer;
+  };
+  // Reads, quotes and unsigned transactions only: the connected wallet signs and sends
+  const getReadOnlyZkSyncClient = async () => {
+    const l1 = new BrowserProvider(onboardStore.getPublicClient() as any, "any");
+    const signer = new VoidSigner(account.value.address || L2_BASE_TOKEN_ADDRESS, l1);
+    return createEthersClient({ l1, l2: await providerStore.requestProvider(), signer });
   };
 
   const {
@@ -222,6 +230,7 @@ export const useZkSyncWalletStore = defineStore("zkSyncWallet", () => {
     getSigner,
     getL1Signer,
     getL1VoidSigner,
+    getReadOnlyZkSyncClient,
 
     balance,
     balanceInProgress: computed(() => balanceInProgress.value),
