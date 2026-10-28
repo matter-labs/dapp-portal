@@ -115,6 +115,20 @@ const publicChains: ZkSyncNetwork[] = [
     l1Network: l1Networks.sepolia,
   },
   {
+    id: 312,
+    key: "era-testnet",
+    name: "ZKsync Era Testnet",
+    rpcUrl: "https://rpc.zksync-era-testnet.zksync.dev",
+    blockExplorerUrl: "https://block-explorer.zksync-era-testnet.zksync.dev",
+    blockExplorerApi: "https://block-explorer-api.zksync-era-testnet.zksync.dev",
+    displaySettings: {
+      onramp: false,
+      showPartnerLinks: false,
+      isTestnet: true,
+    },
+    l1Network: l1Networks.sepolia,
+  },
+  {
     id: 270,
     key: "stage",
     name: "ZKsync Stage",
@@ -135,6 +149,7 @@ const publicChains: ZkSyncNetwork[] = [
     blockExplorerUrl: "https://explorer.era-gateway-mainnet.zksync.dev",
     blockExplorerApi: "https://block-explorer-api.era-gateway-mainnet.zksync.dev",
     l1Network: l1Networks.mainnet,
+    hidden: true,
     displaySettings: {
       onramp: false,
       showPartnerLinks: false,
@@ -155,6 +170,7 @@ const publicChains: ZkSyncNetwork[] = [
     blockExplorerUrl: "https://explorer.era-gateway-testnet.zksync.dev",
     blockExplorerApi: "https://block-explorer.era-gateway-testnet.zksync.dev",
     l1Network: l1Networks.sepolia,
+    hidden: true,
     displaySettings: {
       onramp: false,
       showPartnerLinks: false,
