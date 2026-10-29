@@ -8,11 +8,22 @@
       warranties. Use of any of the features available through this website is done so entirely at your own risk.
     </p>
 
-    <CommonCheckboxWithText ref="checkbox" v-model="warningChecked" class="mt-3">
+    <CommonCheckboxWithText
+      ref="checkbox"
+      v-model="warningChecked"
+      class="mt-3"
+      data-testid="terms-and-conditions-checkbox"
+    >
       I agree to the <a href="https://zksync.io/terms" target="_blank" class="checkbox-link">Terms of Service</a> and
       <a href="https://zksync.io/privacy" target="_blank" class="checkbox-link">Privacy Policy</a>
     </CommonCheckboxWithText>
-    <CommonButton class="mt-8 w-full" variant="primary" :disabled="!warningChecked" @click="proceed()">
+    <CommonButton
+      class="mt-8 w-full"
+      variant="primary"
+      :disabled="!warningChecked"
+      data-testid="proceed-button"
+      @click="proceed()"
+    >
       Proceed
     </CommonButton>
   </CommonModal>

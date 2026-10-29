@@ -1,6 +1,6 @@
 import { expect } from "@playwright/test";
 
-import { NetworkSwitcher } from "../data/data";
+import { NetworkSwitcher, UrlParamNetworks } from "../data/data";
 import { Helper } from "../helpers/helper";
 import { config } from "../support/config";
 
@@ -34,6 +34,7 @@ export class BasePage {
   }
 
   async dblClick(element: any) {
+    await this.world.page?.waitForSelector(element, { timeout: config.defaultTimeout.timeout });
     await this.world.page?.locator(element).first().dblclick({ force: true, timeout: config.increasedTimeout.timeout });
   }
 
@@ -49,9 +50,20 @@ export class BasePage {
 
   async isImOnTheMainPage() {
     const expectedURL = this.world.page?.url();
-    const mainPageWithNetworkName = `${config.BASE_URL}${NetworkSwitcher.zkSyncEraGoerli}`;
-    const mainPageDefault = `${config.BASE_URL}/`;
+    const mainPageWithNetworkName = `${config.BASE_URL}/bridge?${UrlParamNetworks.networkEraSepolia}`;
+    const mainPageDefault = `${config.BASE_URL}/bridge`;
     if (expectedURL == mainPageWithNetworkName || expectedURL == mainPageDefault) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  async isImOnTheAssetsPage() {
+    const expectedURL = this.world.page?.url();
+    const assetsPageWithNetworkName = `${config.BASE_URL}/assets?${UrlParamNetworks.networkEraSepolia}`;
+    const assetsPageDefault = `${config.BASE_URL}/assets`;
+    if (expectedURL == assetsPageWithNetworkName || expectedURL == assetsPageDefault) {
       return true;
     } else {
       return false;
@@ -71,6 +83,7 @@ export class BasePage {
 
   async clickBy(elementType: string, value: string) {
     element = await this.returnElementByType(elementType, value);
+    await element.isEnabled();
     await element.click(config.increasedTimeout);
   }
 
@@ -174,7 +187,7 @@ export class BasePage {
   }
 
   async getElementByPlaceholder(placeholder: string) {
-    element = await this.world.page?.locator(`//*[@placeholder='${placeholder}']`);
+    element = await this.world.page?.locator(`//*[@placeholder="${placeholder}"]`);
     await element.scrollIntoViewIfNeeded();
     return await element;
   }

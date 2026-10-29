@@ -30,6 +30,7 @@
               :key="item.l2Address ? `${item.address}-${item.l2Address}` : item.address"
               class="token-line"
               v-bind="item"
+              data-testid="token-select-button"
               @click="selectedToken = item"
             />
           </CommonLineButtonsGroup>
@@ -45,6 +46,7 @@
                 v-bind="item"
                 :key="item.l2Address ? `${item.address}-${item.l2Address}` : item.address"
                 variant="light"
+                data-testid="token-select-button"
                 @click="selectedToken = item"
               />
             </CommonLineButtonsGroup>
